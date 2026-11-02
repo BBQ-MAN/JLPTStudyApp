@@ -1,0 +1,215 @@
+[
+ {
+  "key": "androidx-compose-bom",
+  "name": "androidx.compose:compose-bom",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-compose-ui",
+  "name": "androidx.compose.ui:ui",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-compose-ui-tooling-preview",
+  "name": "androidx.compose.ui:ui-tooling-preview",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-compose-ui-tooling",
+  "name": "androidx.compose.ui:ui-tooling",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": false
+ },
+ {
+  "key": "androidx-compose-ui-test-junit4",
+  "name": "androidx.compose.ui:ui-test-junit4",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": false
+ },
+ {
+  "key": "androidx-compose-ui-test-manifest",
+  "name": "androidx.compose.ui:ui-test-manifest",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": false
+ },
+ {
+  "key": "androidx-compose-material3",
+  "name": "androidx.compose.material3:material3",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-compose-material3-adaptive-navigation-suite",
+  "name": "androidx.compose.material3:material3-adaptive-navigation-suite",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-core",
+  "name": "androidx.core:core",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-activity-compose",
+  "name": "androidx.activity:activity-compose",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-lifecycle-runtime-compose",
+  "name": "androidx.lifecycle:lifecycle-runtime-compose",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-lifecycle-viewmodel-compose",
+  "name": "androidx.lifecycle:lifecycle-viewmodel-compose",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-navigation-compose",
+  "name": "androidx.navigation:navigation-compose",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-room-runtime",
+  "name": "androidx.room:room-runtime",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-room-ktx",
+  "name": "androidx.room:room-ktx",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "androidx-room-compiler",
+  "name": "androidx.room:room-compiler",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": false
+ },
+ {
+  "key": "kotlinx-coroutines-core",
+  "name": "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+  "license": "Apache-2.0",
+  "url": "https://github.com/Kotlin/kotlinx.coroutines",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "kotlinx-coroutines-android",
+  "name": "org.jetbrains.kotlinx:kotlinx-coroutines-android",
+  "license": "Apache-2.0",
+  "url": "https://github.com/Kotlin/kotlinx.coroutines",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "kotlinx-coroutines-test",
+  "name": "org.jetbrains.kotlinx:kotlinx-coroutines-test",
+  "license": "Apache-2.0",
+  "url": "https://github.com/Kotlin/kotlinx.coroutines",
+  "distributed": false
+ },
+ {
+  "key": "kotlinx-serialization-json",
+  "name": "org.jetbrains.kotlinx:kotlinx-serialization-json",
+  "license": "Apache-2.0",
+  "url": "https://github.com/Kotlin/kotlinx.serialization",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "turbine",
+  "name": "app.cash.turbine:turbine",
+  "license": "Apache-2.0",
+  "url": "https://github.com/cashapp/turbine",
+  "distributed": false
+ },
+ {
+  "key": "robolectric",
+  "name": "org.robolectric:robolectric",
+  "license": "MIT",
+  "url": "https://github.com/robolectric/robolectric",
+  "distributed": false
+ },
+ {
+  "key": "roborazzi",
+  "name": "io.github.takahirom.roborazzi:roborazzi",
+  "license": "Apache-2.0",
+  "url": "https://github.com/takahirom/roborazzi",
+  "distributed": false
+ },
+ {
+  "key": "roborazzi-compose",
+  "name": "io.github.takahirom.roborazzi:roborazzi-compose",
+  "license": "Apache-2.0",
+  "url": "https://github.com/takahirom/roborazzi",
+  "distributed": false
+ },
+ {
+  "key": "roborazzi-junit-rule",
+  "name": "io.github.takahirom.roborazzi:roborazzi-junit-rule",
+  "license": "Apache-2.0",
+  "url": "https://github.com/takahirom/roborazzi",
+  "distributed": false
+ },
+ {
+  "key": "junit",
+  "name": "junit:junit",
+  "license": "EPL-1.0",
+  "url": "https://junit.org/junit4/",
+  "distributed": false
+ },
+ {
+  "key": "material-symbols",
+  "name": "Material Symbols",
+  "license": "Apache-2.0",
+  "url": "https://fonts.google.com/icons",
+  "distributed": true,
+  "fullText": "apache-2.0.txt"
+ },
+ {
+  "key": "py-fsrs",
+  "name": "py-fsrs",
+  "license": "MIT",
+  "url": "https://github.com/open-spaced-repetition/py-fsrs",
+  "distributed": true,
+  "fullText": "py-fsrs.txt"
+ }
+]

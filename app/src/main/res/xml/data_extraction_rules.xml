@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 31+ 백업·기기 이전: 학습 기록 DB만(architecture.md 5.1). -->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="database" path="study.db" />
+        <include domain="database" path="study.db-wal" />
+        <include domain="database" path="study.db-shm" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="database" path="study.db" />
+        <include domain="database" path="study.db-wal" />
+        <include domain="database" path="study.db-shm" />
+    </device-transfer>
+</data-extraction-rules>

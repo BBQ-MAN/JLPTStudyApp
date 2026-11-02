@@ -1,0 +1,90 @@
+[
+ {
+  "id": "S-01.attribution",
+  "row": "| S-01.attribution | 저작자 표시 문구(제안) | \"This app uses the JMdict/EDICT and KANJIDIC dictionary files. These files are the property of the Electronic Dictionary Research and Development Group, and are used in conformance with the Group's licence.\" + 링크(S-01.attribution-links). EDRDG 소프트웨어 패키지 예시 문구에서 \"package\"만 \"app\"으로 바꾼 형태 | https://www.edrdg.org/edrdg/sample.html \"Sample Acknowledgement for a Software Package\": \"This package uses the JMdict/EDICT and KANJIDIC dictionary files. These files are the property of the Electronic Dictionary Research and Development Group, and are used in conformance with the Group's licence.\" ; 같은 페이지 \"(Any reasonable variant of the above is suitable.)\" | 미확정(수정됨, 재검증 필요) — 예시 문구 인용은 확정 / 이전 제안이 \"and KANJIDIC\"를 빼고 있어 반박됨, 넣어서 고침 |"
+ },
+ {
+  "id": "S-01.attribution-links",
+  "row": "| S-01.attribution-links | 표시 링크 | licence.html은 위키 URL(https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project)을 \"사용·인용할 수 있는\" 링크로 제시한다(필수 아님). 필수 요건은 문서·라이선스 파일 사본 또는 그 위치로의 링크다. 위키는 닫혔지만(봇 접속 문제) 같은 페이지의 정적 사본 https://www.edrdg.org/wiki/JMdict-EDICT_Dictionary_Project.html , https://www.edrdg.org/wiki/KANJIDIC_Project.html 이 열린다(2026-11-02 HTTP 200). 제안 링크: https://www.edrdg.org/edrdg/licence.html + 위 정적 사본(또는 문서 페이지 https://www.edrdg.org/jmdict/edict_doc.html) | licence.html \"For the EDICT, JMdict and KANJIDIC files, the following URLs may be used or quoted:\" ; \"provide links to either local copies of the documentation and licence files or to the locations of the files at Monash University or at the EDRDG site.\" ; https://www.edrdg.org/wiki/index.php/KANJIDIC_Project \"The documentation Wiki has been closed as a result of problems caused by large numbers of accesses from bots\" + \"Local Copies of Selected Pages\" | 미확정(수정됨, 재검증 필요) — 위키 URL 제시 확정 / \"안내만 나옴\" 서술은 반박되어 고침 / 대체 링크가 문서 링크 요건을 충족하는지는 미확정(EDRDG 문의 또는 사용자 판단) |"
+ },
+ {
+  "id": "S-01.version",
+  "row": "| S-01.version | 판·내려받기 URL | `JMdict_e.gz`(영어 뜻만), 헤더 \"JMdict created: 2026-11-01\", Last-Modified 2026-11-01 03:30:27 GMT, 10,591,979 B. URL http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz (https://www.edrdg.org/pub/Nihongo/JMdict_e.gz 도 같은 파일) | https://www.edrdg.org/jmdict/j_jmdict.html \"the current version with only the English translations\" ; \"From mid-2006 the JMdict file has been generated daily from the source database.\" | 확정 |"
+ },
+ {
+  "id": "S-01.pinning",
+  "row": "| S-01.pinning | 판 고정 방법 | 내려받기 URL은 판을 고정하지 않는다. `JMdict_e.gz`는 매일 다시 생성되어 같은 URL이 덮어쓰이고, 배포처 디렉터리에 날짜별 보관본이 없다. 매니페스트 `sha256`은 받은 파일을 검사할 뿐이다. 그래서 매니페스트 `pinning.method = \"snapshot\"`, `pinnedCopy = \"content/snapshot/\"`(architecture.md 6.7 방식 A). 판은 저장소에 커밋한 스냅샷 `content/snapshot/S-01-<version>.jsonl.gz`로 고정하고, 기본 빌드는 fetch하지 않으며 원 URL은 `refresh-snapshot` 때만 받는다. 스냅샷 커밋도 CC BY-SA 자료의 배포이므로 `content/snapshot/LICENSE.md`에 저작자 표시·라이선스 URI·변경 내용(원 자료에서 일부 필드만 뽑음)을 둔다 | j_jmdict.html \"From mid-2006 the JMdict file has been generated daily from the source database.\" ; http://ftp.edrdg.org/pub/Nihongo/ 목록(2026-11-02 열람, 날짜 붙은 JMdict·kanjidic2 파일 없음) ; architecture.md 6.7 ; CC BY-SA 4.0 legalcode §2(a)(1) \"reproduce and Share the Licensed Material, in whole or in part\" ; §3(a)(1) \"If You Share the Licensed Material (including in modified form), You must: …\" | 미확정(수정됨, 재검증 필요) — 방법을 architecture 6.7 결정(snapshot)으로 채움 |"
+ },
+ {
+  "id": "S-02.skip",
+  "row": "| S-02.skip | SKIP 코드 | 2014-12-12부터 CC BY-SA 4.0 International. 표시 시 Jack Halpern에게 귀속하고 http://www.kanji.org/ 링크 필요. 앱은 쓰지 않는다 | licence.html 8절 \"Note that the SKIP codes are under their own similar Creative Common licence. See Jack Halpern's conditions of use page.\" ; http://www.kanji.org/kanji/dictionaries/skip_permission.htm \"As of December 12, 2014, the SKIP coding system and all established SKIP codes have been placed under a Creative Commons Attribution-ShareAlike 4.0 International.\" / \"Appropriate credit must clearly attribute the system and codes to Jack Halpern, with a link to the website of the Kanji Dictionary Publishing Society at http://www.kanji.org/\" | 제외(미사용 확정) / 라이선스 서술 미확정(수정됨, 재검증 필요) — \"이름·버전 미기재\"는 반박되어 kanji.org 조건 페이지로 고침 |"
+ },
+ {
+  "id": "S-02.korean-credit",
+  "row": "| S-02.korean-credit | 한국어 음 저작자 표시 | 앱 출처 화면은 매니페스트 S-02 `extraCredits[0].text` **\"한국어 음: Charles Muller 제공(KANJIDIC2 경유)\"**를 그대로 보인다(architecture.md 6.6: 파이프라인과 화면이 문구를 가공하지 않음). 이전 매니페스트 값 \"Korean readings: Charles Muller\"에서 바꿨다. 이유: 앱 사용자가 한국어 화자이고, 권리자 이름은 licence.html 표기(Charles MULLER)를 로마자 그대로 둔다. `url`은 null(권리자별 페이지 없음, 카드의 `links`에 licence.html이 있음). `attribution` 원문(S-02.attribution)에는 한국어 음 문장이 없다 | S-02.special licence.html 8절 \"Charles MULLER: the Korean readings.\" EDRDG 문서에 별도 표시 요구 문장은 없음. CC BY-SA 4.0 §3(a)(1)(A)(i) \"identification of the creator(s) of the Licensed Material and any others designated to receive attribution\" ; architecture.md 6.6 `extraCredits` 항목 | 미확정(수정됨, 재검증 필요) — 문구 결정(analyst, 2026-11-02). 표시 의무 여부는 해석이 둘이라 그대로 미확정(보수적으로 표시, EDRDG 문의로 확정) |"
+ },
+ {
+  "id": "S-02.pinning",
+  "row": "| S-02.pinning | 판 고정 방법 | S-01.pinning과 같다. `kanjidic2.xml.gz`도 매일 같은 URL이 덮어쓰이고 날짜별 보관본이 없다. 매니페스트 `pinning.method = \"snapshot\"`, `pinnedCopy = \"content/snapshot/\"`(architecture.md 6.7 방식 A). 판은 저장소에 커밋한 스냅샷 `content/snapshot/S-02-<version>.jsonl.gz(급수 어휘에 나오는 문자의 4.2 필드만)`로 고정하고, 기본 빌드는 fetch하지 않으며 원 URL은 `refresh-snapshot` 때만 받는다. 스냅샷 커밋도 CC BY-SA 자료의 배포이므로 `content/snapshot/LICENSE.md`에 저작자 표시·라이선스 URI·변경 내용(원 자료에서 일부 필드만 뽑음)을 둔다 | 파일 헤더 date_of_creation 2026-11-01 ; ftp.edrdg.org/pub/Nihongo/ 목록 ; architecture.md 6.7 ; CC BY-SA 4.0 legalcode §2(a)(1) \"reproduce and Share the Licensed Material, in whole or in part\" ; §3(a)(1) \"If You Share the Licensed Material (including in modified form), You must: …\" | 미확정(수정됨, 재검증 필요) — 방법을 architecture 6.7 결정(snapshot)으로 채움 |"
+ },
+ {
+  "id": "S-02.version",
+  "row": "| S-02.version | 판·내려받기 URL | file_version 4, database_version 2026-305, date_of_creation 2026-11-01. http://ftp.edrdg.org/pub/Nihongo/kanjidic2.xml.gz (Last-Modified 2026-11-01 03:30:43 GMT, 1,488,573 B; https://www.edrdg.org/kanjidic/kanjidic2.xml.gz 와 크기 같음) | 파일 헤더 | 확정 |"
+ },
+ {
+  "id": "S-02.attribution",
+  "row": "| S-02.attribution | 저작자 표시 문구 | S-01.attribution 문구에 \"KANJIDIC\" 포함(EDRDG 예시 문구가 두 자료를 함께 표시). 매니페스트 S-02 `attribution`은 S-01과 같은 문장이다 | https://www.edrdg.org/edrdg/sample.html | 확정 |"
+ },
+ {
+  "id": "S-05.license",
+  "row": "| S-05.license | Waller 목록 라이선스 | Creative Commons \"BY\", 판매 품목 제외. 버전 표기 없음. 상업·비상업 모두 허용, 사이트 출처 표시 필요(링크 권장) | 같은 보관본 \"Everything on this site (that I'm not selling), is licenced under Creative Commons \"BY\".\" / \"use anything here however you like (commercial or non-commercial), but credit my site. (A link would be nice.)\" | 확정(보관본 기준). 버전을 몰라 표시 조건은 L-04.waller에서 미확정 |"
+ },
+ {
+  "id": "S-06.license",
+  "row": "| S-06.license | yomitan-jlpt-vocab 라이선스 | CC BY-SA 4.0(저장소 LICENSE.txt \"Attribution-ShareAlike 4.0 International\") | https://github.com/stephenmk/yomitan-jlpt-vocab LICENSE.txt, GitHub API license CC-BY-SA-4.0 | 확정 |"
+ },
+ {
+  "id": "S-06.origin",
+  "row": "| S-06.origin | 원 목록과의 관계 | Waller 목록(CC BY)을 가져와 단어마다 JMdict 항목 ID를 붙이고 드문 표기를 흔한 표기로 바꿈 | README \"JLPT data is sourced from Jonathan Waller's JLPT Resources page under the terms of the Creative Commons BY license.\" / \"For each word on Waller's lists, I have added an entry ID for the corresponding entry in the JMDict database.\" | 확정 |"
+ },
+ {
+  "id": "S-06.content",
+  "row": "| S-06.content | 구성 | 원본 CSV는 `original_data/n1~n5.csv`, 열 `jmdict_seq,kana,kanji,waller_definition`. 행 수(머리글 포함) N5 685, N4 641, N3 1,731, N2 1,813, N1 3,428. 그 밖에 Yomitan 사전 파일 `yomitan-jlpt-vocab/index.json`, `term_meta_bank_1~5.json`이 있다 | 저장소 파일 직접 집계(main, b062d4e) | 미확정 — 열·행 수 확정 / \"데이터 파일은 CSV뿐\"으로 읽히던 서술을 고쳐 재검증 |"
+ },
+ {
+  "id": "S-06.files",
+  "row": "| S-06.files | 입력 파일과 체크섬 | 매니페스트 `files`에 커밋 고정 URL 5개. `https://raw.githubusercontent.com/stephenmk/yomitan-jlpt-vocab/b062d4e38c4bdd0950ae1d4ec55f04b176182e03/original_data/n{5,4,3,2,1}.csv`. sha256: n5 `07dc6f19…533a`, n4 `a14dcc7f…eb4`, n3 `bd4d68c5…a3ac`, n2 `42a44133…a214`, n1 `7a58f058…2b32`(전체 값은 매니페스트). 이전 `downloadUrl`(GitHub tree 주소)은 HTML 목록 페이지라 쓰지 않는다 | 2026-11-02 커밋 고정 raw URL로 내려받아 `shasum -a 256` 계산, 줄 수가 S-06.content와 같음 | 미확정(검증 대기) |"
+ },
+ {
+  "id": "S-06.credit",
+  "row": "| S-06.credit | 원 목록 크레딧 | Waller 사이트 크레딧은 매니페스트 `extraCredits`(\"Based on Jonathan Waller's JLPT Resources (CC BY)\", http://www.tanos.co.uk/jlpt/)에 둔다. 링크는 원 작성자가 권하는 사항(필수 아님) | S-05.license \"but credit my site. (A link would be nice.)\" | 미확정(검증 대기) |"
+ },
+ {
+  "id": "S-06.compat",
+  "row": "| S-06.compat | 원 목록과 라이선스 정합 | BY 자료를 BY-SA 4.0 파생물에 넣는 것은 CC FAQ상 허용. 원 목록 BY의 버전 미상은 S-05.license에 남음 | https://creativecommons.org/faq/ \"Works licensed under CC BY may be incorporated into works that are licensed under CC BY-SA.\" | 미확정 — FAQ 문장 확정 / 정합은 원 목록 BY 버전을 알아야 확정(S-05 원 사이트 재확인 또는 작성자 문의) |"
+ },
+ {
+  "id": "S-11.license",
+  "row": "| S-11.license | 라이선스 | Apache License 2.0 | https://github.com/google/material-design-icons README \"License\" 절 \"We have made these icons available for you to incorporate into your products under the Apache License Version 2.0\" ; 저장소 LICENSE 첫 줄 \"Apache License Version 2.0, January 2004\" ; GitHub API license `Apache-2.0` | 미확정(검증 대기) |"
+ },
+ {
+  "id": "S-11.attribution",
+  "row": "| S-11.attribution | 저작자 표시 | 배포처는 앱 정보 화면 표시를 바라지만 요구하지 않는다. 다만 Apache 2.0 §4(a)는 재배포 시 라이선스 사본 제공을 요구하므로 출처 화면에 라이선스 이름·전문 링크(또는 사본)를 둔다. 저장소에 NOTICE 파일은 없다(2026-11-02 HTTP 404) | README \"We'd love attribution in your app's *about* screen, but it's not required.\" ; Apache 2.0 §4(a) \"You must give any other recipients of the Work or Derivative Works a copy of this License\" | 검증 대기 — §4(a) 인용은 법률 전문 https://www.apache.org/licenses/LICENSE-2.0.txt 4절 \"(a) You must give any other recipients of the Work or Derivative Works a copy of this License; and\"와 글자 그대로 일치(2026-11-02 대조) / 확정은 license-verify |"
+ },
+ {
+  "id": "S-11.version",
+  "row": "| S-11.version | 판·받는 곳 | master 커밋 10ecc14(2026-10-23). 파일 경로 `symbols/android/<이름>/materialsymbolsrounded/<이름>_24px.xml`(home으로 커밋 고정 URL HTTP 200 확인) | GitHub API commits/master ; raw.githubusercontent.com/google/material-design-icons/10ecc14…/symbols/android/home/materialsymbolsrounded/home_24px.xml | 미확정(검증 대기) |"
+ },
+ {
+  "id": "L-01.code",
+  "row": "| L-01.code | 앱 코드 분리 근거 | EDRDG는 데이터를 쓰는 소프트웨어가 오픈소스일 필요가 없다고 밝힘. CC BY-SA 4.0의 변형물은 라이선스 자료에서 파생·기초하고 그 자료를 권리자 허락이 필요한 방식으로 번역·변경·배열·변환·그 밖의 방법으로 수정한 자료다(DB는 §4(b) 별도). 데이터를 읽기만 하는 앱 코드는 이에 해당하지 않는다고 본다 | licence.html \"Software using these files does not have to be under any form of open-source licence.\" ; §1(a) \"Adapted Material means material subject to Copyright and Similar Rights that is derived from or based upon the Licensed Material and in which the Licensed Material is translated, altered, arranged, transformed, or otherwise modified in a manner requiring permission under the Copyright and Similar Rights held by the Licensor.\" | 미확정(수정됨, 재검증 필요) — EDRDG 문장 확정 / \"번역·변경·배열에 한정\"은 반박되어 정의 전문으로 고침 |"
+ },
+ {
+  "id": "K-03.input",
+  "row": "| K-03.input | 번역 입력 범위 | 영어 뜻(`JMdict_e`)만 입력으로 쓴다. 다른 언어 뜻은 쓰지 않는다(별도 저작권). JMdict에는 한국어 뜻이 없다(`xml:lang=\"kor\"` 131개는 어원 표시 `lsource`) | S-01.otherlang, S-01.korean | 미확정(수정됨, 재검증 필요) — \"한국어 뜻 131개\" 반박되어 고침 |"
+ },
+ {
+  "id": "S-06.compat-allversions",
+  "row": "| S-06.compat-allversions | 원 목록 BY 버전 미상의 영향 | Waller 원 목록은 CC \"BY\"(버전 표기 없음)이다. CC BY 1.0·2.0·2.5·3.0·4.0 Generic/Unported/International 법률 전문은 모두 상업적 이용과 변형물(Derivative Works/Adapted Material) 작성·배포를 허락하고 저작자 표시를 요구하며, 변형물에 BY-SA 4.0을 적용하는 것을 막지 않는다. 그러므로 어느 판이든 S-06(BY-SA 4.0)과 콘텐츠 DB(BY-SA 4.0)에 포함할 수 있고, 표시는 Waller 사이트 크레딧(링크) + 'CC BY(판 표기 없음)'으로 한다 | 각 판 legalcode(https://creativecommons.org/licenses/by/1.0/legalcode, /2.0/legalcode, /2.5/legalcode, /3.0/legalcode, /4.0/legalcode), CC FAQ \"Works licensed under CC BY may be incorporated into works that are licensed under CC BY-SA.\", 보관본 sharing 페이지 | 검증 대기 |"
+ }
+]

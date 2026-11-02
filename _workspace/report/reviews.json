@@ -1,0 +1,50 @@
+[
+ {
+  "stage": "설계 검증(ECC: architect·a11y·visual·정합성)",
+  "found": "79건",
+  "handled": "확정 68 반영, 기각 11",
+  "left": "정합성 재검증 18건 중 확정 16 반영 → 문서 간 low·medium 8건은 구현 중 해소"
+ },
+ {
+  "stage": "M1 SRS",
+  "found": "low 4",
+  "handled": "1라운드 통과",
+  "left": "SrsConfig 입력 검증 등 low"
+ },
+ {
+  "stage": "M2 앱 골격",
+  "found": "라운드마다 새 medium(로캘·루비 줄바꿈·탭 대비·포커스 등 10여 건)",
+  "handled": "3회 실행 끝에 통과(수렴 규칙 P-REV 적용)",
+  "left": "실기기 글꼴 확인"
+ },
+ {
+  "stage": "M3 파이프라인 v1",
+  "found": "medium 2 등",
+  "handled": "1라운드 수정 후 통과",
+  "left": "low 4"
+ },
+ {
+  "stage": "M4 복습 세션",
+  "found": "high 1·medium 다수",
+  "handled": "3라운드, 마지막 차단 항목(낡은 스크린샷)은 메인이 재기록·검증",
+  "left": "실기기: 강제 종료 후 기록(에뮬레이터에서 통과), TalkBack"
+ },
+ {
+  "stage": "M5~M7 홈·설정·사전·출처 화면",
+  "found": "라운드별 medium",
+  "handled": "모두 통과, 후속 medium 2(온보딩 상태·테스트 입력) 수정",
+  "left": "low 11"
+ },
+ {
+  "stage": "M8~M11 실데이터·한국어 뜻",
+  "found": "라운드별 medium",
+  "handled": "모두 통과, 후속 medium(content_version 입력) 수정",
+  "left": "M8 커밋 조건, low 12"
+ },
+ {
+  "stage": "최종 MVP 검토(QA·시각·접근성·콘텐츠)",
+  "found": "23건(high 1·medium 10·low 12)",
+  "handled": "확정 6 모두 수정(훈독 표기, 한자 도입 순서, 200% 정렬, 가로 레일, 검색창 낭독), 기각 4·보류 1",
+  "left": "low 12(연체사 품사 표시는 메인이 수정), 회귀 스크린샷 미추가 low 1"
+ }
+]

@@ -1,0 +1,94 @@
+[
+ {
+  "path": "_workspace/report/img/01_first_launch.png",
+  "caption": "첫 실행: 급수 선택(S01) — N5만 콘텐츠 있음, '공식 아님' 고지"
+ },
+ {
+  "path": "_workspace/report/img/02_home.png",
+  "caption": "홈: 오늘의 학습, 한국어 뜻 안내 카드"
+ },
+ {
+  "path": "_workspace/report/img/03_review_front.png",
+  "caption": "플래시카드 앞면(会う)"
+ },
+ {
+  "path": "_workspace/report/img/04_review_back.png",
+  "caption": "뒷면: 후리가나·품사·뜻·출처 칩·평가 4버튼"
+ },
+ {
+  "path": "_workspace/report/img/06_session_done.png",
+  "caption": "세션 완료"
+ },
+ {
+  "path": "_workspace/report/img/08_home_after_kill.png",
+  "caption": "강제 종료 후 재실행: 기록 유지"
+ },
+ {
+  "path": "_workspace/report/img/09_dict_words.png",
+  "caption": "사전(단어)"
+ },
+ {
+  "path": "_workspace/report/img/10_word_detail.png",
+  "caption": "단어 상세"
+ },
+ {
+  "path": "_workspace/report/img/11_provenance_sheet.png",
+  "caption": "출처·검수 칩 하단 시트"
+ },
+ {
+  "path": "_workspace/report/img/30_kanji_detail_kun.png",
+  "caption": "한자 상세(上): 훈독 표기 정리"
+ },
+ {
+  "path": "_workspace/report/img/13_settings.png",
+  "caption": "설정"
+ },
+ {
+  "path": "_workspace/report/img/14_about_top.png",
+  "caption": "출처와 라이선스: 고지·DB 라이선스"
+ },
+ {
+  "path": "_workspace/report/img/15_about_scroll2.png",
+  "caption": "출처와 라이선스: KANJIDIC2·급수 목록 카드"
+ },
+ {
+  "path": "_workspace/report/img/20_dark_home.png",
+  "caption": "다크 모드 홈"
+ },
+ {
+  "path": "_workspace/report/img/21_dark_review_back.png",
+  "caption": "다크 모드 한자 카드(開)"
+ },
+ {
+  "path": "_workspace/report/img/24_font200_home.png",
+  "caption": "글꼴 200% 홈"
+ },
+ {
+  "path": "_workspace/report/img/25_font200_review_back.png",
+  "caption": "글꼴 200% 한자 카드"
+ },
+ {
+  "path": "_workspace/report/img/31_land_home_rail.png",
+  "caption": "가로 화면: 레일 내비게이션"
+ },
+ {
+  "path": "_workspace/report/img/23_land_review_back.png",
+  "caption": "가로 화면: 두 칸 복습"
+ },
+ {
+  "path": "_workspace/report/img/26_airplane_review.png",
+  "caption": "비행기 모드에서 학습"
+ },
+ {
+  "path": "_workspace/report/img/27_launcher_icon.png",
+  "caption": "런처 아이콘(Codex 생성)"
+ },
+ {
+  "path": "_workspace/report/img/rb_error_content_db_light.png",
+  "caption": "Roborazzi: 콘텐츠 DB 열기 실패(S90)"
+ },
+ {
+  "path": "_workspace/report/img/rb_level_unavailable_light.png",
+  "caption": "Roborazzi: 급수 선택 콘텐츠 없음 상태"
+ }
+]

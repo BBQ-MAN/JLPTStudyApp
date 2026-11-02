@@ -1,0 +1,153 @@
+{
+ "runs": [
+  {
+   "workflow": "license-verify",
+   "runId": "wf_ceec91c4-2d1",
+   "date": "2026-11-02",
+   "args": {
+    "feedback": "decisions.md D-01/D-02 반영, CC BY-SA 버전·호환 근거 행, 급수 목록 후보 복수 조사"
+   }
+  },
+  {
+   "workflow": "license-verify",
+   "runId": "wf_ceec91c4-2d1",
+   "date": "2026-11-02",
+   "args": {
+    "resumeFromRunId": "wf_ceec91c4-2d1"
+   },
+   "note": "두 번 중단(00:33, 01:35) 후 재개해 완료. 주장 278, 확정 197/미확정 63/반박 18, 에이전트 559"
+  },
+  {
+   "workflow": "design-review",
+   "runId": "wf_31d285cb-453",
+   "date": "2026-11-02",
+   "args": {},
+   "note": "지적 79, 확정 68, 기각 11, 반영 112, declined 17, unapplied 10, postRevision 16, 에이전트 87"
+  },
+  {
+   "workflow": "design-review",
+   "runId": "wf_b3f77f2d-fa5",
+   "date": "2026-11-02",
+   "args": {
+    "only": [
+     "consistency"
+    ]
+   },
+   "note": "후속 정리(architect→ui-designer·analyst→architect) 뒤 정합성 재검증"
+  },
+  {
+   "workflow": "license-reverify-core(인라인)",
+   "runId": "wf_bd0a07b8-d07",
+   "date": "2026-11-02",
+   "note": "핵심 22행: 확정 18, 미확정 2, 반박 2, 에이전트 45"
+  },
+  {
+   "workflow": "implement-milestones",
+   "runId": "wf_6a040cb4-b37",
+   "date": "2026-11-02",
+   "args": {
+    "milestones": [
+     "M1",
+     "M2",
+     "M3"
+    ],
+    "maxFixRounds": 2
+   }
+  },
+  {
+   "workflow": "license-reverify-core(인라인)",
+   "runId": "wf_64cc5195-70a",
+   "date": "2026-11-02",
+   "note": "반박·미확정 4행 수정 후 재검증 + S-06.waller-notice"
+  },
+  {
+   "workflow": "license-reverify-core(인라인)",
+   "runId": "wf_0e0389d0-888",
+   "date": "2026-11-02",
+   "note": "waller-notice 반박(급수별 제목)"
+  },
+  {
+   "workflow": "license-reverify-core(인라인)",
+   "runId": "wf_66784710-3cb",
+   "date": "2026-11-02",
+   "note": "waller-notice·credit 확정 → S-06 confirmed"
+  },
+  {
+   "workflow": "implement-milestones(reviewOnly)",
+   "runId": "wf_e3711341-628",
+   "date": "2026-11-02",
+   "args": {
+    "milestones": [
+     "M2"
+    ]
+   },
+   "note": "M2 failed: medium 4 residual"
+  },
+  {
+   "workflow": "implement-milestones(사본 wf_b2.js)",
+   "runId": "wf_2c26d78e-e1d",
+   "date": "2026-11-02",
+   "args": {
+    "milestones": [
+     "@M2(review)",
+     "M3",
+     "M4"
+    ],
+    "maxFixRounds": 3
+   },
+   "note": "M2 failed(3라운드, 새 medium 3), M3·M4 skipped"
+  },
+  {
+   "workflow": "implement-milestones(사본 wf_b3.js, 수렴 규칙)",
+   "runId": "wf_addb3f31-ec3",
+   "date": "2026-11-02",
+   "args": {
+    "milestones": [
+     "@M2(review)",
+     "M3",
+     "M4"
+    ],
+    "maxFixRounds": 3
+   },
+   "note": "중단 후 재개 완료: M2 awaiting-device, M3 done, M4 failed(스크린샷 낡음)→메인 재기록"
+  },
+  {
+   "workflow": "implement-milestones(사본 wf_b4.js)",
+   "runId": "wf_b8880c95-de3",
+   "date": "2026-11-02",
+   "args": {
+    "milestones": [
+     "M5",
+     "M6",
+     "M7"
+    ]
+   },
+   "note": "done 3, 에이전트 79"
+  },
+  {
+   "workflow": "implement-milestones(사본 wf_b5.js)",
+   "runId": "wf_42ec0e0f-c26",
+   "date": "2026-11-02",
+   "args": {
+    "milestones": [
+     "M8",
+     "M9",
+     "M10",
+     "M11"
+    ]
+   },
+   "note": "done 3, awaiting 1(커밋), 에이전트 77"
+  },
+  {
+   "workflow": "final-mvp-review(인라인)",
+   "runId": "wf_7ec68606-b58",
+   "date": "2026-11-02",
+   "note": "지적 23(확정 6 수정, low 12), 에이전트 18"
+  },
+  {
+   "workflow": "emulator+report",
+   "date": "2026-11-02",
+   "note": "_workspace/04_device_results.md, docs/review/JLPTStudyApp-review-20261102.html"
+  }
+ ]
+}

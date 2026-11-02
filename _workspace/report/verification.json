@@ -1,0 +1,52 @@
+[
+ {
+  "cmd": "`.claude/skills/android-build-verify/scripts/verify.sh` (check.sh + test + lintDebug + assembleDebug)",
+  "result": "**PASS** (종료 코드 0)",
+  "note": "최종 로그 `_workspace/build/verify_20261102_102712.log`"
+ },
+ {
+  "cmd": "앱 단위·Robolectric·Compose UI 테스트 (`:app:test`)",
+  "result": "214개 통과 / 실패 0",
+  "note": "39개 스위트"
+ },
+ {
+  "cmd": "`:core:srs:test` (FSRS-6 참조 벡터·성질·시간·결정성·세션 계획)",
+  "result": "33개 통과 / 실패 0",
+  "note": "py-fsrs test_review_card·test_memo_state 값 일치"
+ },
+ {
+  "cmd": "`python3 -I -m unittest discover -s content/pipeline`",
+  "result": "80개 통과",
+  "note": "파서·급수 어댑터·fetch·스냅샷 재현성·DB 생성·저작자 표시"
+ },
+ {
+  "cmd": "`content/pipeline/check.sh`",
+  "result": "OK",
+  "note": "출처 ID confirmed, 뜻 열 완비, SQLite 평문, 해시, 스키마 버전, 저작자 표시"
+ },
+ {
+  "cmd": "`./gradlew lintDebug`",
+  "result": "오류 0 / 경고 8 / 힌트 2",
+  "note": ""
+ },
+ {
+  "cmd": "Roborazzi 스크린샷 `recordRoborazziDebug` → `verifyRoborazziDebug`",
+  "result": "124장, verify 통과",
+  "note": "일본어 글리프 네모 없음(직접 열어 확인)"
+ },
+ {
+  "cmd": "콘텐츠 DB 재현성: `content/raw` 없이 `build.py` 두 번",
+  "result": "sha256 동일",
+  "note": "`99dcfcfa…`(content_version 수정 직후 기준)"
+ },
+ {
+  "cmd": "에뮬레이터(AVD Medium_Phone_API_37.0) 설치·실행",
+  "result": "통과 15 / 미확인 2",
+  "note": "`_workspace/04_device_results.md` — 미확인: ja-JP TTS, TalkBack"
+ },
+ {
+  "cmd": "출처·라이선스 검증 `license-verify` + 핵심 행 재검증 4회",
+  "result": "주장 278: 확정 197·미확정 63·반박 18 → 핵심 행 재검증으로 S-01·S-02·S-06·S-11 confirmed",
+  "note": "S-03·S-04·S-05·S-07·S-09·S-10·S-12 unconfirmed, S-08 excluded"
+ }
+]

@@ -1,0 +1,21 @@
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# Android/Gradle — 컴퓨터마다 다르거나 다시 만들 수 있는 파일
+local.properties
+.gradle/
+.kotlin/
+build/
+**/build/
+.idea/
+*.iml
+# 에이전트 빌드 로그
+_workspace/build/
+# 콘텐츠 원본 내려받기(파이프라인이 매니페스트의 URL·체크섬으로 다시 받는다. content-pipeline 스킬)
+/content/raw/
+# 파이프라인 중간 산출물·배포 묶음(content/snapshot은 커밋한다 - architecture.md 6.7)
+/content/work/
+/content/dist/
+
+# graft 검색용 로컬 설정
+/.ignore

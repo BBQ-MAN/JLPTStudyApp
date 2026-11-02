@@ -1,0 +1,316 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "eba25f458d6b20d2226bdbc7b5fa46c0",
+    "entities": [
+      {
+        "tableName": "content_meta",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`key` TEXT NOT NULL, `value` TEXT NOT NULL, PRIMARY KEY(`key`))",
+        "fields": [
+          {
+            "fieldPath": "key",
+            "columnName": "key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "value",
+            "columnName": "value",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "key"
+          ]
+        }
+      },
+      {
+        "tableName": "vocab",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `written` TEXT, `reading` TEXT NOT NULL, `level` INTEGER NOT NULL, `sort_key` INTEGER NOT NULL, `pos` TEXT NOT NULL, `source_id` TEXT NOT NULL, `level_source_id` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "written",
+            "columnName": "written",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reading",
+            "columnName": "reading",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "level",
+            "columnName": "level",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sortKey",
+            "columnName": "sort_key",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pos",
+            "columnName": "pos",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceId",
+            "columnName": "source_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "levelSourceId",
+            "columnName": "level_source_id",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_vocab_level_sort_key",
+            "unique": false,
+            "columnNames": [
+              "level",
+              "sort_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_vocab_level_sort_key` ON `${TABLE_NAME}` (`level`, `sort_key`)"
+          }
+        ]
+      },
+      {
+        "tableName": "vocab_meaning",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`vocab_id` TEXT NOT NULL, `ord` INTEGER NOT NULL, `text_ko` TEXT NOT NULL, `source_id` TEXT NOT NULL, `ko_source` TEXT NOT NULL, `ko_method` TEXT NOT NULL, `ko_review_status` TEXT NOT NULL, `ko_reviewed_at` TEXT, `ko_reviewer_kind` TEXT, PRIMARY KEY(`vocab_id`, `ord`))",
+        "fields": [
+          {
+            "fieldPath": "vocabId",
+            "columnName": "vocab_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ord",
+            "columnName": "ord",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "textKo",
+            "columnName": "text_ko",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceId",
+            "columnName": "source_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "koSource",
+            "columnName": "ko_source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "koMethod",
+            "columnName": "ko_method",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "koReviewStatus",
+            "columnName": "ko_review_status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "koReviewedAt",
+            "columnName": "ko_reviewed_at",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "koReviewerKind",
+            "columnName": "ko_reviewer_kind",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "vocab_id",
+            "ord"
+          ]
+        }
+      },
+      {
+        "tableName": "kanji",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`literal` TEXT NOT NULL, `level` INTEGER NOT NULL, `stroke_count` INTEGER NOT NULL, `freq` INTEGER, `on_readings` TEXT NOT NULL, `kun_readings` TEXT NOT NULL, `korean_readings` TEXT NOT NULL, `sort_key` INTEGER NOT NULL, `source_id` TEXT NOT NULL, PRIMARY KEY(`literal`))",
+        "fields": [
+          {
+            "fieldPath": "literal",
+            "columnName": "literal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "level",
+            "columnName": "level",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "strokeCount",
+            "columnName": "stroke_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "freq",
+            "columnName": "freq",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "onReadings",
+            "columnName": "on_readings",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kunReadings",
+            "columnName": "kun_readings",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "koreanReadings",
+            "columnName": "korean_readings",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sortKey",
+            "columnName": "sort_key",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceId",
+            "columnName": "source_id",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "literal"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_kanji_level_sort_key",
+            "unique": false,
+            "columnNames": [
+              "level",
+              "sort_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_kanji_level_sort_key` ON `${TABLE_NAME}` (`level`, `sort_key`)"
+          }
+        ]
+      },
+      {
+        "tableName": "vocab_kanji",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`kanji` TEXT NOT NULL, `vocab_id` TEXT NOT NULL, `source_id` TEXT NOT NULL, PRIMARY KEY(`kanji`, `vocab_id`))",
+        "fields": [
+          {
+            "fieldPath": "kanji",
+            "columnName": "kanji",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vocabId",
+            "columnName": "vocab_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceId",
+            "columnName": "source_id",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "kanji",
+            "vocab_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_vocab_kanji_kanji",
+            "unique": false,
+            "columnNames": [
+              "kanji"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_vocab_kanji_kanji` ON `${TABLE_NAME}` (`kanji`)"
+          }
+        ]
+      },
+      {
+        "tableName": "retired",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `retired_in` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "retiredIn",
+            "columnName": "retired_in",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'eba25f458d6b20d2226bdbc7b5fa46c0')"
+    ]
+  }
+}
