@@ -469,8 +469,8 @@
       "python3 -I -m unittest discover -s content/pipeline 통과, 테스트 수가 T01 기준선 80 이상",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo",
-    "note": "2026-11-03 T04 신설. content: true는 검수 기록(reviewerKind)이 화면의 검수 표시에 바로 이어지기 때문"
+    "status": "done",
+    "note": "2026-11-03 T04 신설. content: true는 검수 기록(reviewerKind)이 화면의 검수 표시에 바로 이어지기 때문 / 2026-11-03 wf_d782adba-963 done(수정 1라운드). 메인이 문법 시트 ko 열에 posKo·contrasts 번역을 더함(medium 보고분)"
   },
   {
     "id": "M12",
