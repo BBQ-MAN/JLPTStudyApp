@@ -9,11 +9,15 @@ import com.jlptstudy.app.data.content.RoomContentRepository
 import com.jlptstudy.app.data.study.RoomStudyRepository
 import com.jlptstudy.app.data.study.StudyDatabase
 import com.jlptstudy.app.data.study.StudyRepository
+import com.jlptstudy.app.speech.DeviceTtsSpeaker
+import com.jlptstudy.app.speech.Speaker
 import com.jlptstudy.srs.Fsrs6Scheduler
 import com.jlptstudy.srs.Scheduler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,6 +43,8 @@ class AppContainer(
         override suspend fun load() = throw java.io.IOException("no attribution")
         override suspend fun openSourceLicenses() = throw java.io.IOException("no licenses")
     },
+    /** 청해 ViewModel이 생성 때 하나 만들고 onCleared에서 그것만 shutdown한다. 앱 범위 인스턴스는 두지 않는다. */
+    val speakerFactory: () -> Speaker = { error("speakerFactory not provided") },
 ) {
     val scheduler: Scheduler = Fsrs6Scheduler()
 
@@ -98,6 +104,7 @@ class AppContainer(
             return AppContainer(
                 scope = scope,
                 attributionRepository = AssetAttributionRepository.create(app),
+                speakerFactory = { DeviceTtsSpeaker(app, CoroutineScope(SupervisorJob() + Dispatchers.Main)) },
                 openContent = { RoomContentRepository(ContentDatabase.open(app).contentDao()) },
                 openStudy = { RoomStudyRepository(StudyDatabase.open(app).studyDao()) },
             )

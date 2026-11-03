@@ -29,6 +29,10 @@ class ManifestTest {
         val perms = (0 until doc.getElementsByTagName("uses-permission").length)
             .map { (doc.getElementsByTagName("uses-permission").item(it) as Element).getAttributeNS(android, "name") }
         assertFalse(perms.toString(), "android.permission.INTERNET" in perms)
+        val q = doc.getElementsByTagName("queries").item(0) as Element
+        val actions = (0 until q.getElementsByTagName("action").length)
+            .map { (q.getElementsByTagName("action").item(it) as Element).getAttributeNS(android, "name") }
+        assertTrue(actions.toString(), "android.intent.action.TTS_SERVICE" in actions)
         assertEquals("true", doc.attr("application", "allowBackup"))
         assertEquals("@xml/data_extraction_rules", doc.attr("application", "dataExtractionRules"))
         assertEquals("@xml/backup_rules", doc.attr("application", "fullBackupContent"))
