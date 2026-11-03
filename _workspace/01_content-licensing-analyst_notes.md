@@ -41,3 +41,8 @@
 - 반박: 급수별 목록 제목 "미확인(HTTP 500)"이 틀림. curl로 2020 보관본 5개 재열람, 모두 HTTP 200, title·H1 "JLPT N5 vocab list"~"JLPT N1 vocab list" (N5 20200728231522, N4 20200629172633, N3 20200629172607, N2 20200629172602, N1 20200218172500). 500은 최신 2023-06-05 스냅샷만.
 - 반영: sources.md S-06.waller-notice (2)에 급수별 제목 추가 → 미확정(수정됨, 재검증 필요). manifest S-06 extraCredits[0] 문구에 급수별 제목 추가, S-06.credit 인용 맞춤 → 수정됨. S-06 status unconfirmed, D-06 조건 미충족·채택 보류 유지.
 - 코드 영향: 출처 화면이 extraCredits[0].text를 그대로 보이면 문구가 길어진다(줄바꿈 확인 필요). 파이프라인이 매니페스트를 다시 읽기만 하면 됨.
+
+## 2026-11-03 S-03 핵심 행 재검증 반영(U-2 A)
+- 결과: S-03.attribution·sharealike·pinning 모두 confirmed(검증자 2명). 핵심 행 7개 모두 확정 → 매니페스트 S-03 confirmed, checkedAt 2026-11-03.
+- sharealike는 사실 확정, 기준 문서(KanjiVG COPYING)는 P-S03 잠정(사용자 최종 검토 대기).
+- 후속(문서 내용은 바꾸지 않음): attribution 행 괄호 예시 문구와 매니페스트 modifications 문구 다름 / docs/spec/architecture.md 6.7 LICENSE.md 항목의 "CC BY-SA 4.0 재배포 조건"은 S-03(3.0)과 어긋남 / 태그 r20260714의 COPYING은 열지 않음(master만) / main.zip sha256 재계산 안 함(M13 파이프라인).

@@ -106,8 +106,8 @@
       "radical/element 속성",
       "stroke order numbers (kvg:StrokeNumbers, 앱이 획 경로 시작점에서 계산)"
     ],
-    "status": "unconfirmed",
-    "checkedAt": "2026-11-02",
+    "status": "confirmed",
+    "checkedAt": "2026-11-03",
     "links": [],
     "extraCredits": [],
     "pinning": {
