@@ -42,8 +42,9 @@ class CheckFailuresTest(TempRoot):
         self.has("FAIL: source vocab.source_id empty in 1 rows")
 
     def test_not_confirmed(self):
-        self.sql("UPDATE kanji SET source_id = 'S-03'")
-        self.has("FAIL: source S-03 not confirmed")
+        # S-08은 excluded로 고정된 행이라 다른 출처가 confirmed로 바뀌어도 이 검사가 유지된다(S-03은 T03에서 confirmed).
+        self.sql("UPDATE kanji SET source_id = 'S-08'")
+        self.has("FAIL: source S-08 not confirmed")
 
     def test_audio_file(self):
         (self.p.assets / "clip.mp3").write_bytes(b"x")
