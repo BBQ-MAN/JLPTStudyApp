@@ -162,6 +162,15 @@ def ko_problems(con, table, idcol, manifest):
     return out
 
 
+def check_refs(con):
+    """9.0: 빈 테이블이면 통과. 행이 있으면 kanji_stroke.literal ⊂ kanji.literal, grammar_example.grammar_id ⊂ grammar.id."""
+    out = []
+    for sql, tag in (("SELECT literal FROM kanji_stroke WHERE literal NOT IN (SELECT literal FROM kanji) ORDER BY literal", "refs kanji_stroke.literal not in kanji"),
+                     ("SELECT DISTINCT grammar_id FROM grammar_example WHERE grammar_id NOT IN (SELECT id FROM grammar) ORDER BY grammar_id", "refs grammar_example.grammar_id not in grammar")):
+        out += [f"FAIL: {tag}: {r[0]}" for r in con.execute(sql)]
+    return out
+
+
 def check_meanings(con, manifest):
     out = ko_problems(con, "vocab_meaning", "vocab_id", manifest)
     for (vid,) in con.execute("SELECT id FROM vocab WHERE id NOT IN (SELECT vocab_id FROM vocab_meaning) ORDER BY id"):
@@ -309,7 +318,7 @@ def run_checks(paths):
         kind = meta.get("kind", cfg["kind"])
         release = cfg["kind"] == "release" or kind == "release"
         out += check_kind(cfg, manifest, meta) + check_schema(paths, con) + check_sources(con, manifest)
-        out += check_ids(paths, con, kind) + check_meanings(con, manifest)
+        out += check_ids(paths, con, kind) + check_refs(con) + check_meanings(con, manifest)
         out += check_attribution(paths, manifest, db, cfg, release) + check_size(db, meta) + check_authored(paths, kind)
         if release:
             out += check_app_assets(manifest) + check_count(paths, con, meta, manifest)

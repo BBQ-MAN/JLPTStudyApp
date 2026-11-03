@@ -12,8 +12,8 @@ import kotlinx.coroutines.withContext
 
 // 릴리스에서 fallbackToDestructiveMigration을 쓰지 않는다. 스키마를 바꾸면 Migration과 테스트를 함께 낸다.
 @Database(
-    entities = [CardStateEntity::class, ReviewLogEntity::class, UserSettingsEntity::class],
-    version = 1,
+    entities = [CardStateEntity::class, ReviewLogEntity::class, UserSettingsEntity::class, QuizAttemptEntity::class, QuizAnswerEntity::class],
+    version = 2,
     exportSchema = true,
 )
 abstract class StudyDatabase : RoomDatabase() {
@@ -46,7 +46,8 @@ abstract class StudyDatabase : RoomDatabase() {
         }
 
         suspend fun open(context: Context): StudyDatabase = withContext(Dispatchers.IO) {
-            val db = Room.databaseBuilder(context.applicationContext, StudyDatabase::class.java, FILE_NAME).openHelperFactory(NoDeleteOnCorruptionFactory).build()
+            val db = Room.databaseBuilder(context.applicationContext, StudyDatabase::class.java, FILE_NAME)
+                .addMigrations(MIGRATION_1_2).openHelperFactory(NoDeleteOnCorruptionFactory).build()
             try {
                 db.openHelper.writableDatabase
             } catch (e: Throwable) {

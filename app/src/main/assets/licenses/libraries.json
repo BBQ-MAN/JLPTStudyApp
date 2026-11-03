@@ -124,6 +124,13 @@
   "distributed": false
  },
  {
+  "key": "androidx-room-testing",
+  "name": "androidx.room:room-testing",
+  "license": "Apache-2.0",
+  "url": "https://developer.android.com/jetpack/androidx",
+  "distributed": false
+ },
+ {
   "key": "kotlinx-coroutines-core",
   "name": "org.jetbrains.kotlinx:kotlinx-coroutines-core",
   "license": "Apache-2.0",

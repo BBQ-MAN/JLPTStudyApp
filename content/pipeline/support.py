@@ -110,7 +110,7 @@ class TempRoot(unittest.TestCase):
         d = Path(tempfile.mkdtemp(prefix="jlptpl-"))
         self.addCleanup(shutil.rmtree, d, True)
         p = Paths(d)
-        for rel in ("app/schemas/com.jlptstudy.app.data.content.ContentDatabase/1.json", "content/notices.ko.json"):
+        for rel in ("app/schemas/com.jlptstudy.app.data.content.ContentDatabase/2.json", "content/notices.ko.json"):
             (d / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(REPO / rel, d / rel)
         (d / "docs/content").mkdir(parents=True)
