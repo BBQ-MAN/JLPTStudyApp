@@ -634,7 +634,8 @@
       "core/quiz/src/main 에 System.currentTimeMillis, Clock.system, Instant.now, Random() (인자 없는 생성자) 호출이 없다(grep)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": " / 2026-11-03 wf_a41e74f7-eec done(dev/app e9d6c47)"
   },
   {
     "id": "M19a",
@@ -806,8 +807,8 @@
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0",
       "실기기 확인(unverified — 옛 DEV-2, 개발 종료 후 일괄 체크리스트, architecture.md 11.5): 일본어 음성 있는 기기에서 재생, 일본어 음성이 없는 상태에서 MissingJapaneseData 설치 안내, 청해 화면을 나갔다 다시 들어와도 재생된다, 화자별 피치 차이가 들린다"
     ],
-    "status": "todo",
-    "note": "U-7 변경(2026-11-03): DEV-2를 마일스톤으로 두지 않는다. 실기기 항목은 awaiting-device로 남기고 개발 종료 후 일괄 확인"
+    "status": "awaiting-device",
+    "note": "U-7 변경(2026-11-03): DEV-2를 마일스톤으로 두지 않는다. 실기기 항목은 awaiting-device로 남기고 개발 종료 후 일괄 확인 / 2026-11-03 wf_a41e74f7-eec 통과, 실기기만 남음(dev/app e9d6c47)"
   },
   {
     "id": "M23",
