@@ -7,7 +7,10 @@ from pathlib import Path
 
 import levels as lv
 import pl_authored as au
-from pl_common import CJK, Fail, jdump, latest_schema, read_jsonl, sha256_bytes, sha256_file, write_text
+import pl_grammar as gm
+import pl_listening as ls
+import pl_question as qs
+from pl_common import CJK, Fail, jdump, latest_schema, load_manifest, read_jsonl, sha256_bytes, sha256_file, write_text
 from pl_snapshot import read_snapshot
 
 
@@ -20,6 +23,8 @@ class Dataset:
         self.sources = {}  # content_meta.sources
         self.inputs = []  # (라벨, 바이트) — content_version 해시 입력
         self.spans, self.no_gloss, self.stale = [], [], []
+        self.grammar, self.grammar_examples = [], []
+        self.questions, self.exams, self.listening = [], [], []
 
 
 def add_input(ds, paths, p):
@@ -44,6 +49,45 @@ def meaning_rows(vid, rec, source_id):
             for i, t in enumerate(rec["meanings"])]
 
 
+def add_grammar(ds, paths, config):
+    """문법 작성 파일 → ds.grammar·grammar_example (9.1). 어휘를 다 모은 뒤 부른다(sort_key가 급수별 어휘 수 V를 쓴다)."""
+    recs, files = gm.load_grammar(paths, ds.kind, load_manifest(paths), config["levels"])
+    for f in files:
+        add_input(ds, paths, f)
+    v = {}
+    for r in ds.vocab:
+        v[r["level"]] = v.get(r["level"], 0) + 1
+    ds.grammar, ds.grammar_examples, ko = gm.grammar_rows(recs, v)
+    for rid, texts in ko:
+        ds.spans += au.jp_span_rows("authored", rid, texts)
+
+
+def add_questions(ds, paths, config, check_targets=True):
+    """문항·시험 템플릿 → ds.questions·ds.exams (9.2). 어휘·문법을 모은 뒤 부른다(targets가 이 빌드의 ID여야 한다)."""
+    known = None
+    if check_targets:
+        known = {v["id"] for v in ds.vocab} | {g["id"] for g in ds.grammar} | {k["literal"] for k in derive_kanji(ds)[0]}
+    recs, exams, files = qs.load_questions(paths, ds.kind, load_manifest(paths), config["levels"], known)
+    for f in files:
+        add_input(ds, paths, f)
+    ds.questions, ds.exams = qs.question_rows(recs), qs.exam_rows(exams)
+    for rid, texts in qs.ko_texts(recs):
+        ds.spans += au.jp_span_rows("authored", rid, texts)
+
+
+def add_listening(ds, paths, config, check_targets=True):
+    """청해 대본 → ds.listening (9.3.1). 어휘·문법을 모은 뒤 부른다(targets가 이 빌드의 ID여야 한다)."""
+    known = None
+    if check_targets:
+        known = {v["id"] for v in ds.vocab} | {g["id"] for g in ds.grammar} | {k["literal"] for k in derive_kanji(ds)[0]}
+    recs, files = ls.load_listening(paths, ds.kind, load_manifest(paths), config["levels"], known)
+    for f in files:
+        add_input(ds, paths, f)
+    ds.listening = ls.listening_rows(recs)
+    for rid, texts in ls.ko_texts(recs):
+        ds.spans += au.jp_span_rows("authored", rid, texts)
+
+
 def sample_dataset(paths, config):
     ds = Dataset("sample")
     d = paths.authored / "sample"
@@ -60,6 +104,9 @@ def sample_dataset(paths, config):
         ds.spans += au.jp_span_rows("authored", r["id"], r["meanings"])
     ds.kanji_info = {k["literal"]: {"stroke_count": k["strokeCount"], "freq": k.get("freq"),
                                     "on": k["on"], "kun": k["kun"], "ko": k["ko"]} for k in krecs}
+    add_grammar(ds, paths, config)
+    add_questions(ds, paths, config)
+    add_listening(ds, paths, config)
     return ds
 
 
@@ -246,6 +293,9 @@ def release_dataset(paths, config, manifest):
                      for c, k in snap["kanji"].items() if k["stroke_count"] is not None}
     ds.sources = {s: {"version": snap["sources"][s]["version"], "files": snap["sources"][s]["files"], "snapshot": snap["hashes"][s]}
                   for s in sorted(snap["hashes"])}
+    add_grammar(ds, paths, config)
+    add_questions(ds, paths, config)
+    add_listening(ds, paths, config)
     return ds
 
 
@@ -342,7 +392,10 @@ def build_db(paths, config, ds, out=print):
     schema_file = max((p for p in paths.schemas.glob("*.json") if p.stem.isdigit()), key=lambda p: int(p.stem))
     version = content_version(ds, config, schema_file.read_bytes())
     kanji, vk, missing = derive_kanji(ds)
-    retired = update_ids(paths, ds.kind, {"vocab": {v["id"] for v in ds.vocab}, "kanji": {k["literal"] for k in kanji}}, version)
+    retired = update_ids(paths, ds.kind, {"vocab": {v["id"] for v in ds.vocab}, "kanji": {k["literal"] for k in kanji},
+                                       **({"grammar": {g["id"] for g in ds.grammar}} if ds.grammar else {}),
+                                       **({"question": {q["id"] for q in ds.questions}} if ds.questions else {}),
+                                       **({"listening": {q["id"] for q in ds.listening}} if ds.listening else {})}, version)
     meta = [("content_version", version), ("kind", ds.kind), ("level_source", ds.level_source),
             ("levels", ",".join(map(str, sorted(config["levels"], reverse=True)))), ("sources", jdump(ds.sources))]
     tables = [("content_meta", [{"key": k, "value": v} for k, v in sorted(meta)]),
@@ -350,6 +403,11 @@ def build_db(paths, config, ds, out=print):
               ("vocab_meaning", sorted(ds.meanings, key=lambda r: (r["vocab_id"], r["ord"]))),
               ("kanji", sorted(kanji, key=lambda r: r["literal"])),
               ("vocab_kanji", vk),
+              ("grammar", ds.grammar),
+              ("grammar_example", ds.grammar_examples),
+              ("question", ds.questions),
+              ("exam_template", ds.exams),
+              ("listening", ds.listening),
               ("retired", [{"id": i, "retired_in": v} for i, v in retired])]
     paths.assets.mkdir(parents=True, exist_ok=True)
     db = paths.assets / "content.db"
@@ -360,5 +418,5 @@ def build_db(paths, config, ds, out=print):
     if ds.no_gloss:
         write_text(paths.report("no_gloss.tsv", m), "vocab_id\n" + "".join(f"{v}\n" for v in ds.no_gloss))
     write_text(paths.report("stale_gloss.tsv", m), "vocab_id\tgloss_enHash\tcurrent_enHash\n" + "".join("\t".join(s) + "\n" for s in ds.stale))
-    out(f"build: {len(ds.vocab)} vocab, {len(kanji)} kanji, version {version}, {len(missing)} kanji missing, {len(ds.no_gloss)} without gloss")
+    out(f"build: {len(ds.vocab)} vocab, {len(kanji)} kanji, {len(ds.grammar)} grammar, {len(ds.questions)} question, {len(ds.exams)} exam, {len(ds.listening)} listening, version {version}, {len(missing)} kanji missing, {len(ds.no_gloss)} without gloss")
     return version, db

@@ -565,7 +565,8 @@
       "check.sh 통과, 샘플 문법 ID가 content/ids/sample/grammar.txt에 있다(release 빌드에서는 content/ids/release/grammar.txt)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_8e058586-713 done"
   },
   {
     "id": "M16",
@@ -759,7 +760,8 @@
       "check.sh 통과, 샘플 문항 ID가 content/ids/sample/question.txt에 있다",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_8e058586-713 2라운드 뒤 medium 1건(exam parts 타입 TypeError) 남음 → 메인이 isinstance 검사·테스트로 고침, verify PASS"
   },
   {
     "id": "M21",
@@ -864,7 +866,8 @@
       "check.sh 통과, 샘플 대본 ID가 content/ids/sample/listening.txt에 있다",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_8e058586-713 done"
   },
   {
     "id": "M25",

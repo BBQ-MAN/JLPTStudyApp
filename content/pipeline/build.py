@@ -55,6 +55,9 @@ def stage_authored(p, c, m, out):
         avs, _ = au.load_authored(p.authored / "vocab", "*.jsonl", au.vocab_problems)
         ds = db.Dataset("release")
         ds.spans = [row for r in avs for row in au.jp_span_rows("authored", r["id"], r["meanings"])]
+        db.add_grammar(ds, p, c)
+        db.add_questions(ds, p, c, check_targets=False)  # 어휘를 아직 모으지 않았다: targets는 build 단계가 본다
+        db.add_listening(ds, p, c, check_targets=False)
     au.report_spans(p, c, "authored", [s for s in ds.spans if s[0] == "authored"], out)
     lines = rv.similarity_lines(p)
     for l in lines:

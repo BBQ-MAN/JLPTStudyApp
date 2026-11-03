@@ -11,6 +11,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))  # python3 -I 는 스�
 import levels as lv
 import pl_attr as at
 import pl_authored as au
+import pl_grammar as gm
+import pl_listening as ls
+import pl_question as qs
 from pl_common import Fail, Paths, latest_schema, load_config, load_manifest, read_json, read_jsonl, safe_version, sha256_file
 
 AUDIO = {".mp3", ".ogg", ".wav", ".m4a", ".aac", ".flac", ".opus", ".wma", ".mid"}
@@ -124,7 +127,7 @@ def check_ids(paths, con, kind):
     out = []
     d = paths.ids / kind
     retired = {r[0] for r in con.execute("SELECT id FROM retired")}
-    for name, sql in (("vocab", "SELECT id FROM vocab"), ("kanji", "SELECT literal FROM kanji")):
+    for name, sql in (("vocab", "SELECT id FROM vocab"), ("kanji", "SELECT literal FROM kanji"), ("grammar", "SELECT id FROM grammar"), ("question", "SELECT id FROM question"), ("listening", "SELECT id FROM listening")):
         f = d / f"{name}.txt"
         if not f.exists():
             continue
@@ -168,6 +171,19 @@ def check_refs(con):
     for sql, tag in (("SELECT literal FROM kanji_stroke WHERE literal NOT IN (SELECT literal FROM kanji) ORDER BY literal", "refs kanji_stroke.literal not in kanji"),
                      ("SELECT DISTINCT grammar_id FROM grammar_example WHERE grammar_id NOT IN (SELECT id FROM grammar) ORDER BY grammar_id", "refs grammar_example.grammar_id not in grammar")):
         out += [f"FAIL: {tag}: {r[0]}" for r in con.execute(sql)]
+    out += [f"FAIL: refs grammar_example {g}#{o} source {s} must have source_ref, author, license all NULL (authored) or all set"
+            for g, o, s in con.execute("""SELECT grammar_id, ord, source_id FROM grammar_example WHERE
+                (source_id = 'authored') != (source_ref IS NULL AND author IS NULL AND license IS NULL) OR
+                (source_id != 'authored' AND (source_ref IS NULL OR author IS NULL OR license IS NULL)) ORDER BY 1, 2""")]
+    known = {r[0] for t, col in (("vocab", "id"), ("kanji", "literal"), ("grammar", "id")) for r in con.execute(f"SELECT {col} FROM {t}")}
+    for qid, tj, ai in con.execute("SELECT id, targets_json, answer_index FROM question ORDER BY id"):
+        out += [f"FAIL: refs question {qid} target {t} not in vocab, kanji or grammar" for t in json.loads(tj) if t not in known]
+        if ai not in (0, 1, 2, 3):
+            out.append(f"FAIL: refs question {qid} answer_index {ai} out of range")
+    for lid, tj, ai in con.execute("SELECT id, targets_json, answer_index FROM listening ORDER BY id"):
+        out += [f"FAIL: refs listening {lid} target {t} not in vocab, kanji or grammar" for t in json.loads(tj) if t not in known]
+        if ai not in (0, 1, 2, 3):
+            out.append(f"FAIL: refs listening {lid} answer_index {ai} out of range")
     return out
 
 
@@ -229,6 +245,11 @@ def check_attribution(paths, manifest, db, cfg, release):
     c = facts["counts"]
     if (c.get("grammar") or c.get("question")) and "N-11" not in ids:
         out.append("FAIL: attribution N-11 missing while grammar or question rows exist")
+    if c.get("grammar"):
+        pre = (read_json(paths.notices).get("notices", {}).get("N-09", {}) or {}).get("grammarPrefix")
+        n09 = next((n.get("body", "") for n in attr.get("notices", []) if n.get("id") == "N-09"), "")
+        if not pre or not n09.startswith(pre):
+            out.append("FAIL: attribution N-09 does not start with notices.N-09.grammarPrefix while grammar rows exist")
     if c.get("listening") and "N-12" not in ids:
         out.append("FAIL: attribution N-12 missing while listening rows exist")
     return out
@@ -286,8 +307,14 @@ def check_count(paths, con, meta, manifest):
     return out
 
 
-def check_authored(paths, kind):
+def check_authored(paths, kind, manifest):
     out = []
+    try:
+        gm.load_grammar(paths, kind, manifest)
+        qs.load_questions(paths, kind, manifest)
+        ls.load_listening(paths, kind, manifest)
+    except Fail as e:
+        out += str(e).splitlines()
     if kind == "sample":
         d = paths.authored / "sample"
         for fn, v in (("vocab.jsonl", au.vocab_problems), ("kanji.jsonl", au.kanji_problems)):
@@ -319,7 +346,7 @@ def run_checks(paths):
         release = cfg["kind"] == "release" or kind == "release"
         out += check_kind(cfg, manifest, meta) + check_schema(paths, con) + check_sources(con, manifest)
         out += check_ids(paths, con, kind) + check_refs(con) + check_meanings(con, manifest)
-        out += check_attribution(paths, manifest, db, cfg, release) + check_size(db, meta) + check_authored(paths, kind)
+        out += check_attribution(paths, manifest, db, cfg, release) + check_size(db, meta) + check_authored(paths, kind, manifest)
         if release:
             out += check_app_assets(manifest) + check_count(paths, con, meta, manifest)
         if meta.get("sources", "{}") != "{}":

@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": true,
+  "sources": [],
+  "method": "llm:claude-sonnet-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0001",
+  "section": "vocab",
+  "type": "kanji-reading",
+  "stem": "あした、[[山]]へ行きます。",
+  "target": "山",
+  "choices": [
+    "やま",
+    "かわ",
+    "き",
+    "ひ"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "山은 '산'이라는 뜻이고 やま로 읽습니다.",
+  "whyWrongKo": [
+    null,
+    "かわ는 川(강)의 읽기입니다.",
+    "き는 木(나무)의 읽기입니다.",
+    "ひ는 火(불)의 읽기입니다."
+  ],
+  "targets": [
+    "av-sample-0004"
+  ]
+}

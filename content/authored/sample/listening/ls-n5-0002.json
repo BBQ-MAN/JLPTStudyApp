@@ -1,0 +1,25 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": true,
+  "sources": [],
+  "method": "llm:claude-sonnet-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "ls-n5-0002",
+  "type": "quick-response",
+  "lines": [
+    {"speaker": "M", "text": "ありがとうございました。"}
+  ],
+  "choices": ["いいえ、どういたしまして。", "はい、いただきます。", "すみません、わかりません。", "おやすみなさい。"],
+  "answerIndex": 0,
+  "explanationKo": "감사 인사에 대한 응답은 どういたしまして(천만에요)입니다.",
+  "whyWrongKo": [
+    null,
+    "いただきます는 식사 전에 하는 인사입니다.",
+    "わかりません은 모른다는 뜻이라 감사 인사에 맞지 않습니다.",
+    "おやすみなさい는 밤 인사입니다."
+  ],
+  "targets": []
+}
