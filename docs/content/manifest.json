@@ -17,6 +17,8 @@
       "r_ele/reb",
       "sense/pos(첫 sense)",
       "sense/misc(uk)",
+      "sense/stagk",
+      "sense/stagr",
       "sense/gloss(eng)"
     ],
     "excluded": [
@@ -376,7 +378,7 @@
       "https://github.com/google/material-design-icons"
     ],
     "shareAlike": false,
-    "modifications": "usedFields의 아이콘마다 symbols/android/<name>/materialsymbolsrounded/<name>_24px.xml(채움 1은 <name>_fill1_24px.xml)의 Android 벡터 XML만 res/drawable/ic_ms_<name>.xml로 복사. 고지는 앱에 넣는 Apache 2.0 전문 사본 app/src/main/assets/licenses/apache-2.0.txt(출처 화면 S-11 항목에서 연다)와 libraries.json의 Material Symbols 줄(architecture.md 6.6)",
+    "modifications": "usedFields의 아이콘마다 symbols/android/<name>/materialsymbolsrounded/<name>_24px.xml(채움 0) → res/drawable/ic_ms_<name>.xml, <name>_fill1_24px.xml(채움 1) → res/drawable/ic_ms_<name>_fill.xml로 Android 벡터 XML만 복사. 고지는 앱에 넣는 Apache 2.0 전문 사본 app/src/main/assets/licenses/apache-2.0.txt(출처 화면 S-11 항목에서 연다)와 libraries.json의 Material Symbols 줄(architecture.md 6.6)",
     "scope": "app-asset(콘텐츠 DB 아님)",
     "usedFields": [
       "home",
@@ -421,7 +423,7 @@
     "downloadUrl": null,
     "version": "app_icon_v1 (2026-11-02)",
     "sha256": null,
-    "license": "외부 라이선스 없음(프로젝트 생성 자산). OpenAI 이용 약관상 생성물 권리 조건은 원 출처로 확인하지 않음(미확인)",
+    "license": "외부 라이선스 없음(프로젝트 생성 자산). 생성물 권리: OpenAI 약관(Terms of Use·Services Agreement, 모두 Effective 2026-01-01)은 법이 허용하는 범위에서 Output을 이용자 소유로 두고 OpenAI 권리(있으면)를 양도한다. 어느 약관이 적용되는지 미확정(sources.md S-12.terms-which)",
     "licenseUrl": null,
     "attribution": null,
     "shareAlike": false,
@@ -432,7 +434,7 @@
     ],
     "excluded": [],
     "status": "unconfirmed",
-    "checkedAt": "2026-11-02",
-    "notes": "decisions.md D-09. 글자·로고·상표 없음. 생성물의 권리 조건(약관) 확인은 다음 단계"
+    "checkedAt": "2026-11-03",
+    "notes": "decisions.md D-09. 글자·로고·상표 없음. 약관 근거는 Wayback 보관본(row-terms-of-use 2026-10-25, services-agreement 2026-10-06), openai.com 직접 열람은 HTTP 403(sources.md S-12). 미확정: 적용 약관(Codex CLI 인증 방식), 생성 이미지의 저작권 성립(판단하지 않음), Service Terms·Usage Policies의 표시 요구. 출시 전 confirmed 필요(release 검사 '앱 자산'이 generated-asset을 포함하도록 하는 것은 architecture 몫)"
   }
 ]

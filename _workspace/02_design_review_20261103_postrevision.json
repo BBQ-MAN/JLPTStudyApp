@@ -1,0 +1,94 @@
+[
+ {
+  "title": "[Q11·Q7 마일스톤 범위] ui-design에 새로 생긴 S03 카드 알림·S01/S08 스테퍼·하루 시작 시각 시트·S05 IME 인셋을 구현하는 마일스톤이 없다",
+  "severity": "medium",
+  "targets": [
+   "architecture"
+  ],
+  "location": "docs/spec/milestones.json 전체(M4 awaiting-device, M5·M6 done, T12) ↔ docs/spec/ui-design.md 4.3 \"카드 세션 알림\"·6.5 IME 인셋·6.8 NumberStepper·하루 시작 시각 선택·11.1·12(settings day_start_sheet)·13.3 #4",
+  "evidence": "ui-design 4.3은 \"review_card 노드에 liveRegion = Polite ... 접근성 포커스는 코드로 옮기지 않는다 ... FocusRequester를 카드에 쓰지 않는다(grep 검사)\"라고 하고, 6.8은 \"NumberStepper(ui/components/NumberStepper.kt) ... OutlinedIconButton\"과 \"라디오 행 13개 ModalBottomSheet\", 6.5는 \"adjustResize ... imePadding()\"을 정한다. 지금 코드는 반대로 되어 있다. Flashcard.kt:116-117 `val focus = remember { FocusRequester() }; LaunchedEffect(card.cardId, revealed) { runCatching { focus.requestFocus() } } // 이동만, liveRegion 없음`, ui/common/Stepper.kt는 값 노드에 `liveRegion = LiveRegionMode.Polite`을 걸고 FilledTonalIconButton을 쓰며, SettingsScreen.kt:126-129는 하루 시작 시각을 StepperRow(±1시간)로 바꾼다. AndroidManifest에는 windowSoftInputMode가 없다. milestones.json에서 review_card·NumberStepper·day_start_sheet·adjustResize·imePadding을 grep하면 하나도 나오지 않는다. T12 scope는 \"기능·상태 모델·스키마는 바꾸지 않는다\"이므로 이 일들을 맡지 않고, T12의 settings_loaded·level_loaded _font200은 지금의 옛 스테퍼로 찍힌다. ui-design 13.3 #4도 \"milestones.json에 없음\"이라고 스스로 밝힌다. 실제로 생길 일: 3차 설계 검증에서 고친 TalkBack 동작(카드를 뒤집을 때 두 번 읽히는 문제, 값 낭독)과 WCAG 2.4.11·2.5.7 수정이 맡을 작업 없이 그대로 출시된다.",
+  "fix": "milestones.json에 새 작업(예: T13, owner feature-engineer, ui: true, dependsOn M4·M5·M6)을 더한다. acceptance에는 ui-design 4.3의 Compose UI 테스트(review_card의 LiveRegion == Polite, 뒤집기·다음 카드·되돌리기 전후에 SemanticsNode.id가 같은지, FocusRequester grep 0건), 6.8·11.1의 스테퍼 검사(범위 끝 버튼 비활성, stateDescription \"{n}장\", 값 노드 liveRegion 없음), 시각 시트가 13개 값만 고르는지, S05 adjustResize·imePadding, 스크린샷 settings_day_start_sheet, 실기기 awaiting-device 항목 \"알림이 한 번씩\"을 넣는다. T12는 이 작업 뒤로 두어(dependsOn에 T13 추가) 새 스테퍼로 _font200을 찍게 하고, T09의 dependsOn에도 넣는다. architecture.md 11.4 선행 표도 같이 고친다."
+ },
+ {
+  "title": "[Q5] N-09 문법 급수 문장의 위치와 틀 형식이 문서마다 다르다(architecture·M15는 '끝'과 틀 자리, ui-design·sources는 '앞'과 grammarPrefix 키)",
+  "severity": "medium",
+  "targets": [
+   "architecture"
+  ],
+  "location": "docs/spec/architecture.md 6.6 notices 항목(420행) · docs/spec/milestones.json M15 scope·acceptance ↔ docs/spec/ui-design.md 9.2 고지 1(1068행) · docs/content/sources.md N-09.not-official",
+  "evidence": "architecture 6.6: \"N-09 본문 끝의 문법 급수 문장(... content/notices.ko.json N-09 틀의 문법 전용 자리)은 grammar 행이 있을 때만 붙이고, 없으면 그 자리를 빈 문자열로 지운다\". M15 scope: \"N-09 body 끝에 문법 급수 문장 ... 그 자리를 지운다\". ui-design 9.2 고지 1: \"문법이 번들에 있으면 그 앞에 '문법 항목의 급수는 ...'\". sources.md N-09: \"문법 콘텐츠가 번들에 있는 빌드에서만 본문 앞에 문법 급수 문장을 붙인다 ... notices.ko.json 틀 제안: notices.N-09에 문법이 있을 때만 쓰는 키 grammarPrefix\". 실제로 생길 일: M15 구현자가 architecture와 M15에 따라 본문 끝의 틀 자리로 만들면, 화면 고지 문구가 ui-design의 기준 문구 순서와 달라진다. analyst가 만들 notices.ko.json의 grammarPrefix 키를 파이프라인이 읽지 않아 문장이 빠질 수도 있다.",
+  "fix": "문구 기준인 ui-design 9.2와 sources.md N-09를 따른다. architecture 6.6과 M15 scope·acceptance를 \"N-09 본문 앞에, notices.ko.json N-09의 grammarPrefix 키 값을 grammar 행이 있을 때만 붙인다(없으면 붙이지 않는다)\"로 고친다. M15 notices 테스트도 'body가 grammarPrefix 문장으로 시작한다' 또는 '그 문장이 없다'로 판정하게 바꾼다."
+ },
+ {
+  "title": "[Q11] ExamStart 화면에서 불러오기가 실패한 상태가 없다: examTemplate·buildSet 예외가 LOADING 중에 나면 자리표시만 남고 '다시 시도'가 무엇을 할지 정해지지 않았다",
+  "severity": "medium",
+  "targets": [
+   "architecture",
+   "ui-design"
+  ],
+  "location": "docs/spec/architecture.md 9.2.6 ExamStartUiState(1109~1121행) · docs/spec/ui-design.md 7절 S14 '시작 실패'(1021행)·13.1 ExamStart 행 · milestones.json M19c acceptance",
+  "evidence": "architecture: `enum class ExamStartStatus { LOADING, LOADED, EMPTY }`, `val startFailed: Boolean = false) // examTemplate·buildSet·startAttempt 예외`. 그런데 ExamStartViewModel은 \"열 때 examTemplate(level)·pool(level)로 ... buildSet을 한 번\" 한다. 그래서 examTemplate·buildSet 예외는 status가 LOADING일 때 난다. ui-design 7절 S14 '시작 실패'는 \"화면 그대로, 스낵바 ... '다시 시도'\"이고 LOADING 행은 \"본문 자리표시 행 5개\"다. M19c는 \"examTemplate이 예외면 startFailed == true\"만 요구하고 status는 정하지 않는다. 실제로 생길 일: template_json이 깨진 빌드에서 시작 화면이 자리표시 상태로 멈춘다. '다시 시도'가 불러오기를 다시 할지 startAttempt를 부를지(sections가 비어 있는데 시도를 만들지) 구현자마다 달라진다.",
+  "fix": "architecture를 기준으로 고친다. ExamStartStatus에 FAILED(불러오기 실패)를 더하고, startFailed는 startAttempt 예외에만 쓴다. ui-design 7절에 'S14 시작 화면 불러오기 실패(FAILED)' 행을 둔다(StatusScreen 문구 + '다시 시도' = 불러오기 재실행). '시작 실패' 행의 조건은 startAttempt 예외만으로 줄인다. M19c acceptance를 \"examTemplate 예외면 status FAILED, startAttempt 예외면 startFailed == true이고 시도 행이 없다\"로 고친다."
+ },
+ {
+  "title": "[G-S12 도달 불가] sources.md S-12에 법률 판단이라 영구히 미확정인 행이 있는데 핵심 행 정의가 없어, G-S12(→T11→T09)가 풀릴 길이 없다",
+  "severity": "medium",
+  "targets": [
+   "content",
+   "architecture"
+  ],
+  "location": "docs/content/sources.md S-12 절(S-12.copyright 228행)·0절 S-12 상태 요약 행 ↔ docs/spec/milestones.json G-S12 acceptance · docs/spec/architecture.md 10절 G-S12",
+  "evidence": "sources.md S-12.copyright: \"판단하지 않는다 ... 미확정(법률 판단 범위, 사용자에게 넘김)\". 다른 자료는 요약 상태를 '핵심 행에서 계산'하지만 S-12 요약 행에는 핵심 행 정의가 없고, 상태 칸에 copyright를 미확정으로 적는다. G-S12 acceptance는 \"S-12의 status가 confirmed\", \"상태가 manifest와 같으며 license 칸에 생성 도구 약관의 생성물 권리 조항 인용과 확인 날짜가 있다\"를 요구한다. 그런데 요약 행의 라이선스 칸은 \"외부 라이선스 없음. 생성물 권리는 OpenAI 약관의 Output 귀속 조항(...)\"뿐이다. 인용은 S-12.terms-* 행에, 날짜는 확인일 칸에 있다. architecture 10절은 \"G-S12가 done이 되기 전에는 앱을 배포하지 않는다(T09가 마지막이고 T11에 의존)\"라고 한다. 실제로 생길 일: license-verify가 copyright 행을 확정할 수 없으므로 S-12는 계속 unconfirmed로 남고, T11·T09가 영원히 막혀 출시할 수 없다.",
+  "fix": "content: S-12의 핵심 행(origin, terms-which, terms-consumer 또는 terms-business, attribution)을 머리말에 정한다. copyright는 상태를 `사용자 결정`으로 바꾸고 decisions.md D-09에 기록하게 해서 요약 상태 계산에서 뺀다. architecture(milestones G-S12 acceptance): \"license 칸에 인용과 날짜\"를 \"S-12.terms-* 행에 약관 인용이 있고 0절 확인일이 채워져 있으며 핵심 행이 모두 확정\"으로 고친다."
+ },
+ {
+  "title": "[마일스톤 범위] M19c 스크린샷 목록에 ui-design 12절·13.1이 요구하는 mock_exam_intro_shortfall이 없다",
+  "severity": "low",
+  "targets": [
+   "architecture"
+  ],
+  "location": "docs/spec/milestones.json M19c acceptance 'Roborazzi 스크린샷' ↔ docs/spec/ui-design.md 12절 mock_exam 행·13.1 ExamStart 행·13.3 #3",
+  "evidence": "ui-design 12: mock_exam 상태 \"intro_shortfall('시작' 비활성)\". 13.1 ExamStart: \"스크린샷 mock_exam_intro(+_font200)·mock_exam_intro_shortfall(12절)\". 13.3 #3: \"milestones.json M19c 스크린샷에 mock_exam_intro_shortfall을 더한다\". M19c acceptance: \"mock_exam_intro(...), mock_exam_nav, mock_exam_confirm_exit, mock_exam_confirm_submit, mock_exam_intro_light_font200, mock_exam_nav_light_font200\" — intro_shortfall이 없다. 실제로 생길 일: '시작 화면 문항 모자람' 상태(비활성 '시작'과 이유 문구)가 시각 검증 없이 지나간다.",
+  "fix": "M19c 스크린샷 acceptance에 mock_exam_intro_shortfall(_light·_dark)을 더한다(ui-design 12절이 기준)."
+ },
+ {
+  "title": "[Q1] architecture 4.2와 11.3-5가 stagk·stagr가 매니페스트에 '아직 없다'고 적지만, 매니페스트와 sources.md에는 이미 들어갔다",
+  "severity": "low",
+  "targets": [
+   "architecture"
+  ],
+  "location": "docs/spec/architecture.md 4.2 '쓰는 필드'(202행)·11.3-5(1332행) ↔ docs/content/manifest.json S-01 usedFields · docs/content/sources.md S-01.used",
+  "evidence": "architecture 4.2: \"매니페스트 S-01 usedFields·sources.md S-01.used에는 sense/stagk·sense/stagr가 아직 없어 analyst가 더한다(11.3-5)\". 11.3-5: \"남은 일(2026-11-03 설계 검증)\". 매니페스트 S-01 usedFields에는 이제 \"sense/stagk\", \"sense/stagr\"가 있고, sources.md S-01.used에도 \"sense별 sense/stagk·sense/stagr(있을 때만 ...)\"이 더해졌다. 실제로 생길 일: 다음 설계 검증이나 analyst가 이미 끝난 일을 다시 요청받는다.",
+  "fix": "architecture 4.2의 '아직 없어 analyst가 더한다' 문장을 '매니페스트 S-01 usedFields·sources.md S-01.used와 같음'으로 바꾸고, 11.3-5를 '완료(2026-11-03)'로 고친다."
+ },
+ {
+  "title": "[Q1] sources.md S-12 머리말과 매니페스트 S-12 notes가 architecture 반영을 아직 '대기'로 적는다",
+  "severity": "low",
+  "targets": [
+   "content"
+  ],
+  "location": "docs/content/sources.md S-12 머리말 '출시 조건'(217행) · docs/content/manifest.json S-12 notes ↔ docs/spec/architecture.md 6.5 '앱 자산'·10절 G-S12·milestones.json T11",
+  "evidence": "sources.md: \"지금 architecture.md 6.5 '앱 자산' 검사는 scope가 app-asset으로 시작하는 자료만 보므로 S-12를 잡지 못한다. 조건을 ... 넓히거나 S-12 게이트를 두는 일은 architecture 몫이다(설계 검증 지적 [Q1·Q5], architect 반영 대기)\". 매니페스트 notes: \"release 검사 '앱 자산'이 generated-asset을 포함하도록 하는 것은 architecture 몫\". 그런데 architecture 6.5는 이미 \"app-asset 또는 generated-asset ... 넓히는 것은 T11(G-S12 뒤)\"로, 10절은 G-S12로 반영했고, milestones.json에 G-S12·T11이 있다. 실제로 생길 일: 다음 license-verify나 설계 검증이 architecture에 같은 일을 다시 요청한다.",
+  "fix": "sources.md S-12 머리말을 \"architecture.md 6.5 '앱 자산'에 generated-asset이 정해졌고(구현은 T11, G-S12 뒤) 10절 G-S12가 출시를 막는다\"로 바꾼다. 매니페스트 S-12 notes의 'architecture 몫'도 'T11(G-S12 뒤)'로 고친다."
+ },
+ {
+  "title": "[Q11] ui-design 6.10 S14 시작 화면의 영역 문항 수 정의가 같은 절의 새 문단·ExamSectionLine.count와 다르다",
+  "severity": "low",
+  "targets": [
+   "ui-design"
+  ],
+  "location": "docs/spec/ui-design.md 6.10 S14 '시작 화면' 첫 항목(877행) ↔ 같은 절 하위 항목·docs/spec/architecture.md 9.2.6 ExamSectionLine",
+  "evidence": "877행: \"영역별 줄 '{titleKo} · {문항 수}문항 · 기준 {minutes}분'(... 문항 수 = 그 영역 parts[].count 합 ...)\". 바로 아래 새 하위 항목과 architecture는 \"count는 buildSet이 그 영역에서 실제로 고른 수\"(`val count: Int, // 그 영역에서 buildSet이 실제로 고른 수(shortfall 반영)`)다. 7절 '시작 화면 문항 모자람' 행도 \"count는 실제 고른 수\"다. 실제로 생길 일: shortfall이 있으면 두 정의가 다른 수를 내고, 구현자가 템플릿 값으로 그리면 합계 total(= BuiltSet.questionIds.size)과 영역 줄의 합이 맞지 않는다.",
+  "fix": "877행의 '문항 수 = 그 영역 parts[].count 합'을 '문항 수 = ExamSectionLine.count(buildSet이 그 영역에서 실제로 고른 수, shortfall이면 템플릿 수보다 적다)'로 고친다(architecture 9.2.6이 기준)."
+ },
+ {
+  "title": "[Q11] architecture 11.2-46 요청(S06 학습 상태 = CardStateSummary/CardProgress, S07 칩 = KanjiDetailUiState.level)이 ui-design에 반영되지 않았다",
+  "severity": "low",
+  "targets": [
+   "ui-design"
+  ],
+  "location": "docs/spec/ui-design.md 6.6 '학습 상태'(722행)·6.7 머리 급수 칩(727행)·13.1 VocabDetail/KanjiDetail 행 ↔ docs/spec/architecture.md 7절·11.2-46",
+  "evidence": "architecture 7절에 새로 생긴 `enum class CardProgress { NEW, LEARNING, REVIEW }`, `data class CardStateSummary(val kind: CardKind, val progress: CardProgress, val dueAtEpochMs: Long? = null)`, `KanjiDetailUiState.level: JlptLevel?`와 11.2-46 \"6.7 S07 머리 급수 칩은 KanjiDetailUiState.level, 6.6 '학습 상태' 절은 CardStateSummary(...)라고 적는다\". ui-design 6.6은 여전히 \"카드 종류별 '새 카드' / '학습 중' / '다음 복습 {날짜}', 앱 계산 값\"이고, 13.1 VocabDetail/KanjiDetail 행에는 cardStates·level이 없다(grep CardStateSummary 결과 0건). 코드(DetailModels.kt)에는 이미 같은 이름이 있다. 실제로 생길 일: 동작에는 영향이 없지만, 다음 설계 대조 때 화면 값과 상태 필드의 대응을 다시 찾아야 한다.",
+  "fix": "ui-design 6.6 '학습 상태'에 CardProgress NEW→'새 카드', LEARNING→'학습 중', REVIEW→'다음 복습 {dueAtEpochMs의 학습일}'을 적는다. 6.7 칩 문장에 KanjiDetailUiState.level(null이면 칩을 숨긴다)을 적고, 13.1 VocabDetail/KanjiDetail 행에 cardStates·level을 더한다."
+ }
+]

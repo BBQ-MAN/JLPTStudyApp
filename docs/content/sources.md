@@ -1,5 +1,5 @@
 # 콘텐츠 출처와 라이선스
-마지막 갱신: 2026-11-02(license-verify 1차 결과, 설계 검증 지적 반영, architecture.md 11.3 반영, 설계 검증 2차 지적 반영, license-verify 재검증 반영, license-verify 2차 재검증 반영, license-verify 3차 재검증 반영, license-verify 4차 재검증 반영) · 2026-11-03(S-03 핵심 행 재검증 반영, decisions.md U-2 A) · 이 문서는 근거 기록이며 법률 자문이 아니다.
+마지막 갱신: 2026-11-02(license-verify 1차 결과, 설계 검증 지적 반영, architecture.md 11.3 반영, 설계 검증 2차 지적 반영, license-verify 재검증 반영, license-verify 2차 재검증 반영, license-verify 3차 재검증 반영, license-verify 4차 재검증 반영) · 2026-11-03(S-03 핵심 행 재검증 반영, decisions.md U-2 A; 설계 검증 지적 반영: S-12 절 추가, S-01.used stag, S-11 파일 이름·머리말, N-09 문법 문장, N-12 D-04 잠정 A) · 이 문서는 근거 기록이며 법률 자문이 아니다.
 
 - 상태 값: `검증 대기`(원 출처에서 직접 확인했고 license-verify 검증을 기다림) / `확정`(검증자 두 명 확인) / `미확정`(확인 못 함, 확인 방법을 적음) / `미확정(수정됨, 재검증 필요)`(검증에서 반박되어 기록을 고침, 다음 실행에서 다시 검증) / `제외` / `사용자 결정`(decisions.md 기록).
 - 한 행에 주장이 여러 개면 상태 칸에 주장별 결과를 나눠 적는다. 행 전체가 `확정`이려면 그 행의 주장이 모두 확정이어야 한다.
@@ -19,6 +19,7 @@
 | S-08 | 급수 목록 후보: davidluzgouveia/kanji-data(한자 급수) | master 2026-02-27 | 저장소 MIT(KANJIDIC·WaniKani 자료 포함, 불일치) | 제외 권고(사용자 확인) | https://github.com/davidluzgouveia/kanji-data | 2026-11-02 | 판·라이선스·포함 자료 확정 / 상태 미확정(사용자가 decisions.md D-06에 제외를 기록하면 `제외`로 바꾼다) |
 | S-09 | 급수 목록 후보: Bluskyo/JLPT_Vocabulary(S-05 변환본) | main 2026-07-15 | 저장소 MIT, README는 원 자료 CC "BY" 표기 | 미확정 | https://github.com/Bluskyo/JLPT_Vocabulary | 2026-11-02 | 변환본·판·라이선스·README 표기·상태 확정 |
 | S-11 | 아이콘: Material Symbols(Google) | master 10ecc14(2026-10-23) | Apache License 2.0 | 확정(재검증 2026-11-02) | https://github.com/google/material-design-icons (README License 절, LICENSE) | 2026-11-02 | 핵심 행에서 계산(2026-11-02 재검증): license·version·attribution 확정 |
+| S-12 | 앱 아이콘 그림(Codex CLI·OpenAI 이미지 생성, 프로젝트 생성 자산) | app_icon_v1(2026-11-02 생성) | 외부 라이선스 없음. 생성물 권리는 OpenAI 약관의 Output 귀속 조항(어느 약관이 적용되는지 미확정, S-12.terms-which) | 미확정(적용 약관 미확정, openai.com 직접 열람 실패·보관본으로만 확인) | 보관본 https://web.archive.org/web/20261025181725/https://openai.com/policies/row-terms-of-use/ , https://web.archive.org/web/20261006204600/https://openai.com/policies/services-agreement/ | 2026-11-03 | 검증 대기: S-12.origin·terms-consumer·terms-business·similarity / 미확정: terms-which(어느 계정으로 생성했는지 사용자 확인), copyright(저작권 성립 여부는 판단하지 않음), attribution(Service Terms·Usage Policies 미열람) |
 | S-10 | 일본어 글꼴(번들 시) | - | 조사 안 함 | 미확정(번들 여부 미결정) | - | - | 판 '-' 확정 / 라이선스 미조사·상태 미확정(내부 상태라 원 출처 없음. 번들을 정하면 글꼴 배포처 라이선스 파일로 조사) |
 
 ### 변경 이력
@@ -31,6 +32,7 @@
 | 2026-11-02 | license-verify 2차 재검증 반영: S-01·S-02·S-11 확정(매니페스트 confirmed), S-06은 waller-notice 수정됨으로 미확정 유지 | 아래 각 절의 재검증 행 |
 | 2026-11-02 | license-verify 3차 재검증 반영: S-06 요약 상태를 핵심 행에서 다시 계산(waller-notice·credit 수정됨, 미확정 유지) | S-06.waller-notice·S-06.credit |
 | 2026-11-02 | license-verify 4차 재검증 반영: S-06.waller-notice·S-06.credit 확정 → S-06 핵심 행 모두 확정, 요약 상태 확정·매니페스트 confirmed, D-06 조건 충족 | S-06.waller-notice·S-06.credit |
+| 2026-11-03 | 설계 검증 지적 반영: S-12 상태 요약 행·절 추가(매니페스트에만 있던 id), S-01.used에 `sense/stagk`·`sense/stagr`, S-11 머리말·modifications 채움 1 파일 이름(`ic_ms_<이름>_fill.xml`)과 출시 조건 반영 상태, N-09 문법 급수 문장, N-12 D-04 잠정 A 문구 | 설계 검증 지적 [Q1·Q5]·[Q5]·[Q1]×2·상태 서술, architecture.md 4.2·6.5·6.6·10절, ui-design.md 9.2, decisions.md D-04·D-09 |
 | 2026-11-03 | S-03 핵심 행 재검증 반영(decisions.md U-2 A): attribution·sharealike·pinning 확정 → S-03 핵심 행 모두 확정, 요약 상태 확정·매니페스트 S-03 confirmed, checkedAt 2026-11-03. P-S03은 잠정 유지 | S-03.attribution·S-03.sharealike·S-03.pinning 재검증(검증자 2명) |
 
 ## S-01 JMdict
@@ -52,7 +54,7 @@
 | S-01.pinning | 판 고정 방법 | 내려받기 URL은 판을 고정하지 않는다. `JMdict_e.gz`는 매일 다시 생성되어 같은 URL이 덮어쓰이고, 배포처 디렉터리에 날짜별 보관본이 없다. 매니페스트 `sha256`은 받은 파일을 검사할 뿐이다. 그래서 매니페스트 `pinning.method = "snapshot"`, `pinnedCopy = "content/snapshot/"`(architecture.md 6.7 방식 A). 판은 저장소에 커밋한 스냅샷 `content/snapshot/S-01-<version>.jsonl.gz`로 고정하고, 기본 빌드는 fetch하지 않으며 원 URL은 `refresh-snapshot` 때만 받는다. 스냅샷 커밋도 CC BY-SA 자료의 배포이므로 `content/snapshot/LICENSE.md`에 저작자 표시·라이선스 URI·변경 내용(원 자료에서 일부 필드만 뽑음)을 둔다 | j_jmdict.html "From mid-2006 the JMdict file has been generated daily from the source database." ; http://ftp.edrdg.org/pub/Nihongo/ 목록(2026-11-02 열람, 날짜 붙은 JMdict·kanjidic2 파일 없음) ; architecture.md 6.7 ; CC BY-SA 4.0 legalcode §2(a)(1) "reproduce and Share the Licensed Material, in whole or in part" ; §3(a)(1) "If You Share the Licensed Material (including in modified form), You must: …" | 확정(재검증 2026-11-02) |
 | S-01.korean | 한국어 뜻 | JMdict에는 한국어 뜻(`gloss xml:lang="kor"`)이 0개다. 2026-11-01 전체판(219,002 항목)의 `xml:lang="kor"` 131개는 모두 `lsource`(한국어에서 온 외래어의 어원 표시)이며 뜻이 아니다. `lsource`는 쓰는 필드(S-01.used)가 아니다 | 2026-11-01 생성 JMdict.gz 집계(검증자 재집계: `<gloss[^>]*"kor"` 0건, `<lsource xml:lang="kor"` 131건) ; 파일 내 DTD "This element records the information about the source language(s) of a loan-word/gairaigo." | 미확정(수정됨, 재검증 필요) — 항목 수 219,002 확정 / "한국어 뜻 131개" 반박되어 고침 |
 | S-01.jlpt | 급수 정보 | JMdict에는 JLPT 급수 필드가 없다 | j_jmdict.html에 JLPT 언급 없음, DTD에 해당 요소 없음 | 확정 |
-| S-01.used | 쓰는 필드 | `ent_seq`, `k_ele/keb`, `r_ele/reb`, 첫 sense의 `sense/pos`, sense별 `sense/misc`(`uk` 여부), `sense/gloss`(영어) — 영어 gloss는 한국어 뜻 번역의 입력으로만 쓰고 앱 콘텐츠 DB에는 넣지 않는다(architecture.md 4.2 "영어 뜻은 번들하지 않는다"). `ke_pri`·`re_pri`는 쓰지 않는다(architecture.md 4.2) | D-02, JMdict DTD(필드 존재 확인), architecture.md 4.2 "`ke_pri`·`re_pri`는 쓰지 않는다", 6.7 S-01 스냅샷 필드 | 미확정(수정됨, 재검증 필요) — `ke_pri`/`re_pri` 뺌. 설계 선택이라 파이프라인 구현 후 코드 대조 |
+| S-01.used | 쓰는 필드 | `ent_seq`, `k_ele/keb`, `r_ele/reb`, 첫 sense의 `sense/pos`, sense별 `sense/misc`(`uk` 여부), sense별 `sense/stagk`·`sense/stagr`(있을 때만, 표기·읽기 제한으로 sense를 거르는 데 씀. architecture.md 4.2·6.3·6.7), `sense/gloss`(영어) — 영어 gloss는 한국어 뜻 번역의 입력으로만 쓰고 앱 콘텐츠 DB에는 넣지 않는다(architecture.md 4.2 "영어 뜻은 번들하지 않는다"). `ke_pri`·`re_pri`는 쓰지 않는다(architecture.md 4.2) | D-02, JMdict DTD(필드 존재 확인), architecture.md 4.2 "`ke_pri`·`re_pri`는 쓰지 않는다", 4.2 "`stagk`·`stagr`", 6.3 export-gloss-input, 6.7 S-01 스냅샷 필드 | 미확정(수정됨, 재검증 필요) — `ke_pri`/`re_pri` 뺌. 2026-11-03 `sense/stagk`·`sense/stagr` 더함(architecture 4.2 기준). 설계 선택이라 파이프라인 구현 후 코드 대조 |
 | S-01.excluded | 쓰지 않는 부분 | 영어 외 언어 뜻 전부(별도 저작권), JMnedict·ENAMDICT, EDICT-R(배포 중단) | licence.html "this file has been withdrawn from circulation" (EDICT-R) | 미확정 — 영어 외 뜻 제외·EDICT-R 제외 확정 / JMnedict·ENAMDICT 미사용은 설계 결정이라 파이프라인 구현 후 확인 |
 
 ### 변경 이력
@@ -65,6 +67,7 @@
 | 2026-11-02 | license-verify 재검증 반영: attribution·version·pinning 확정. attribution-links는 반박(edict_doc.html은 안내 페이지)되어 그 링크를 빼고 위키 URL을 두 개로 고침 | sample.html·licence.html·edict_doc.html 열람, 검증자 근거 |
 | 2026-11-02 | license-verify 핵심 행 재검증 반영: attribution-links 제안 링크를 licence.html + 정적 사본 두 개로 고정, 위키 URL 두 개 명시, 매니페스트 S-01·S-02 links를 같은 세 개로 | 검증자 근거(edict_doc.html 안내 페이지, licence.html 위키 URL 두 개) |
 | 2026-11-02 | license-verify 2차 재검증 반영: S-01.attribution-links 확정, 매니페스트 S-01·S-02 status confirmed | 검증자 근거(licence.html, 위키 안내·정적 사본, edict_doc.html) |
+| 2026-11-03 | 설계 검증 반영: S-01.used와 매니페스트 S-01 `usedFields`에 `sense/stagk`·`sense/stagr` 추가(설계 행, 재검증 표기). 핵심 행이 아니라 S-01 status는 그대로 | architecture.md 4.2·6.3·6.7 |
 
 ## S-02 KANJIDIC2
 
@@ -184,9 +187,9 @@
 
 ## S-11 Material Symbols(아이콘)
 
-ui-design.md 3.5가 아이콘 벡터 XML을 `res/drawable`에 복사한다고 정해 추가한 행이다. 콘텐츠 DB 자료가 아니라 앱 리소스다. 고지는 `app/src/main/assets/licenses/`(`apache-2.0.txt`, `libraries.json`의 Material Symbols 줄)에 싣고, 아이콘 파일은 `res/drawable/ic_ms_<이름>.xml`로 둔다(architecture.md 6.6). AndroidX 등 의존 라이브러리는 이 문서에 행을 두지 않고 `libraries.json`으로만 기록한다(architecture.md 11.3-7).
+ui-design.md 3.5가 아이콘 벡터 XML을 `res/drawable`에 복사한다고 정해 추가한 행이다. 콘텐츠 DB 자료가 아니라 앱 리소스다. 고지는 `app/src/main/assets/licenses/`(`apache-2.0.txt`, `libraries.json`의 Material Symbols 줄)에 싣고, 아이콘 파일은 채움 0을 `res/drawable/ic_ms_<이름>.xml`, 채움 1을 `res/drawable/ic_ms_<이름>_fill.xml`로 둔다(architecture.md 6.6, ui-design.md 3.5). AndroidX 등 의존 라이브러리는 이 문서에 행을 두지 않고 `libraries.json`으로만 기록한다(architecture.md 11.3-7).
 
-출시 조건: 아이콘은 파이프라인 fetch를 거치지 않고 손으로 `res/drawable`에 복사하므로 "confirmed가 아니면 파이프라인이 내려받지 않는다"는 안전장치가 S-11에는 닿지 않는다. 출시 빌드 전에 매니페스트 S-11 `status`가 `confirmed`여야 한다. 개발 빌드(M2~M7)는 막지 않는다. 이를 강제하는 검사(6.5 release 검사에 `scope` app-asset 자료 포함, 또는 출시 게이트)는 architecture.md가 정한다(설계 검증 지적 [Q1·Q5], architect 반영 대기). 확정은 license-verify 실행으로 한다.
+출시 조건: 아이콘은 파이프라인 fetch를 거치지 않고 손으로 `res/drawable`에 복사하므로 "confirmed가 아니면 파이프라인이 내려받지 않는다"는 안전장치가 S-11에는 닿지 않는다. 출시 빌드 전에 매니페스트 S-11 `status`가 `confirmed`여야 한다. 개발 빌드(M2~M7)는 막지 않는다. 강제하는 검사는 architecture.md에 반영됐다: 6.5 release 검사 "앱 자산"(`scope`가 `app-asset`으로 시작하는 자료가 `confirmed` 아니면 FAIL)과 10절 게이트 `G-S11`. S-11은 license-verify로 확정됐고(2026-11-02, 매니페스트 `confirmed`) `G-S11`은 milestones.json에서 `done`이다. 같은 방식의 손 복사 자산 S-12(앱 아이콘, `scope` `generated-asset`)는 이 검사에 아직 걸리지 않는다(S-12 머리말).
 
 | ID | 항목 | 내용 | 근거(URL, 인용 문장) | 상태 |
 |----|------|------|----------------------|------|
@@ -205,6 +208,31 @@ ui-design.md 3.5가 아이콘 벡터 XML을 `res/drawable`에 복사한다고 �
 | 2026-11-02 | license-verify 재검증 반영: license·version 확정, attribution 미확정(링크로 사본 제공 요건을 채우는지) | 검증자 근거 |
 | 2026-11-02 | license-verify 핵심 행 재검증 반영: attribution을 전문 사본 동봉·출처 화면에서 열기(설계 선택)로 고침, 매니페스트 modifications·notes 반영 | 검증자 근거, Apache 2.0 §4(a) |
 | 2026-11-02 | license-verify 2차 재검증 반영: S-11.attribution 확정, 매니페스트 S-11 status confirmed | 검증자 근거(README, LICENSE-2.0.txt, NOTICE 404) |
+| 2026-11-03 | 설계 검증 반영: 머리말 출시 조건의 "architect 반영 대기"를 반영 상태(6.5 "앱 자산"·G-S11 done)로 고침, 채움 1 파일 이름 `ic_ms_<이름>_fill.xml`을 머리말과 매니페스트 `modifications`에 적음(두 파일이 같은 대상 이름으로 복사되는 것처럼 읽히던 서술). 핵심 행 변경 없음 | architecture.md 6.5·6.6·10절, ui-design.md 3.5, milestones.json G-S11 |
+
+## S-12 앱 아이콘 그림(생성 이미지)
+
+decisions.md D-09(잠정 채택)에 따라 Codex CLI(OpenAI 이미지 생성)로 만든 앱 아이콘 전경 그림이다. 콘텐츠 DB 자료가 아니라 앱 리소스이고, 매니페스트 `scope`는 `generated-asset`이다. 외부 저작물을 가져온 것이 아니라서 따를 외부 라이선스는 없다. 확인할 것은 생성 서비스 약관이 생성물(Output) 권리를 누구에게 두는지다.
+
+출시 조건: S-11과 같이 파이프라인 fetch를 거치지 않고 `app/src/main/res/mipmap-*`에 이미 들어 있으므로 "confirmed가 아니면 내려받지 않는다"는 안전장치가 닿지 않는다. 출시 빌드 전에 매니페스트 S-12 `status`가 `confirmed`여야 한다고 제안한다. 지금 architecture.md 6.5 "앱 자산" 검사는 `scope`가 `app-asset`으로 시작하는 자료만 보므로 S-12를 잡지 못한다. 조건을 `app-asset` 또는 `generated-asset`으로 넓히거나 S-12 게이트를 두는 일은 architecture 몫이다(설계 검증 지적 [Q1·Q5], architect 반영 대기). 기준 값은 매니페스트 `scope`다.
+
+openai.com 약관 페이지는 직접 열지 못했다(2026-11-03 curl·WebFetch 모두 HTTP 403). 아래 인용은 Wayback Machine 보관본에서 가져왔다.
+
+| ID | 항목 | 내용 | 근거(URL, 인용 문장) | 상태 |
+|----|------|------|----------------------|------|
+| S-12.origin | 생성 방법·판 | Codex CLI(OpenAI 이미지 생성)로 2026-11-02 생성한 `app_icon_v1`. 프롬프트·축소 과정·원본 경로는 매니페스트 S-12 `modifications`. 글자·로고·상표 없음 | decisions.md D-09 ; 매니페스트 S-12 `modifications` ; 원본 `_workspace/images/app_icon_v1.png` | 검증 대기(원 출처가 프로젝트 기록뿐이라 검증자는 파일 존재와 D-09 문구만 대조할 수 있다) |
+| S-12.terms-consumer | 개인용 약관의 생성물 권리 | 개인용 서비스(ChatGPT 등과 관련 소프트웨어) 약관은 법이 허용하는 범위에서 Output을 이용자 소유로 두고, OpenAI가 가진 권리가 있으면 이용자에게 양도한다. 판: Effective January 1, 2026(ROW 판 보관본) | https://web.archive.org/web/20261025181725/https://openai.com/policies/row-terms-of-use/ "Terms of Use Effective: January 1, 2026" ; "These Terms of Use apply to your use of ChatGPT, DALL·E, and OpenAI's other services for individuals, along with any associated software applications and websites" ; "Ownership of content. As between you and OpenAI, and to the extent permitted by applicable law, you (a) retain your ownership rights in Input and (b) own the Output. We hereby assign to you all our right, title, and interest, if any, in and to Output." | 검증 대기 — 보관본만 열람(원 페이지 403). 한국 거주자에게 ROW 판과 미국 판 중 어느 쪽이 적용되는지는 확인하지 않음 |
+| S-12.terms-business | 사업자·API 약관의 생성물 권리 | API·사업자 서비스 약관(Services Agreement)도 법이 허용하는 범위에서 Output을 고객 소유로 두고 OpenAI 권리를 양도한다. 판: Effective January 1, 2026 | https://web.archive.org/web/20261006204600/https://openai.com/policies/services-agreement/ "Effective: January 1, 2026" ; "This OpenAI Services Agreement only applies to use of OpenAI's APIs, ChatGPT Enterprise, ChatGPT Business, …" ; 4.1 "As between Customer and OpenAI, to the extent permitted by applicable law, Customer: (a) retains all ownership rights in Input; and (b) owns all Output. OpenAI hereby assigns to Customer all OpenAI's right, title, and interest, if any, in and to Output." | 검증 대기 — 보관본만 열람(원 페이지 403) |
+| S-12.terms-which | 적용 약관 | 미확정. Codex CLI를 ChatGPT 계정으로 썼으면 S-12.terms-consumer, API 키로 썼으면 S-12.terms-business가 적용된다고 보이나, 생성 당시 어느 인증을 썼는지 기록이 없다. 두 약관 모두 Output을 이용자에게 두므로 결론 방향은 같다 | 위 두 약관의 적용 범위 문장 | 미확정(확인 방법: 사용자가 생성 당시 Codex CLI 인증 방식을 decisions.md D-09에 기록. 그 뒤 해당 약관 원 페이지를 브라우저로 열어 재확인) |
+| S-12.similarity | 생성물의 고유성 | 두 약관 모두 생성물이 고유하지 않을 수 있고 다른 이용자가 비슷한 결과를 받을 수 있다고 밝히며, 다른 이용자의 결과는 양도 대상이 아니다. 아이콘이 다른 앱 아이콘과 비슷할 가능성은 약관이 막아 주지 않는다 | row-terms 보관본 "Similarity of content. Due to the nature of our Services and artificial intelligence generally, output may not be unique and other users may receive similar output from our Services. Our assignment above does not extend to other users' output or any Third Party Output." ; services-agreement 보관본 4.4 "Output may not be unique, and other users may receive similar content from OpenAI's services." | 검증 대기 |
+| S-12.copyright | 저작권 성립 | 판단하지 않는다. 약관의 양도는 "if any"(OpenAI가 가진 권리가 있으면)이고 "to the extent permitted by applicable law"라서, 생성 이미지에 저작권이 생기는지는 약관이 정하지 않는다. 앱이 이 그림에 라이선스를 붙여 배포할지(예: 콘텐츠 DB와 같은 CC BY-SA)는 사용자 결정 | 위 인용의 "if any", "to the extent permitted by applicable law" | 미확정(법률 판단 범위, 사용자에게 넘김) |
+| S-12.attribution | 표시 의무 | 인용한 Output 조항에는 출처 표시 요구가 없다. 약관이 포함한다고 밝힌 Service Terms와 Usage Policies는 열지 않았다. 그래서 `attribution`은 null로 두되 확정하지 않는다 | row-terms 보관본 "they include our Service Terms" | 미확정(확인 방법: Service Terms·Usage Policies 원 페이지에서 이미지 생성물 표시 요구 유무 확인) |
+| S-12.used | 쓰는 부분 | `app/src/main/res/mipmap-*/ic_launcher_foreground.webp`(mdpi~xxxhdpi), `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`(배경색 #FBF9F4) | 매니페스트 S-12 `usedFields` | 미확정(설계 행. 구현 QA에서 res 파일과 대조) |
+
+### 변경 이력
+| 날짜 | 내용 | 근거 |
+|------|------|------|
+| 2026-11-03 | 처음 작성(설계 검증 지적 [Q1·Q5]: 매니페스트 S-12에 대응하는 행 없음). OpenAI 약관 두 판의 Output 조항 인용, 매니페스트 S-12 `license`·`notes`·`checkedAt` 갱신. status는 unconfirmed 유지 | openai.com 직접 열람 HTTP 403, Wayback 보관본(row-terms-of-use 2026-10-25, services-agreement 2026-10-06) |
 
 ## 콘텐츠 DB 배포 조건(D-01 반영)
 
@@ -259,10 +287,10 @@ ui-design.md 3.5가 아이콘 벡터 XML을 `res/drawable`에 복사한다고 �
 | N-06.screen | 출처 화면 위치 | 메뉴에서 들어가는 별도 화면으로 둔다 | S-01.attribution-place | 확정 |
 | N-07.manifest-attribution | 자료별 표시 내용 | 자료마다 매니페스트의 `attribution`, `license`·`licenseUrl`, `modifications`를 함께 보인다(문구만으로는 라이선스 URI·변경 표시 의무를 채우지 못한다) | content-licensing 5절, CC BY-SA 3.0 §4(a)·(c), 4.0 §3(a)(1)(B)·(C), BY 2.0 FR 4(a) | 미확정(앱 출처 화면이 아직 없음. 구현 후 화면과 대조) |
 | N-08.db-license | DB 라이선스 고지 | "콘텐츠 DB: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/), 원 자료와 변경 내용은 아래 참고"를 따로 보인다 | D-01 ; CC BY-SA 4.0 §3(b)(2) "You must include the text of, or the URI or hyperlink to, the Adapter's License You apply." | 미확정(링크를 넣어 고침. 버전은 L-01.version 제안, 앱 구현 후 확인) |
-| N-09.not-official | 급수 고지 | "JLPT 급수 분류는 공식 자료가 아니라 커뮤니티 목록(선택한 목록 이름)에 근거한다" | S-00.official | 미확정(전제는 확정. 목록 선택은 D-06, 앱 구현 후 화면 확인) |
+| N-09.not-official | 급수 고지 | "JLPT 급수 분류는 공식 자료가 아니라 커뮤니티 목록(선택한 목록 이름)에 근거한다". 문법 콘텐츠가 번들에 있는 빌드에서만 본문 앞에 문법 급수 문장을 붙인다: "문법 항목의 급수는 공개된 목록이 아니라 이 앱 작성자가 판단해 정한 것입니다(화면 표시 '비공식')."(기준 문구 ui-design.md 9.2 고지 1, UI-U12 A). 문법이 없는 빌드에는 이 문장이 없다. `content/notices.ko.json` 틀 제안: `notices.N-09`에 문법이 있을 때만 쓰는 키 `grammarPrefix`(위 문장)를 두고, 넣을지는 파이프라인이 빌드 때 grammar 행 유무로 판정(새 고지 ID 없음, 앵커 `About(anchor = "N-09")`) | S-00.official ; ui-design.md 9.2 고지 1·6.9 ; architecture.md 11.3-11 | 미확정(전제는 확정. 목록 선택은 D-06, 문법 문장 포함 여부는 M15 파이프라인 반영 후 확인. notices.ko.json 키는 아직 추가 안 됨) |
 | N-10.meaning-method | 뜻 생성 방식 고지 | 한국어 뜻 생성 방식(K-04)을 고지한다 | K-04 | 미확정(앱 구현 후 화면 확인) |
 | N-11.not-real-exam | 문항 고지 | 직접 작성한 문제·설명은 실제 시험 문항이 아님을 고지한다 | 프로젝트 방침 | 미확정(원 출처 없는 설계 요구. 앱 구현 후 화면 확인) |
-| N-12.listening-audio | 청해 음성 고지 | 청해 음성 방식 고지는 D-04 결정 후에 정한다 | decisions.md D-04(미정) | 미확정(D-04 결정 대기) |
+| N-12.listening-audio | 청해 음성 고지 | D-04 잠정 채택안 A(기기 TTS)의 문구: "청해 음성은 이 기기의 음성 합성(TTS) 엔진이 대본을 읽은 것입니다. 기기와 엔진에 따라 발음·억양이 다를 수 있고, 실제 시험 음성이 아닙니다." 청해 콘텐츠가 번들에 있을 때만 보인다. D-04가 B·C로 바뀌면 ui-design.md 9.2 고지 4의 해당 문구로 바꾼다 | decisions.md D-04(잠정 채택, 사용자 최종 검토 대기) ; ui-design.md 9.2 고지 4 ; content/notices.ko.json `N-12` | 미확정(D-04 잠정 채택, 사용자 최종 검토 대기. 앱 구현 후 화면 확인) |
 | N-13.no-tatoeba-audio | Tatoeba 음성 | 앱은 Tatoeba 음성을 쓰지 않는다 | S-04.audio, S-04.excluded | 확정 |
 | N-14.font | 글꼴 | 일본어 글꼴 번들 여부는 미결정이고 라이선스는 조사하지 않았다 | S-10, docs/plan.md | 미확정(번들을 정하면 글꼴 배포처 라이선스 파일로 조사) |
 
@@ -270,7 +298,7 @@ ui-design.md 3.5가 아이콘 벡터 XML을 `res/drawable`에 복사한다고 �
 
 | 자료 | 확정 | 미확정·수정 |
 |------|------|-------------|
-| S-01 | license, licenseUrl, shareAlike, downloadUrl, attribution(재검증 2026-11-02), pinning(재검증 2026-11-02) | status confirmed(재검증 2026-11-02, S-01.attribution-links 확정). links를 licence.html·JMdict·KANJIDIC 정적 사본 세 개로(S-01.attribution-links, 수정됨). usedFields에서 `ke_pri`·`re_pri` 뺌(S-01.used, 설계 행, 구현 QA) |
+| S-01 | license, licenseUrl, shareAlike, downloadUrl, attribution(재검증 2026-11-02), pinning(재검증 2026-11-02) | status confirmed(재검증 2026-11-02, S-01.attribution-links 확정). links를 licence.html·JMdict·KANJIDIC 정적 사본 세 개로(S-01.attribution-links, 수정됨). usedFields에서 `ke_pri`·`re_pri` 뺌(S-01.used, 설계 행, 구현 QA). usedFields에 `sense/stagk`·`sense/stagr` 더함(2026-11-03, architecture 4.2 기준, 설계 행·재검증) |
 | S-02 | license, licenseUrl, shareAlike, downloadUrl, attribution·extraCredits·pinning(재검증 2026-11-02) | status confirmed(재검증 2026-11-02, links의 근거 S-01.attribution-links 확정). attribution을 S-01 문장으로 통일(S-02.attribution), 한국어 음 크레딧을 extraCredits로, usedFields·excluded를 architecture 4.2에 맞춤, pinning·links 추가(재검증). links를 S-01과 같은 세 개로(S-01.attribution-links, 수정됨). extraCredits 문구를 한국어로 바꿈(S-02.korean-credit), pinning.method `snapshot`(재검증) |
 | S-03 | license, licenseUrl, shareAlike, downloadUrl, attribution·modifications·pinning(재검증 2026-11-03) | status confirmed(재검증 2026-11-03, 핵심 행 모두 확정, sharealike 기준 문서 P-S03 잠정), checkedAt 2026-11-03. usedFields·excluded(획 순서 번호 제외)는 S-03.used·excluded 설계 행, M13 구현 후 코드 대조 |
 | S-04 | license, licenseUrl, shareAlike, status | downloadUrl → null, files 4개로 바꿈(S-04.files). pinning 추가, method `snapshot`(S-04.pinning, 재검증. 커밋 여부는 D-08) |
@@ -280,5 +308,6 @@ ui-design.md 3.5가 아이콘 벡터 XML을 `res/drawable`에 복사한다고 �
 | S-08 | license, downloadUrl(null) | status(사용자 확인 대기), licenseUrl. shareAlike false 반박 → true로 수정(KANJIDIC 파생 데이터, 재검증) |
 | S-09 | license, shareAlike, downloadUrl(null), status | extraCredits에 Waller 크레딧 추가(S-09.credit, 검증 대기). licenseUrl·attribution·modifications를 null에서 제안값으로 채움(S-09.credit, 재검증) |
 | S-10 | license(null), licenseUrl(null), downloadUrl(null), status | shareAlike false 반박 → null로 수정(라이선스 미조사, 재검증) |
-| S-11 | license, licenseUrl, version(재검증 2026-11-02) | status confirmed(재검증 2026-11-02, S-11.attribution 확정). modifications·notes에 전문 사본 assets/licenses/apache-2.0.txt를 출처 화면에서 연다고 적음(S-11.attribution 설계 선택). `scope: app-asset`로 콘텐츠 DB 자료와 구분. usedFields를 아이콘 이름 24개 배열로, 파일 경로·고지 경로는 modifications로(S-11.used, 재검증) |
+| S-11 | license, licenseUrl, version(재검증 2026-11-02) | status confirmed(재검증 2026-11-02, S-11.attribution 확정). modifications·notes에 전문 사본 assets/licenses/apache-2.0.txt를 출처 화면에서 연다고 적음(S-11.attribution 설계 선택). `scope: app-asset`로 콘텐츠 DB 자료와 구분. usedFields를 아이콘 이름 24개 배열로, 파일 경로·고지 경로는 modifications로(S-11.used, 재검증). modifications의 채움 1 대상 이름을 `ic_ms_<name>_fill.xml`로 고침(2026-11-03, architecture 6.6 기준, 핵심 행 아님) |
+| S-12 | - | status unconfirmed(S-12.terms-which·copyright·attribution 미확정). license 문구를 OpenAI 약관 두 판의 Output 조항 기준으로 고침(검증 대기), notes에 보관본 근거·적용 약관 미확정, checkedAt 2026-11-03. `scope: generated-asset`은 6.5 "앱 자산" 검사에 아직 안 걸림(architecture 몫) |
 | 공통 | - | 모든 항목에 `links`·`extraCredits` 필드 추가(빈 배열 허용). S-01·S-02 links는 S-01.attribution-links 제안값(재검증 2026-11-02 확정) |

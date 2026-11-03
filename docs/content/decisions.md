@@ -147,6 +147,7 @@ architecture.md 6.7은 원본 판을 `content/snapshot/`에 커밋한 스냅샷�
 | UI-U11 | 문법 카드 예문 후리가나 | A `body_furigana` / B `front_furigana` | A | 정답이 읽기가 아니라 뜻 | 매우 낮음 |
 | UI-U12 | 문법 급수 "비공식" 고지 위치 | A N-09에 문장 추가 / B 새 고지 ID | A | 같은 주제, 대조 지점 최소화. N-09 문구 변경은 analyst 몫 | 낮음 |
 | UI-U13 | "대본으로 풂" 판정 시점 | A 답하기 전 한 번이라도 펼침 / B 답하는 순간 펼쳐져 있음 | A(architecture 9.2 `script_shown` 정의를 A로 맞춤) | B는 읽고 접은 뒤 답하면 듣고 푼 것으로 남음 | 낮음 |
+| AR-U15 | G-S12(S-12 아이콘 권리) 게이트가 막는 범위 | A 공개 출시만 막음(T13 앱 자산 검사 확장만 G-S12 뒤) / B 정리 마일스톤(T09)까지 막음 | A. T09는 T13·G-S12에 의존하지 않는다. G-S12 핵심 행: origin·terms-which·고른 약관 행·attribution, copyright는 사용자 결정(D-09)으로 충족 | S-12 copyright는 법률 판단이라 영구 미확정일 수 있음. next-tasks 5절 "공개 출시"와 같음 | 낮음 |
 
 ## 변경 이력
 
@@ -162,3 +163,4 @@ architecture.md 6.7은 원본 판을 `content/snapshot/`에 커밋한 스냅샷�
 | 2026-11-02 | license-verify 4차 재검증: S-06.waller-notice·S-06.credit 확정 → S-06 핵심 행·S-06.compat-allversions 모두 확정, D-06 조건 충족(잠정 채택 유효), 매니페스트 S-06 confirmed |
 | 2026-11-03 | U-2 A 실행: S-03 핵심 행 재검증(attribution·sharealike·pinning 확정) → 매니페스트 S-03 confirmed. P-S03을 "잠정(사용자 최종 검토 대기), 재검증 2026-11-03 사실 확정"으로 갱신 |
 | 2026-11-03 | MVP 이후 잠정 결정: U-1~U-7(사용자 지시), T04 설계에서 나온 AR-U11~U14·UI-U07~U13(하네스 추천 A, 잠정) |
+| 2026-11-03 | design-review 후속: AR-U15(G-S12는 공개 출시만 막음) 잠정 채택 |
