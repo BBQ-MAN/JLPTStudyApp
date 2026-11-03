@@ -69,6 +69,12 @@ class ChunkingTest {
             override suspend fun browseKanji(levels: List<Int>, q: String) = TODO()
             override suspend fun vocabKanji(id: String): List<String> = TODO()
             override suspend fun meaningReviewRows(): List<ReviewCountRow> = TODO()
+            override suspend fun countKanjiStroke(): Int = TODO()
+            override suspend fun countGrammar(): Int = TODO()
+            override suspend fun countGrammarExample(): Int = TODO()
+            override suspend fun countQuestion(): Int = TODO()
+            override suspend fun countExamTemplate(): Int = TODO()
+            override suspend fun countListening(): Int = TODO()
         }
         RoomContentRepository(dao).cardContents(ids2000 + (1..1000).map { "kr:字$it" })
         for (name in listOf("vocab", "meanings", "retired", "kanji", "words")) {

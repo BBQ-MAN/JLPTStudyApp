@@ -1,0 +1,465 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "ea2e151f987656c2f81de187e8e75ca1",
+    "entities": [
+      {
+        "tableName": "card_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`card_id` TEXT NOT NULL, `kind` TEXT NOT NULL, `content_id` TEXT NOT NULL, `phase` INTEGER NOT NULL, `step` INTEGER, `stability` REAL, `difficulty` REAL, `due_at_epoch_ms` INTEGER NOT NULL, `last_review_at_epoch_ms` INTEGER, `reps` INTEGER NOT NULL, `lapses` INTEGER NOT NULL, `scheduler_version` TEXT NOT NULL, PRIMARY KEY(`card_id`))",
+        "fields": [
+          {
+            "fieldPath": "cardId",
+            "columnName": "card_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentId",
+            "columnName": "content_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "phase",
+            "columnName": "phase",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "step",
+            "columnName": "step",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "stability",
+            "columnName": "stability",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "difficulty",
+            "columnName": "difficulty",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "dueAtEpochMs",
+            "columnName": "due_at_epoch_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastReviewAtEpochMs",
+            "columnName": "last_review_at_epoch_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "reps",
+            "columnName": "reps",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lapses",
+            "columnName": "lapses",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "schedulerVersion",
+            "columnName": "scheduler_version",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "card_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_card_state_due_at_epoch_ms",
+            "unique": false,
+            "columnNames": [
+              "due_at_epoch_ms"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_card_state_due_at_epoch_ms` ON `${TABLE_NAME}` (`due_at_epoch_ms`)"
+          },
+          {
+            "name": "index_card_state_kind_content_id",
+            "unique": false,
+            "columnNames": [
+              "kind",
+              "content_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_card_state_kind_content_id` ON `${TABLE_NAME}` (`kind`, `content_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "review_log",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `card_id` TEXT NOT NULL, `reviewed_at_epoch_ms` INTEGER NOT NULL, `rating` INTEGER NOT NULL, `phase_before` INTEGER NOT NULL, `elapsed_days` INTEGER NOT NULL, `scheduled_days` INTEGER NOT NULL, `state_before_json` TEXT NOT NULL, `state_after_json` TEXT NOT NULL, `scheduler_version` TEXT NOT NULL, `undone` INTEGER NOT NULL DEFAULT 0)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cardId",
+            "columnName": "card_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reviewedAtEpochMs",
+            "columnName": "reviewed_at_epoch_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rating",
+            "columnName": "rating",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "phaseBefore",
+            "columnName": "phase_before",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "elapsedDays",
+            "columnName": "elapsed_days",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scheduledDays",
+            "columnName": "scheduled_days",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stateBeforeJson",
+            "columnName": "state_before_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stateAfterJson",
+            "columnName": "state_after_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "schedulerVersion",
+            "columnName": "scheduler_version",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "undone",
+            "columnName": "undone",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_review_log_card_id",
+            "unique": false,
+            "columnNames": [
+              "card_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_review_log_card_id` ON `${TABLE_NAME}` (`card_id`)"
+          },
+          {
+            "name": "index_review_log_reviewed_at_epoch_ms",
+            "unique": false,
+            "columnNames": [
+              "reviewed_at_epoch_ms"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_review_log_reviewed_at_epoch_ms` ON `${TABLE_NAME}` (`reviewed_at_epoch_ms`)"
+          }
+        ]
+      },
+      {
+        "tableName": "user_settings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `day_boundary_minutes` INTEGER NOT NULL DEFAULT 240, `new_cards_per_day` INTEGER NOT NULL DEFAULT 10, `extra_new_cards` INTEGER NOT NULL DEFAULT 0, `extra_new_cards_study_day` INTEGER, `target_levels` TEXT NOT NULL DEFAULT '5', `desired_retention` REAL NOT NULL DEFAULT 0.9, `max_interval_days` INTEGER NOT NULL DEFAULT 36500, `learn_ahead_minutes` INTEGER NOT NULL DEFAULT 20, `vocab_recognition_enabled` INTEGER NOT NULL DEFAULT 1, `kanji_cards_enabled` INTEGER NOT NULL DEFAULT 1, `vocab_recall_enabled` INTEGER NOT NULL DEFAULT 0, `grammar_cards_enabled` INTEGER NOT NULL DEFAULT 1, `front_furigana` INTEGER NOT NULL DEFAULT 0, `body_furigana` INTEGER NOT NULL DEFAULT 1, `listening_script_first` INTEGER NOT NULL DEFAULT 0, `theme` TEXT NOT NULL DEFAULT 'system', `onboarding_done` INTEGER NOT NULL DEFAULT 0, `first_notice_dismissed` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dayBoundaryMinutes",
+            "columnName": "day_boundary_minutes",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "240"
+          },
+          {
+            "fieldPath": "newCardsPerDay",
+            "columnName": "new_cards_per_day",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "10"
+          },
+          {
+            "fieldPath": "extraNewCards",
+            "columnName": "extra_new_cards",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "extraNewCardsStudyDay",
+            "columnName": "extra_new_cards_study_day",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "targetLevels",
+            "columnName": "target_levels",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'5'"
+          },
+          {
+            "fieldPath": "desiredRetention",
+            "columnName": "desired_retention",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "0.9"
+          },
+          {
+            "fieldPath": "maxIntervalDays",
+            "columnName": "max_interval_days",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "36500"
+          },
+          {
+            "fieldPath": "learnAheadMinutes",
+            "columnName": "learn_ahead_minutes",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "20"
+          },
+          {
+            "fieldPath": "vocabRecognitionEnabled",
+            "columnName": "vocab_recognition_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "kanjiCardsEnabled",
+            "columnName": "kanji_cards_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "vocabRecallEnabled",
+            "columnName": "vocab_recall_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "grammarCardsEnabled",
+            "columnName": "grammar_cards_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "frontFurigana",
+            "columnName": "front_furigana",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "bodyFurigana",
+            "columnName": "body_furigana",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "listeningScriptFirst",
+            "columnName": "listening_script_first",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "theme",
+            "columnName": "theme",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'system'"
+          },
+          {
+            "fieldPath": "onboardingDone",
+            "columnName": "onboarding_done",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "firstNoticeDismissed",
+            "columnName": "first_notice_dismissed",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "quiz_attempt",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `exam_id` TEXT, `seed` INTEGER NOT NULL, `question_order_json` TEXT NOT NULL, `current_index` INTEGER NOT NULL DEFAULT 0, `elapsed_ms` INTEGER NOT NULL DEFAULT 0, `started_at_epoch_ms` INTEGER NOT NULL, `finished_at_epoch_ms` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "examId",
+            "columnName": "exam_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "seed",
+            "columnName": "seed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "questionOrderJson",
+            "columnName": "question_order_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentIndex",
+            "columnName": "current_index",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "elapsedMs",
+            "columnName": "elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "startedAtEpochMs",
+            "columnName": "started_at_epoch_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "finishedAtEpochMs",
+            "columnName": "finished_at_epoch_ms",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "quiz_answer",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`attempt_id` INTEGER NOT NULL, `question_id` TEXT NOT NULL, `chosen_index` INTEGER NOT NULL, `correct` INTEGER NOT NULL, `answered_at_epoch_ms` INTEGER NOT NULL, `script_shown` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`attempt_id`, `question_id`))",
+        "fields": [
+          {
+            "fieldPath": "attemptId",
+            "columnName": "attempt_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "questionId",
+            "columnName": "question_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chosenIndex",
+            "columnName": "chosen_index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "correct",
+            "columnName": "correct",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "answeredAtEpochMs",
+            "columnName": "answered_at_epoch_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scriptShown",
+            "columnName": "script_shown",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "attempt_id",
+            "question_id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ea2e151f987656c2f81de187e8e75ca1')"
+    ]
+  }
+}

@@ -25,6 +25,23 @@ class ContentDbTest {
         }
     }
 
+    @Test fun `v2 새 여섯 테이블 count 조회가 0을 낸다`() = runBlocking {
+        val db = ContentDatabase.open(context)
+        try {
+            val d = db.contentDao()
+            assertEquals(
+                listOf(0, 0, 0, 0, 0, 0),
+                listOf(
+                    d.countKanjiStroke(), d.countGrammar(), d.countGrammarExample(),
+                    d.countQuestion(), d.countExamTemplate(), d.countListening(),
+                ),
+            )
+            assertEquals(2, db.openHelper.readableDatabase.version)
+        } finally {
+            db.close()
+        }
+    }
+
     @Test fun `옛 content 파일만 지우고 현재 파일과 study_db는 둔다`() {
         val names = listOf("content_old000000.db", "content_cur000000.db", "study.db")
         names.forEach { context.getDatabasePath(it).apply { parentFile?.mkdirs() }.writeText("x") }

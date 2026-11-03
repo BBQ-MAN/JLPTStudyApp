@@ -86,4 +86,22 @@ interface ContentDao {
 
     @Query("SELECT kanji FROM vocab_kanji WHERE vocab_id = :id AND kanji NOT IN (SELECT id FROM retired)")
     suspend fun vocabKanji(id: String): List<String>
+
+    @Query("SELECT COUNT(*) FROM kanji_stroke")
+    suspend fun countKanjiStroke(): Int
+
+    @Query("SELECT COUNT(*) FROM grammar")
+    suspend fun countGrammar(): Int
+
+    @Query("SELECT COUNT(*) FROM grammar_example")
+    suspend fun countGrammarExample(): Int
+
+    @Query("SELECT COUNT(*) FROM question")
+    suspend fun countQuestion(): Int
+
+    @Query("SELECT COUNT(*) FROM exam_template")
+    suspend fun countExamTemplate(): Int
+
+    @Query("SELECT COUNT(*) FROM listening")
+    suspend fun countListening(): Int
 }
