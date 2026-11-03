@@ -11,8 +11,10 @@ import kotlinx.coroutines.withContext
     entities = [
         ContentMetaEntity::class, VocabEntity::class, VocabMeaningEntity::class,
         KanjiEntity::class, VocabKanjiEntity::class, RetiredEntity::class,
+        KanjiStrokeEntity::class, GrammarEntity::class, GrammarExampleEntity::class,
+        QuestionEntity::class, ExamTemplateEntity::class, ListeningEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class ContentDatabase : RoomDatabase() {

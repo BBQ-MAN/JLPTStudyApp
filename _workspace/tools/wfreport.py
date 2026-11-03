@@ -1,6 +1,6 @@
 # 사용: python3 -I wfreport.py <taskId>  — implement-milestones 결과를 마일스톤별로 요약한다.
 import json,sys
-o=json.load(open(f"/private/tmp/claude-501/-Users-bbqman-HermesAgents-ETC-JLPTStudyApp/0b7bcf04-7b73-4104-a3b9-4fcf6ce1cf77/tasks/{sys.argv[1]}.output"))
+o=json.load(open(f"/private/tmp/claude-501/-Users-bbqman-HermesAgents-ETC-JLPTStudyApp/{sys.argv[2] if len(sys.argv)>2 else "dfa294f8-6757-4357-aed3-794c642a65e7"}/tasks/{sys.argv[1]}.output"))
 r=o['result']; r=json.loads(r) if isinstance(r,str) else r
 print(o.get('logs',[])[-3:])
 if 'error' in r: print('ERROR',r['error'])

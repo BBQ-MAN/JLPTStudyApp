@@ -1,0 +1,602 @@
+{
+ "confirmed": [
+  {
+   "title": "카드 뒤집기·다음 카드 알림을 접근성 포커스 이동에만 맡김 (D8의 Polite 알림 없음, 대체 수단 없음)",
+   "severity": "high",
+   "targets": [
+    "ui-design"
+   ],
+   "location": "ui-design.md 11.1 표 'S03 카드 앞면', 'S03 뒤집기', 'S03 다음 카드', '되돌리기' 행 / 5.6",
+   "evidence": "D8은 카드 뒤집기·정답/오답을 Polite 알림으로 하라고 한다. 11.1은 포커스를 뒷면 노드로 '옮기기만' 하고 liveRegion을 두지 않는다. Compose에는 TalkBack 접근성 포커스를 옮기는 공개 API가 없다. 입력 포커스를 요청해도 접근성 포커스가 따라온다는 보장이 없다. 포커스가 안 따라가면 '답 보기'가 사라진 자리에서 사용자는 아무 안내도 못 받고 평가 버튼으로 떨어진다. 스펙에는 포커스를 어떻게 옮기는지(`requestFocus`, `focusable`, 노드 교체 등)도, 안 됐을 때의 대체 수단도 없다. 이 동작은 개발 종료 뒤 일괄 실기기 확인(awaiting-device)으로만 검증된다.",
+   "fix": "뒷면 카드 노드와 다음 카드 앞면 노드에 `liveRegion = Polite`를 걸거나, 포커스 이동이 실패할 때를 위한 대체를 명시한다. 문구가 겹치면 TalkBack 쪽 이동을 빼고 liveRegion 하나로 통일한다. 포커스를 옮기는 구현 방법을 적는다. 에뮬레이터 TalkBack 확인은 M4에서 일찍 한다.",
+   "lens": "a11y",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적이 맞다. 그대로 구현하면 접근성 결함이 생기고, 검증할 장치도 없다. 근거는 다섯 가지다.\n(1) 기준 문서가 다르게 정한다. ui-design-review SKILL.md의 D8은 \"카드 뒤집기·정답/오답은 `Polite` 알림\"으로 정한다. 그런데 ui-design.md 11.1의 'S03 카드 앞면'과 'S03 뒤집기' 행은 \"접근성 포커스 이동만(`liveRegion` 없음)\"이라고 적어 D8과 반대로 정했다. 'S03 다음 카드'와 '되돌리기' 행도 포커스 이동만 있다. 0절 대응표는 D8을 4.3·11.1에 대응시키지만, 이렇게 벗어난 이유는 \"알림을 겹치지 않는다\"는 한 줄뿐이다.\n(2) 포커스를 옮기는 방법이 어디에도 없다. ui-design.md, architecture.md, milestones.json, compose-app-dev SKILL.md 어디에도 `FocusRequester`, `focusable`, 노드 교체 같은 구현 방법이 없다. milestones.json에는 '포커스'라는 단어 자체가 없다. Compose에는 TalkBack 접근성 포커스를 직접 옮기는 공개 API가 없다. 입력 포커스를 요청해도 TalkBack이 따라온다는 보장이 없다. 카드 노드가 focusable이 아니면 `requestFocus`는 아무 일도 하지 않는다.\n(3) 대체 수단이 없다. 포커스를 가진 '답 보기' 버튼은 사라진다. 이때 이동이 실패하면 뒷면 내용(읽기·뜻·칩)이 전혀 낭독되지 않는다. 화면을 보지 않는 사용자는 아무 안내 없이 남는다. 다음 카드와 되돌리기도 마찬가지다.\n(4) 검증 장치가 없다. M4 완료 조건(milestones.json 180~201행)에는 포커스 이동이나 알림을 확인하는 Compose UI 테스트가 없다. 실기기 확인 항목(201행)도 낭독 언어만 다루고 포커스 이동은 빠져 있다. 11.1 끝의 실기기 확인 목록도 같다. 그래서 개발 끝의 awaiting-device 단계에서도 이 동작은 확인되지 않는다.\n(5) 문서 안에서도 일관되지 않다. 정답·오답(5.5), 재생 상태(5.8), 필순 완료(6.7.1)에는 모두 `liveRegion = Polite`를 정해 두었다. 카드 뒤집기만 D8에서 빠졌다.\n수정 방향은 지적의 fix와 같다. liveRegion 하나로 통일하거나, 포커스 이동 방법과 실패할 때의 대체를 명시하고, M4에 테스트나 에뮬레이터 확인을 넣는다. 이 수정은 4.3의 '같은 노드에 liveRegion' 규칙과도 충돌하지 않는다.\n대비 수치는 이 지적과 관계가 없어 계산하지 않았다."
+   }
+  },
+  {
+   "title": "일본어 낭독 로캘이 clearAndSetSemantics의 AnnotatedString 하나에만 걸려 있고, 부작용과 대체안이 없음",
+   "severity": "medium",
+   "targets": [
+    "ui-design",
+    "architecture"
+   ],
+   "location": "ui-design.md 4.3, 5.2 TalkBack, 11.1 첫 단락·선택지 행 / milestones.json M4 'Compose UI 테스트' 항목",
+   "evidence": "일본어가 섞인 모든 낭독 문구(카드, 선택지, 지시문, 대본, 문법 행)가 `clearAndSetSemantics { text = AnnotatedString }`의 `SpanStyle(localeList)`가 TalkBack에 LocaleSpan으로 전달된다는 가정에 기댄다. 이 가정이 실제로 되는지는 실기기에서만 확인되고 일괄 체크리스트로 미뤄져 있다. 틀렸다고 밝혀지면 전 화면을 다시 만들어야 한다. clearAndSetSemantics는 하위 노드의 role, selected, onClick, stateDescription도 모두 지운다. 11.1은 선택지에 `Role.RadioButton`과 '선택됨'을 말하지만 지운 뒤 다시 선언하라는 말이 없다. 카드 '아무 곳 탭' 클릭도 같다. 마일스톤 테스트는 `SemanticsProperties.Text`에 SpanStyle이 있는지만 본다. 이것으로는 TalkBack 전달 여부를 알 수 없다.",
+   "fix": "4.3에 세 가지를 더한다. (1) clearAndSetSemantics 안에서 role, selected, onClick, onClickLabel을 다시 선언하는 규칙. (2) 낭독 로캘이 안 먹을 때의 대체안(예: 일본어 구간만 별도 자식 Text 노드로 두고 mergeDescendants, 또는 `Modifier.semantics { text }`에 AnnotatedString만 쓰고 contentDescription에는 가나 읽기만 쓰기). (3) 한 화면(S03)에서 에뮬레이터 TalkBack으로 일찍 검증하는 스파이크를 M4 완료 조건에 넣는다. milestones.json M4 항목도 같이 고친다.",
+   "lens": "a11y",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적 일부만 맞다. 남는 부분은 실제 접근성 결함으로 이어질 수 있다.\n\n(1) 맞는 부분: 선택지의 role·selected·onClick이 지워질 수 있다. Compose 1.12.1 LayoutNode의 collapsedSemantics 바이트코드를 직접 확인했다. 시맨틱 수정자를 tail에서 head 순서로 돌다가 shouldClearDescendantSemantics를 만나면 SemanticsConfiguration을 새로 만들고 clearingSemantics=true로 둔다. 그래서 같은 노드에서 clearAndSetSemantics보다 안쪽(체인에서 뒤)에 있는 수정자와 모든 자식 컴포저블의 role·selected·onClick·stateDescription이 사라진다. 바깥쪽 수정자의 값은 남는다. 즉 '모두 지운다'는 과장이고 수정자 순서에 따라 결과가 갈린다.\n- ui-design 4.3·11.1은 [ja] 행에 clearAndSetSemantics { text }만 쓰라고 한다. 5.4·11.1은 같은 선택지 행에 selectable(role = Role.RadioButton)과 TalkBack의 '선택됨' 낭독을 요구한다. 그런데 두 규칙을 함께 쓸 때 순서를 어떻게 하는지, 지운 값을 다시 선언하는지에 대한 규칙이 문서에 없다.\n- milestones.json의 선택지 테스트(681행)와 M4 테스트(198행)는 SemanticsProperties.Text의 ja-JP SpanStyle과 contentDescription이 없는지만 본다. Role·Selected·OnClick은 어느 마일스톤도 검사하지 않는다(grep 결과 없음). 그래서 `Modifier.clearAndSetSemantics{…}.selectable(…)` 순서로 짜거나, 행 안에 RadioButton 자식을 두면 role·선택 상태·클릭 동작이 빠진 채 테스트를 통과한다.\n- 기존 코드가 이 위험을 보여 준다. ReviewScreen.kt의 후리가나 토글은 clearAndSetSemantics 안에서 role·stateDescription·onClick을 직접 다시 선언했다. 팀은 다시 선언해야 한다는 것을 알고 있지만 그 규칙이 설계 문서에는 없다.\n\n(2) 틀린 부분: 로캘 전달 가정과 '전 화면 재작성' 위험. ui-text-android 1.12.1의 AndroidAccessibilitySpannableString_androidKt가 SpanStyle.getLocaleList를 읽어 setLocaleList로 LocaleSpan을 만드는 것을 바이트코드에서 확인했다. 가정에는 구현 근거가 있다. 낭독 문구는 JpSpan·JpSpans.annotate 한 곳으로 모여 있어서, 가정이 틀려도 공통 함수만 고치면 된다. 대체안 (2)는 필요성이 약하다.\n- 에뮬레이터 스파이크 제안은 사용자 결정 U-7(decisions.md 138행: 실기기 확인은 개발이 끝난 뒤 한 번에, awaiting-device)과 충돌한다. 문서는 이미 실기기 확인을 unverified로 남겨 두었다.\n- 카드 '아무 곳 탭'은 Flashcard.kt에서 pointerInput(detectTapGestures)으로 구현돼 있어 처음부터 시맨틱 클릭이 아니다. 같은 동작은 '답 보기' 버튼이 onClick 시맨틱으로 제공하므로 결함이 아니다.\n\n결론: 4.3에 규칙 하나를 더해야 한다. selectable·clickable 같은 동작 수정자를 clearAndSetSemantics보다 바깥에 두거나, 블록 안에서 role·selected·onClick을 다시 선언하는 규칙이다. 그리고 선택지 테스트에 Role.RadioButton·Selected·OnClick 검사를 더해야 한다. 이 둘이 없으면 선택지 행에서 실제 TalkBack 결함이 생길 수 있다. 지적의 (2)·(3)은 근거가 약하거나 사용자 결정과 충돌한다.\n\n확인하지 않은 것: TalkBack이 실제 기기에서 LocaleSpan을 따르는지(실기기 필요). 아직 구현되지 않은 M19 선택지 코드."
+   }
+  },
+  {
+   "title": "설정·온보딩의 '단계 조절'과 '시간 선택' 위젯이 정해지지 않아 드래그 전용·접근성 미정",
+   "severity": "medium",
+   "targets": [
+    "ui-design"
+   ],
+   "location": "ui-design.md 6.1 '하루 새 카드 단계 조절', 6.8 표 '하루 새 카드'·'하루 시작 시각'",
+   "evidence": "'단계 조절 5~50, 5 단위'가 Slider인지 스테퍼인지 적혀 있지 않다. '시간 선택 00:00~12:00 정시'가 M3 TimePicker(다이얼은 드래그·정밀 포인팅 중심)인지 목록인지도 없다. Slider나 다이얼이면 WCAG 2.5.7 드래그 대체와 2.5.8 목표 크기가 걸리고, TalkBack 값 증감(`progressBarRangeInfo`, `stateDescription`)과 터치 영역도 명세가 없다.",
+   "fix": "스테퍼(− / 값 / +, 각 48 dp, 값 노드 `tnum`, 범위 끝에서 비활성)로 정하고 TalkBack 문구와 `stateDescription`(예: '10장')을 11.1에 적는다. 시작 시각은 13개 항목의 드롭다운이나 라디오 목록으로 정하고 다이얼은 쓰지 않는다.",
+   "lens": "a11y",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "이 지적은 맞다. 반박하려고 확인했지만 근거를 찾지 못했다.\n\n**문서에 실제로 빠진 것**\n- ui-design.md 6.1(668행)은 \"단계 조절(5~50, 5 단위, 기본 10, `tnum`)\"이라고만 적었다. 6.8 표(747~748행)도 \"단계 조절\"과 \"시간 선택, 정시 단위 00:00~12:00\"뿐이다. 위젯 종류(Slider, 스테퍼, M3 TimePicker, 목록), 터치 영역, semantics가 어디에도 없다.\n- `Slider`·`TimePicker`·스테퍼·드롭다운·라디오라는 말은 ui-design.md, architecture.md, plan.md, milestones.json, compose-app-dev 스킬 어디에도 나오지 않는다.\n- 11.1 TalkBack 표는 화면의 거의 모든 컨트롤(후리가나 토글, 속도 칩, 대본 머리, 필순 스위치 등)에 라벨과 `stateDescription`을 정해 두었다. 그런데 이 두 컨트롤의 행은 없다. ui-design-review D8의 규칙(토글 등은 `stateDescription`)과도 맞지 않는다.\n- 11.2에는 \"모든 터치 대상 48 dp 이상\"이라는 일반 규칙만 있다.\n\n**그대로 두면 생기는 결함**\n- **새 카드 수를 Compose `Slider`(steps)로 만들 때:** 기본 semantics는 `progressBarRangeInfo`만 준다. 그러면 TalkBack이 실제 값 \"10장\" 대신 범위 비율로 읽을 수 있다. 값 문구가 정해지지 않았기 때문이다. 접근성 결함이다.\n- 슬라이더 손잡이(M3 기본 폭 4 dp)는 2.5.8 목표 크기가 걸린다. 다만 이것은 판단이 갈린다.\n- **시작 시각을 M3 `TimePicker`로 만들 때:** 범위를 00~12시, 정시로 묶을 수 없다. 13:00이나 04:30 같은 값을 고를 수 있게 된다. 문서 6.8 끝줄(\"화면에 없는 값은 저장하지 않는다\")과 architecture.md 286행(`day_boundary_minutes`, 화면은 60의 배수만)과의 계약이 어긋난다. 고른 값이 조용히 버려지는 오작동이 생긴다.\n- 다이얼 모드는 드래그와 정밀 포인팅 위주라서 2.5.7 대안 명세도 필요해진다.\n\n**반박이 안 되는 이유**\n- Compose `Slider`는 트랙을 탭해도 값이 바뀌고, TimePicker에는 입력 모드도 있다. 그래서 2.5.7만 놓고 보면 위반이 꼭 생기지는 않는다.\n- 그러나 위젯을 정하지 않으면 위의 `stateDescription` 누락과 범위 계약 불일치가 구현자 선택에 따라 그대로 생긴다.\n- 이미 승인된 결정(AR-U06)은 범위만 정했고 위젯은 정하지 않았다.\n\n**고칠 방향**\n제안된 수정은 타당하다. 13개 값 목록, 범위 끝 비활성, `stateDescription`은 문서 범위·계약과 맞는다. 다만 꼭 스테퍼일 필요는 없다. 위젯 형식과 11.1 TalkBack 행, 터치 영역을 정하기만 하면 된다.\n\n이 지적은 색과 무관해서 contrast.py는 돌리지 않았다. Compose `Slider`의 TalkBack 낭독은 실기기에서 확인하지 않았다."
+   }
+  },
+  {
+   "title": "글꼴 200% 스크린샷 목록이 MVP 화면 일부를 빠뜨림",
+   "severity": "medium",
+   "targets": [
+    "ui-design",
+    "architecture"
+   ],
+   "location": "ui-design.md 12절 '_font200 추가' 줄 / milestones.json 스크린샷 항목(라인 232, 254)",
+   "evidence": "ui-design-review 3절은 '모든 화면에서 가장 긴 문구가 나오는 상태에 글꼴 2.0배 한 장'을 요구한다. _font200 목록은 review_back_word, review_back_word_long_katakana, review_back_kanji, word_detail_loaded, dict_kanji, attribution_loaded, home_new_limit, nav_shell_home뿐이다. 없는 것: level_loaded(S01 headlineSmall, 하단 고정 '시작', 새 카드 단계 조절), settings_loaded(스위치 행·긴 안내 문구), dict_words(6.5의 '1줄 말줄임'이 200%에서도 의미를 얼마나 잘라 내는지), kanji_detail_loaded, review_front_recall(28 sp 뜻 3줄), review_save_error(스낵바+평가 줄), error_content_db, done_loaded. 11.2는 '글꼴 200%에서 잘리지 않음을 12절 스크린샷으로 확인'이라 하지만 확인할 스크린샷이 없는 화면이 있다.",
+   "fix": "위 화면의 _font200을 12절 목록에 더하고, 같은 이름을 milestones.json 해당 마일스톤(M3, M5 등)의 스크린샷 항목에도 맞춰 넣는다. ui-design.md를 기준으로 맞춘다.",
+   "lens": "a11y",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적은 맞습니다. 규칙과 문서 사이에 계약 불일치가 있습니다. ui-design-review 3절 2항은 \"모든 화면에서 가장 긴 문구가 나오는 상태에 글꼴 2.0배 한 장\"을 요구하고, 같은 절은 \"스크린샷이 없으면 디자인 검증을 할 수 없으므로 마일스톤이 실패 처리된다\"고 정합니다. 그런데 ui-design.md 12절 MVP 표의 screen 12개 중 `_font200` 목록(1182행)에 있는 것은 review, word_detail, dict, attribution, home, nav_shell 6개뿐입니다. 빠진 화면은 level, done, kanji_detail(MVP M6의 loaded), settings, error, app 6개입니다. kanji_detail은 M12에 `kanji_detail_strokes_light_font200`(milestones.json 493행)이 있지만, MVP M6(254행)에는 kanji_detail의 font200이 없습니다. M5 스크린샷 항목(232행)도 `home_new_limit_light_font200`뿐이고 level_loaded와 settings_loaded는 없습니다. 11.2(1159행)는 \"글꼴 200%에서 잘리지 않음을 12절 스크린샷으로 확인\"한다고 적었지만, S01(급수 행, 하단 고정 \"시작\", 새 카드 단계 조절)과 S08(스위치 행, 안내 문구)은 확인할 스크린샷이 없습니다. 그러면 D7(글꼴 200% 잘림 없음) 접근성 결함이 리뷰를 그대로 통과할 수 있습니다. 문서 어디에도 이 화면들을 빼도 된다는 근거는 없습니다(가장 긴 문구, 모든 화면으로 grep). 다만 고칠 범위는 지적보다 좁혀야 합니다. 규칙은 화면마다 한 장이므로 dict_words, review_front_recall, review_save_error는 필수가 아닙니다(dict와 review는 이미 한 장씩 있음). 꼭 더할 것은 level_loaded, settings_loaded, done_loaded, kanji_detail_loaded, error_content_db(가장 긴 문구 상태)이고, app_opening은 판단해서 정합니다. 같은 이름을 milestones.json M5(232행), M6(254행), 그리고 done·error·review가 있는 M2·M4 항목(131, 199행)에 함께 넣습니다. 대비 수치와는 관계없는 지적이라 contrast.py는 돌리지 않았습니다. 확인하지 않은 것: done과 error가 어느 마일스톤에 속하는지(131행, 199행 기준으로 추정)."
+   }
+  },
+  {
+   "title": "하단 고정 영역·IME가 포커스된 요소를 가리는 경우(WCAG 2.4.11)와 검색란 IME 인셋 규칙이 없음",
+   "severity": "low",
+   "targets": [
+    "ui-design"
+   ],
+   "location": "ui-design.md 3.3 마지막 항목, 6.3 '카드와 고정 영역은 겹치지 않는다', 6.5 검색란",
+   "evidence": "하단 고정 평가 줄·'다음'·'이전/다음' 버튼은 스크롤 영역 위에 놓이고, 스크롤 영역 안 포커스 가능 요소(출처 칩, 링크, 선택지)가 고정 영역 뒤에 가려질 수 있다. 문서는 카드 내용을 덮지 않는다고만 하고, 포커스 이동 시 스크롤해서 보이게 하는 규칙(`bringIntoViewRequester` 또는 contentPadding)은 없다. S05 검색란은 edge-to-edge 하에서 `imePadding` 등 IME 인셋 처리가 적혀 있지 않다.",
+   "fix": "스크롤 영역 아래 contentPadding을 고정 영역 높이만큼 주고, 포커스 이동 시 보이게 스크롤한다는 규칙을 3.3에 한 줄 더한다. S05는 `imePadding`과 결과 영역 줄어듦을 명시한다.",
+   "lens": "a11y",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적의 일부만 맞다. 남은 IME 쪽은 이미 MVP 코드에 결함으로 나타나 있다.\n\n(1) 하단 고정 영역이 포커스를 가린다는 부분은 근거가 약하다(반박됨). ui-design.md 6.3 끝 항목이 \"카드와 고정 영역은 위아래로 나란히 놓이고 겹치지 않는다\"고 이미 적고 있다. 지적의 \"스크롤 영역 위에 놓인다\"는 전제가 문서와 다르다. 실제 구현 ReviewScreen.kt도 카드(weight 1f)와 하단 Box를 Column에 나란히 두어 겹치지 않는다. 겹치지 않는 스크롤 컨테이너에서는 Compose 기본 focus bringIntoView가 요소를 컨테이너 뷰포트 안으로 스크롤한다. 그래서 고정 영역 뒤로 포커스가 숨지 않고, 별도의 bringIntoViewRequester나 contentPadding 규칙이 꼭 필요하지 않다. 다만 S13·S14·S16의 \"하단 고정\"에는 겹치지 않는다는 문장이 따로 없다. 3.3에 공통 규칙 한 줄을 두면 좋지만 결함 근거로는 약하다.\n\n(2) S05 검색란 IME 인셋은 실제 결함이다(확인됨). ui-design.md 3.3은 navigationBars 인셋만 말하고, 6.5 S05에는 IME 처리 규칙이 없다. 기존 구현을 보면 다음과 같다.\n- MainActivity.kt가 enableEdgeToEdge()를 쓴다.\n- AndroidManifest.xml의 activity에 android:windowSoftInputMode=\"adjustResize\"가 없다.\n- app/src/main/java/com/jlptstudy/app/ui/dictionary/BrowseScreen.kt는 루트가 Column(Modifier.statusBarsPadding())이고, LazyColumn에도 Empty 상태에도 imePadding이나 fitInside(WindowInsetsRulers.Ime)가 없다.\n\n그래서 키보드가 열려 있는 동안 생기는 문제는 셋이다.\n- 결과 목록의 마지막 행에 닿을 수 없다.\n- 결과 없음 StatusScreen(세로 가운데 정렬)의 \"필터 지우기\" 버튼이 360×640 기준 키보드(약 300 dp) 아래로 숨을 수 있다.\n- 스위치·D-pad로 목록 행에 포커스를 옮기면, 뷰포트가 IME 뒤까지 이어져 있어 행이 가려진다(WCAG 2.4.11).\n\ncompose-app-dev 11절이 공식 edge-to-edge 스킬을 읽으라고 하고, 그 스킬도 TextField가 있으면 IME 처리를 MUST로 요구한다. 그런데도 MVP 구현에서 빠졌다. 절차만으로는 막지 못했다는 뜻이고, 설계 문서 6.5에 명시하는 것이 맞다. 수정안: 6.5에 adjustResize와 imePadding(또는 fitInside(WindowInsetsRulers.Ime.current))을 적고, 결과 영역이 키보드 위로 줄어든다는 점을 명시한다. 심각도 low는 적절하다. 이 지적에는 대비 항목이 없어 contrast.py는 쓰지 않았다."
+   }
+  },
+  {
+   "title": "[Q1·Q5] manifest S-12(앱 아이콘 생성 이미지)에 대응하는 sources.md 행이 없고, release 검사 '앱 자산'도 S-12를 잡지 못한다",
+   "severity": "medium",
+   "targets": [
+    "content",
+    "architecture"
+   ],
+   "location": "docs/content/manifest.json S-12(417-437행) ↔ docs/content/sources.md 0절 상태 요약(S-01~S-11만 있음) · docs/spec/architecture.md 6.5 '앱 자산' 행(386행)·10절 게이트 표",
+   "evidence": "manifest S-12에는 \"scope\": \"generated-asset(앱 아이콘, 콘텐츠 DB 아님)\", \"license\": \"외부 라이선스 없음(프로젝트 생성 자산). OpenAI 이용 약관상 생성물 권리 조건은 원 출처로 확인하지 않음(미확인)\", \"status\": \"unconfirmed\"가 있다. sources.md를 grep하면 'S-12'가 0건이다(decisions.md D-09에만 나온다). Q1 규칙(manifest의 모든 id가 sources.md에 같은 상태로 있어야 함)을 어긴다. architecture.md 6.5 '앱 자산' 검사는 \"`scope`가 `app-asset`으로 시작하는 자료\"만 confirmed를 요구하는데, S-12의 scope는 `generated-asset`으로 시작한다. 그래서 release 빌드가 약관을 확인하지 않은 S-12 아이콘(app/src/main/res/mipmap-*에 이미 들어 있음)을 그대로 통과시킨다. architecture.md·ui-design.md 어디에도 S-12가 없다.",
+   "fix": "content(analyst) 몫: sources.md에 S-12 절과 상태 요약 행을 더한다. OpenAI 이용 약관의 생성물 권리 조항을 원 출처에서 인용해 license·status를 적는다. architecture 몫: 6.5 '앱 자산' 조건을 'scope가 app-asset 또는 generated-asset으로 시작'으로 넓히거나 S-12용 게이트(G-S12 같은 것)를 10절에 더한다. 기준은 manifest의 scope 값이다.",
+   "lens": "consistency",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적이 맞다. 반박할 근거를 찾지 못했다.\n(1) manifest.json 417-437행에 S-12가 있다. scope는 \"generated-asset(앱 아이콘, 콘텐츠 DB 아님)\", status는 \"unconfirmed\"이고, license에는 OpenAI 약관을 확인하지 않았다고 적혀 있다.\n(2) sources.md에서 S-12를 grep하면 0건이다. 0절 상태 요약에는 S-11과 S-10만 있다. android-integration-qa Q1(\"sources.md ↔ manifest.json 같은 id·라이선스·상태\")을 바로 어긴다.\n(3) architecture.md 386행의 6.5 '앱 자산' 검사는 \"scope가 app-asset으로 시작하는 자료\"만 잡는다. S-12의 scope는 generated-asset으로 시작하므로 검사에 걸리지 않는다. milestones.json 157행의 check.sh 조건도 \"scope app-asset 자료(S-11)\"만 적었다. 10절 게이트에는 G-S11(1228행)만 있고 S-12용 게이트는 없다.\n(4) architecture.md, ui-design.md, plan.md, milestones.json 어디에도 S-12가 없다. S-12는 decisions.md D-09에만 나온다.\n(5) 아이콘 파일은 이미 app/src/main/res/mipmap-*/ic_launcher_foreground.webp와 mipmap-anydpi-v26/ic_launcher.xml에 들어 있다.\n이대로 두면 release 빌드가 권리 조건을 확인하지 않은 생성 아이콘을 그대로 통과시킨다. 라이선스 의무 누락 위험이고, 출처 문서와 매니페스트의 계약 불일치이기도 하다.\n고칠 곳은 지적의 fix안과 같다. 6.5 조건을 generated-asset까지 넓히거나 G-S12 게이트를 더하고, milestones.json 157행의 픽스처 조건도 함께 고쳐야 한다. 이번 검증에서 OpenAI 약관 원문은 확인하지 않았다."
+   }
+  },
+  {
+   "title": "[Q11] M19b 완료 조건은 PracticeHomeUiState.notice(N-11)를 테스트하라고 하는데, architecture.md에서는 그 필드가 지워졌다",
+   "severity": "medium",
+   "targets": [
+    "architecture",
+    "ui-design"
+   ],
+   "location": "docs/spec/milestones.json M19b acceptance 2번째 항목 ↔ docs/spec/architecture.md 9.2.6 PracticeHomeUiState(1098행) ↔ docs/spec/ui-design.md 6.10 S12 4번(820행)·13.1 PracticeHome 행(1227행)·13.3 남은 것 #1(1262행)",
+   "evidence": "M19b 완료 조건: \"ViewModel 테스트(S12): notice가 attribution.json notices의 N-11이고, N-11이 없는 픽스처면 null이다\". architecture.md 9.2.6: \"'공식 아님'·N-11 요약 줄은 문자열 리소스로 늘 보인다(ui-design 6.10, 에셋 실패와 무관). notice 필드 없음(2026-11-03)\". ui-design 13.1 PracticeHome 행에는 아직 `notice: NoticeUi?`가 있다. 13.3 #1은 \"architecture.md 현재 = PracticeHomeUiState.notice\"라고 적어 이미 반영된 요청을 남겨 두었다. 구현자는 정본(architecture)대로 필드를 만들지 않을 수도 있고, 마일스톤 테스트대로 만들 수도 있다. 앞쪽이면 M19b 완료 조건을 판정할 수 없고, 뒤쪽이면 에셋이 깨졌을 때 N-11 줄이 사라지는 구현이 나온다.",
+   "fix": "architecture.md(정본)를 기준으로 맞춘다. milestones M19b의 해당 테스트는 'S12 N-11 요약 줄이 문자열 리소스이고 attribution.json이 깨져도 보인다'로 바꾼다. ui-design 13.1 PracticeHome 행에서 `notice: NoticeUi?`를 지우고, 13.3 #1을 '해소'로 옮긴다.",
+   "lens": "consistency",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적한 불일치가 실제로 있다. (1) docs/spec/milestones.json M19b acceptance 2번째 항목(677행): \"ViewModel 테스트(S12): notice가 attribution.json notices의 N-11이고, N-11이 없는 픽스처면 null이다\". (2) 정본 docs/spec/architecture.md 9.2.6 PracticeHomeUiState(1088~1098행)에는 notice 필드가 없다. 1098행 주석에 \"'공식 아님'·N-11 요약 줄은 문자열 리소스로 늘 보인다(ui-design 6.10, 에셋 실패와 무관). notice 필드 없음(2026-11-03)\"이라고 적혀 있다. 11절 이름 표(1285행)의 PracticeHomeUiState에도 notice가 없다. (3) ui-design.md 13.1 PracticeHome 행(1227행)에는 아직 `notice: NoticeUi?`가 있다. 13.3 남은 것 #1(1262행)은 architecture.md 현재 상태를 \"PracticeHomeUiState.notice: NoticeUi?\"라고 적고 있는데, 이 요청은 이미 반영됐는데도 '남은 것'으로 남아 있다. 6.10 S12 4번(820행)도 notice 필드와 13.3 #1을 언급한다. 다만 동작 쪽(문자열 리소스, 늘 보임)은 정본과 같다. 이대로 두면 M19b 완료 조건이 정본 UiState에 없는 필드를 시험하라고 요구한다. 그래서 구현자는 (a) 필드를 만들지 않아 완료 조건을 판정할 수 없게 되거나, (b) 테스트에 맞춰 필드를 만들 수 있다. (b)라면 그 필드로 N-11 줄 표시 여부를 정하는 구현이 나올 수 있고, 그러면 에셋이 실패할 때 \"공식 아님\" 고지가 사라진다. 이것은 계약 불일치이고 고지 누락 위험이다. 반대로 같은 마일스톤의 Compose UI 테스트(680행, \"S12 화면 아래에 N-11 요약 줄이 있다\")는 정본과 맞는다. 제안한 수정(M19b 테스트를 '문자열 리소스이고 attribution.json이 깨져도 보인다'로 바꾸고, ui-design 13.1의 notice를 지우고, 13.3 #1을 해소로 옮기기)은 타당하다. 대비 계산은 이 지적과 관계없어 하지 않았다."
+   }
+  },
+  {
+   "title": "[Q11·Q14] S14 모의고사 '시작 화면'을 담을 라우트·UI 상태가 없다(시도를 만들기 전에 보이는 화면인데 Quiz(attemptId)만 있다)",
+   "severity": "medium",
+   "targets": [
+    "architecture",
+    "ui-design"
+   ],
+   "location": "docs/spec/ui-design.md 6.10 S14 시작 화면(859행)·7절 S14 '시작 화면' 행(997행) ↔ docs/spec/architecture.md 7절 라우트(483행)·9.2.6 ExamCardUi·QuizUiState ↔ milestones.json M19c",
+   "evidence": "ui-design 6.10에서 시작 화면은 \"영역별 줄 '{titleKo} · {문항 수}문항 · 기준 {minutes}분' … 하단 고정 '시작' … 누르면 시도 행을 만들고 첫 문항으로\"다. 즉 시도를 만들기 전 화면이다. architecture 7절에서는 \"시도를 만든 뒤(QuizRepository.startAttempt) 그 ID로 이동\"하고 라우트는 `Quiz(attemptId: Long)`뿐이다. `ExamCardUi(level, questionCount, limitMs, hasShortfall)`에는 영역별 titleKo·minutes·문항 수가 없고, QuizStatus에도 시작 화면 상태가 없다. M19c scope는 '시작 화면에 … 한 줄'을 요구하지만 상태·라우트·스크린샷 조건이 없다. 이대로면 구현자가 상태 모델 밖에서 화면을 만들거나 시작 화면을 건너뛴다.",
+   "fix": "architecture.md를 정본으로 고친다. (a) `ExamStart(level)` 라우트와 `ExamStartUiState(sections: List<ExamSectionLine(titleKo, count, minutes)>, total, limitMs, hasShortfall)`를 더하거나, (b) S12 안 상태(예: `examStart: ExamStartUi?`)로 두는 방법 중 하나를 고른다. 그다음 M19c 완료 조건에 그 상태 테스트와 스크린샷 이름을 더하고, ui-design 13.1 Quiz 행에 대응을 적는다.",
+   "lens": "consistency",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적이 맞다. ui-design.md 6.10(859행)에 따르면 S14 시작 화면은 S12의 \"시작\"에서 들어가고, 이 화면의 \"시작\"을 눌러야 시도 행이 만들어진다. 즉 시도가 생기기 전에 보이는 화면이다. 7절 997행에도 S14 \"시작 화면\" 상태가 있다. 그런데 architecture.md 7절(483행)의 라우트는 시도를 만든 뒤(startAttempt) 그 ID로 여는 `Quiz(attemptId: Long)`뿐이고, 시도 전 시작 화면용 라우트는 없다. 9.2.6도 같다. `ExamCardUi`에는 `level`, `questionCount`, `limitMs`, `hasShortfall`만 있어서 영역별 `titleKo`·문항 수·`minutes`를 담을 수 없다. `QuizStatus`(LOADING~SUBMITTED)와 `PracticeHomeUiState`에도 시작 화면 상태나 필드가 없다. ui-design 13.1의 Quiz 행과 PracticeHome 행에도 \"시작 화면\" 대응이 없다. 7절 대응은 ANSWERING, CONFIRM_EXIT, CONFIRM_SUBMIT 등만 적혀 있다. ui-design 12절(1195행)은 `mock_exam_intro`를 필수 스크린샷으로 정했는데, M19c acceptance의 스크린샷 목록에는 `mock_exam_nav`, `mock_exam_confirm_exit`, `mock_exam_confirm_submit`만 있고 intro가 빠졌다. M19c scope는 시작 화면 문구를 요구하지만 상태 테스트도 라우트도 없다. 그래서 구현자는 상태 모델 밖에서 화면을 만들거나 시작 화면을 건너뛰게 된다. 그러면 정해진 계약(13.1, 12절 필수 스크린샷)이 어긋난다. 이는 계약 불일치 결함이다."
+   }
+  },
+  {
+   "title": "[Q5] 문법 '비공식' N-09 문장(UI-U12 A)을 넣는 마일스톤이 없고 sources.md N-09에도 반영되지 않았다",
+   "severity": "medium",
+   "targets": [
+    "architecture",
+    "content"
+   ],
+   "location": "docs/spec/architecture.md 11.3-11(1307행) ↔ milestones.json M15 scope·acceptance ↔ docs/content/sources.md N-09.not-official(262행) ↔ docs/spec/ui-design.md 9.2 고지 1(1044행)·6.9(766행)",
+   "evidence": "architecture 11.3-11: \"문법 콘텐츠가 있는 빌드에서 N-09 본문에 … 문장을 덧붙인다. analyst가 sources.md N-09 문구와 content/notices.ko.json 틀을 정한다 … 파이프라인 반영은 M15\". 그런데 M15 scope·acceptance는 N-11만 다룬다(\"grammar 행이 DB에 있으면 attribution.json notices에 N-11 고지\"). 문법 문장 테스트는 없다. sources.md N-09 행은 \"JLPT 급수 분류는 공식 자료가 아니라 커뮤니티 목록(선택한 목록 이름)에 근거한다\" 그대로라 문법 문장이 없다. 한편 ui-design 6.9는 문법 급수 칩과 S10 안내 줄을 모두 `About(anchor = \"N-09\")`로 보낸다. 링크를 따라가도 문법 급수에 대한 설명이 없는 상태로 출시될 수 있다.",
+   "fix": "architecture(milestones) 몫: M15 scope와 acceptance에 'grammar 행이 있는 빌드에서 N-09 body에 문법 급수 문장이 있고, 없는 빌드에는 없다' 테스트를 더한다. content 몫: sources.md N-09 행과 notices.ko.json 틀에 ui-design 9.2 고지 1의 문법 문장을 기록한다. 기준 문구는 ui-design 9.2 고지 1이다.",
+   "lens": "consistency",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적이 맞다. architecture.md 11.3-11(1307행)은 문법이 있는 빌드에서 N-09 본문에 문법 급수 문장을 덧붙이고 \"파이프라인 반영은 M15\"라고 적었다. 그런데 milestones.json M15의 scope와 acceptance에는 N-11만 있다. scope는 \"grammar 행이 DB에 있으면 … N-11 고지\"이고, notices 테스트도 N-11만 본다. N-09 문법 문장을 넣거나 빼는 테스트는 어느 마일스톤에도 없다. M26 acceptance(352행)도 급수 목록 이름과 '공식 아님'만 확인한다. architecture 6.6(420행)의 notices 판정 규칙도 N-11과 N-12만 조건부로 적었고 N-09 문법 문장은 빠져 있다. content 쪽도 같다. sources.md N-09.not-official(262행)은 문법 문장이 없는 원래 문구 그대로다. content/notices.ko.json의 N-09에도 body 하나만 있고, 문법이 있을 때만 붙는 자리나 키가 없다. 반면 ui-design 6.9(766·770행)는 문법 급수 칩과 S10 안내 줄을 About(anchor = \"N-09\")로 보내고, 그 근거로 \"9.2 고지 1에 문법 문장이 들어간다\"고 적었다. 9.2 고지 1(1044행)도 문법이 번들에 있을 때 붙일 문장을 정해 두었다. 지금대로 구현하면 '비공식' 링크를 눌러도 N-09 카드에 문법 급수 설명이 없다. ui-design(UI-U12 A)과 파이프라인 산출물이 서로 맞지 않는 계약 불일치이고, 고지 의무도 빠진다. ui-design 13.3 #14가 '해소'로 표시돼 있지만 analyst 몫으로 넘겼다는 뜻일 뿐이고, 넘겨받은 쪽(sources.md, notices.ko.json, M15)에는 반영되지 않았다. 따라서 이미 반영됐다는 반론은 성립하지 않는다. 대비 수치와 관계없는 지적이라 contrast.py는 돌리지 않았다."
+   }
+  },
+  {
+   "title": "[Q1] architecture.md 4.2는 JMdict에서 stagk·stagr를 쓴다면서 '매니페스트 S-01 usedFields와 같음'이라고 적었지만, manifest·sources.md에는 둘 다 없다",
+   "severity": "low",
+   "targets": [
+    "architecture",
+    "content"
+   ],
+   "location": "docs/spec/architecture.md 4.2 '쓰는 필드'(202행)·6.3(355행)·6.7(456행) ↔ docs/content/manifest.json S-01 usedFields(14-21행) ↔ docs/content/sources.md S-01.used(55행)",
+   "evidence": "architecture 4.2: \"JMdict는 `ent_seq`, `keb`, `reb`, 첫 sense `pos`, sense `misc`(`uk`), `stagk`·`stagr`, 영어 `gloss`만 쓴다 … (매니페스트 S-01 `usedFields`와 같음)\". 6.7 스냅샷 필드에도 \"`stagk`·`stagr`(있을 때만)\"가 있다. manifest S-01 usedFields는 [ent_seq, k_ele/keb, r_ele/reb, sense/pos(첫 sense), sense/misc(uk), sense/gloss(eng)]로 stagk·stagr가 없다. sources.md S-01.used도 같다. 구현 뒤 Q1·Q4 대조(파서가 읽는 필드 = usedFields)에서 불일치로 걸린다. 출처 기록이 실제로 쓰는 필드를 빠뜨리게 된다.",
+   "fix": "실제로 쓰는 필드가 기준이므로 architecture를 기준으로 맞춘다. analyst가 manifest S-01 usedFields와 sources.md S-01.used에 `sense/stagk`·`sense/stagr`를 더한다(설계 행, 재검증 표기).",
+   "lens": "consistency",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적 내용이 맞습니다. architecture.md 202행(4.2)은 JMdict 사용 필드로 `stagk`·`stagr`를 적고 \"매니페스트 S-01 `usedFields`와 같음\"이라고 씁니다. 355행(6.3)은 export-gloss-input이 `stagk`·`stagr` 제한으로 sense를 거른다고 하고, 456행(6.7)의 스냅샷 필드에도 `stagk`·`stagr`(있을 때만)가 들어 있습니다. 그런데 manifest.json S-01 `usedFields`(14-21행)는 ent_seq, k_ele/keb, r_ele/reb, sense/pos(첫 sense), sense/misc(uk), sense/gloss(eng) 여섯 개뿐이고, sources.md S-01.used(55행)에도 stag가 없습니다. 두 파일과 milestones.json, plan.md를 grep해도 \"stag\"는 한 번도 나오지 않습니다. 게다가 architecture 11.3의 5번은 \"S-01 `usedFields`: 완료\"라고 적어, 이 불일치를 끝난 일로 처리해 두었습니다. 문서가 \"같다\"고 단언한 두 계약이 실제로는 다르고, 출처 기록에서 실제로 읽는 필드가 빠집니다. 판정 기준의 계약 불일치이자 출처 기록 누락에 해당합니다. 근거 가운데 과장된 부분이 하나 있습니다. android-integration-qa의 Q1은 sources.md와 manifest의 id·라이선스·상태를 대조하고, Q4는 DB 행의 출처 ID와 상태를 확인할 뿐입니다. 파서가 읽는 필드를 usedFields와 맞춰 보는 검사는 아닙니다. 다만 sources.md S-01.used에는 \"파이프라인 구현 후 코드 대조\"라고 적혀 있어 그 대조에서 걸리게 되므로, 결론은 바뀌지 않습니다. 수정 방향(analyst가 manifest와 sources.md에 sense/stagk·sense/stagr를 더함)은 타당하고, 심각도는 low입니다."
+   }
+  },
+  {
+   "title": "[Q11] ui-design은 홈·대기열 공통 카드 집합을 `StudyPlanRepository.dueForSession`이라고 부르는데, architecture 정본 이름은 `SessionCards.load`다",
+   "severity": "low",
+   "targets": [
+    "ui-design"
+   ],
+   "location": "docs/spec/ui-design.md 6.2(678행), 6.8(759행), 7절 S03 '콘텐츠 사라진 카드'(956행), 13.1 Home·Review 행(1216-1217행) ↔ docs/spec/architecture.md 8.2 SessionCards(752-761행)",
+   "evidence": "ui-design 6.2: \"S03 대기열과 같은 집합에서 센다: architecture.md 8.2 `StudyPlanRepository.dueForSession`\". architecture 8.2에는 그 이름이 없다. 대신 \"class SessionCards … suspend fun load(kinds, levels)\"가 있고, 변경 이력에도 'SessionCards·statesOfKinds·cardLevels(dueCandidates·nextDueAt·countDueBefore 대체)'라고 적혀 있다. 이름이 두 개면 구현자가 별도 함수를 만들 수 있다. 그러면 홈 수치와 세션 대기열이 다른 집합에서 세어질 위험이 있다(architecture 11.1: 이름은 architecture를 따른다).",
+   "fix": "architecture.md를 기준으로 ui-design의 5곳을 `SessionCards.load(kinds, levels)`로 바꾼다.",
+   "lens": "consistency",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적이 맞다. ui-design.md 다섯 곳(678·759·956·1216·1217행)이 아직 `StudyPlanRepository.dueForSession`이라고 쓰는데, architecture.md 8.2에는 이 이름이 없다. architecture.md 8.2(752-761행)에 있는 것은 `class SessionCards` / `suspend fun load(kinds, levels)` 하나뿐이다. architecture 7절 HomeUiState 주석(514·519행)과 230행도 `SessionCards.load`를 쓴다. 변경 이력(1449행)에는 'SessionCards·statesOfKinds·cardLevels(dueCandidates·nextDueAt·countDueBefore 대체)'라고 남아 있다. 11.1 정본 기준은 타입 이름을 architecture에서 가져와 ui-design이 그대로 쓰라고 정한다. 그런데 11.2 'ui-design이 맞출 것' 목록에는 이 이름 교체 항목이 없어서, 고칠 일로 넘겨져 있지도 않다. ui-design 변경 이력(1303행)도 `dueForSession`을 그대로 기록하고 있다. 정본 이름과 화면 문서가 어긋난 계약 불일치다. 다만 milestones.json M4·M5·M17 완료 조건이 `SessionCards.load`를 이름으로 지정하고, 'statesOfKinds 호출이 SessionCards 밖에 없음' grep 검사와 '같은 픽스처로 ReviewViewModel 대기열 길이 == 홈 dueCount' 시험도 두고 있다. 그래서 홈 수치와 대기열이 다른 집합에서 세어지는 실제 오작동은 구현 단계에서 잡힐 가능성이 크다. 이런 완화가 있어서 심각도 low는 맞다. 수정안(ui-design 다섯 곳을 `SessionCards.load(kinds, levels)`로 교체)도 적절하다. 문서 이름 대조만 했고 대비 수치 계산은 이 지적과 관계없어 하지 않았다."
+   }
+  },
+  {
+   "title": "[Q11] S07 머리 급수 칩과 S06 '학습 상태' 절이 쓰는 필드가 architecture 7절 상태 모델에 없다(KanjiDetailUiState.level, CardStateSummary 정의)",
+   "severity": "low",
+   "targets": [
+    "architecture"
+   ],
+   "location": "docs/spec/architecture.md 7절 KanjiDetailUiState(590-593행)·VocabDetailUiState.cardStates(589행) ↔ docs/spec/ui-design.md 6.7(717행)·6.6(712행)",
+   "evidence": "ui-design 6.7 머리: \"한자(jpKanjiHero) + 획수 + 급수 칩 'N5 단어에 쓰인 한자 · 비공식'\". 그런데 architecture의 KanjiDetailUiState에는 `level`이 없다(VocabDetailUiState에는 `level: JlptLevel?`가 있다). 구현 코드 app/src/main/java/com/jlptstudy/app/ui/detail/DetailModels.kt:26에는 `val level: JlptLevel? = null, // level: 계약 밖 필드(머리 칩)`로 계약 밖에 더해져 있다. VocabDetailUiState의 `cardStates: List<CardStateSummary>`는 architecture 어디에도 정의가 없다(코드 DetailModels.kt:14에만 있다). M12가 이 상태에 strokeSourceName을 더할 때 정본과 코드가 더 벌어진다.",
+   "fix": "architecture 7절 KanjiDetailUiState에 `level: JlptLevel? = null`을 더하고, `data class CardStateSummary(kind, progress, dueAtEpochMs?)`를 정의한다(코드에 있는 형태를 정본으로 올린다).",
+   "lens": "consistency",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적이 맞습니다. 정본 문서와 코드를 직접 대조했습니다.\n\n(1) docs/spec/architecture.md 590-593행의 KanjiDetailUiState에는 status, literal, strokeCount, on, kun, koreanReadings, words, strokes만 있고 level이 없습니다. 같은 절의 VocabDetailUiState(587-589행)에는 `level: JlptLevel? = null`이 있습니다.\n\n(2) 그런데 ui-design.md 6.7(717행)은 S07 머리에 급수 칩 \"N5 단어에 쓰인 한자 · 비공식\"을 요구합니다. 이 칩을 누르면 About(anchor=\"N-09\")로 가므로, 이 칩은 급수가 비공식·파생 값이라는 고지를 화면에 보여 주는 경로입니다. 계약대로만 구현하면 이 칩을 그릴 값이 상태에 없어서 고지가 빠지고, 칩을 넣으면 계약 밖 필드가 생깁니다. 실제 코드는 뒤쪽을 택했습니다. app/src/main/java/com/jlptstudy/app/ui/detail/DetailModels.kt:26에 `val level: JlptLevel? = null, // level: 계약 밖 필드(머리 칩)`가 있습니다.\n\n(3) VocabDetailUiState.cardStates의 타입 `CardStateSummary`는 architecture.md 589행에만 나오고 정의가 없습니다. ui-design.md 6.6(712행)이 쓰는 \"새 카드 / 학습 중 / 다음 복습 {날짜}\"에 대응하는 `CardProgress { NEW, LEARNING, REVIEW }`도 문서 어디에도 없습니다. 정의는 코드 DetailModels.kt:11·14에만 있습니다: `data class CardStateSummary(val kind: CardKind, val progress: CardProgress, val dueAtEpochMs: Long? = null)`.\n\n(4) architecture.md 1214행에 따르면 M12가 KanjiDetailUiState에 strokeSourceName을 더하므로, 그때 정본과 코드의 차이가 더 커집니다.\n\n이 결함은 계약 불일치에 해당하고, 정본만 보고 구현하면 비공식 고지 칩이 빠질 위험도 있습니다. 심각도는 low가 맞습니다. 고치는 방법은 지적의 수정안대로 코드의 형태를 정본으로 올리면 되고, CardProgress enum도 함께 정의해야 합니다.\n\n참고로 코드의 DetailStatus에는 ERROR가 있지만 architecture.md 586행에는 없습니다. 같은 종류의 별도 불일치로, 이번 지적 범위 밖입니다.\n\n확인하지 않은 것: 대비 수치는 이 지적과 관련이 없어 계산하지 않았습니다. KanjiDetail·VocabDetail 도메인 타입의 정의 여부는 깊게 보지 않았습니다."
+   }
+  },
+  {
+   "title": "[Q1] manifest S-11 modifications의 채움 1 파일 이름이 architecture 6.6·ui-design 3.5의 `ic_ms_<이름>_fill.xml` 규칙과 다르다",
+   "severity": "low",
+   "targets": [
+    "content"
+   ],
+   "location": "docs/content/manifest.json S-11 modifications(379행) ↔ docs/spec/architecture.md 6.6(439행) ↔ docs/spec/ui-design.md 3.5(403행)",
+   "evidence": "manifest: \"<name>_24px.xml(채움 1은 <name>_fill1_24px.xml)의 Android 벡터 XML만 res/drawable/ic_ms_<name>.xml로 복사\". 이렇게 읽으면 채움 0과 채움 1이 같은 대상 이름으로 복사된다. architecture 6.6: \"채움 0은 `res/drawable/ic_ms_<이름>.xml`, 채움 1 변형은 `ic_ms_<이름>_fill.xml`\". ui-design 3.5도 같다. 출처 화면과 고지에 실리는 변경 내용 서술이 실제 파일 배치와 다르다.",
+   "fix": "architecture 6.6을 기준으로 manifest S-11 modifications를 '…_24px.xml → ic_ms_<name>.xml, …_fill1_24px.xml → ic_ms_<name>_fill.xml'로 고친다.",
+   "lens": "consistency",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적이 맞습니다. manifest.json 379행 S-11 modifications는 \"<name>_24px.xml(채움 1은 <name>_fill1_24px.xml)의 Android 벡터 XML만 res/drawable/ic_ms_<name>.xml로 복사\"라고 적혀 있습니다. 괄호는 원본 파일 이름만 바꿔 말하고 복사 대상은 하나뿐이라, 글자 그대로 읽으면 채움 0과 채움 1이 같은 ic_ms_<name>.xml로 복사됩니다.\n\n다른 문서는 모두 두 파일을 따로 둡니다.\n- architecture.md 6.6(439행): 채움 0은 `ic_ms_<이름>.xml`, 채움 1은 `ic_ms_<이름>_fill.xml`. 대조 테스트도 이름 끝의 `_fill`을 떼고 검사합니다.\n- architecture.md 1301행: 같은 두 이름을 \"완료\"로 적었습니다.\n- ui-design.md 3.5(403행)와 63행: 선택 아이콘은 `ic_ms_<이름>_fill`.\n- milestones.json 279행: `ic_ms_foo_fill.xml` 픽스처를 둡니다.\n\n문서 어디에도 manifest를 고친 흔적이 없어 이미 반영됐다고 볼 수 없습니다.\n\n실제 결함이 생기는 지점은 두 가지입니다.\n1. manifest와 설계 문서의 계약이 어긋납니다. manifest를 따라 구현하면 채움 1 파일이 채움 0 파일을 덮어써서, 내비게이션 선택 항목과 켜진 후리가나 토글의 채움 1 아이콘이 사라집니다.\n2. 앱 화면에 잘못된 내용이 나갑니다. modifications는 attribution.json을 거쳐 출처 화면의 \"앱이 바꾼 것\" 칸(ui-design 1064행, SourceUi.modifications는 non-null)에 그대로 표시됩니다. 그래서 앱이 고지하는 변경 내용이 실제 파일 배치와 다릅니다.\n\n다만 Apache 2.0의 전문 사본 고지 의무 자체는 빠지지 않으므로 라이선스 위반은 아닙니다. 심각도 low가 맞습니다. 이 검증은 문서만 대조했고, 앱 코드와 res/drawable은 확인하지 않았습니다. 대비 수치는 이 지적과 상관이 없어 contrast.py는 돌리지 않았습니다."
+   }
+  },
+  {
+   "title": "[Q5] S09 아이콘 카드와 Tatoeba 카드가 요구하는 값을 전달할 경로가 상태 모델·에셋 형식에 없다",
+   "severity": "low",
+   "targets": [
+    "architecture",
+    "ui-design"
+   ],
+   "location": "docs/spec/ui-design.md 9.2 3번 Tatoeba 항목(1073행)·5번 아이콘(1077행) ↔ docs/spec/architecture.md 6.6 libraries.json 형식(439행)·7절 LicenseUi·SourceUi(613-622행) ↔ manifest S-11 attribution",
+   "evidence": "(1) ui-design 9.2-5: \"Material Symbols 카드(라이선스 이름·링크·고지 전문 보기)\". architecture의 libraries.json 형식은 `[{\"name\",\"license\",\"url\",\"distributed\"}]`뿐이라 `LicenseUi.fullTextAsset`을 무엇으로 채울지 정해지지 않았다. manifest S-11 attribution \"Material Symbols © Google, Apache License 2.0\"(sources.md S-11.attribution의 표시 문구)이 화면까지 가는 필드도 없다. (2) ui-design 9.2-3 Tatoeba 카드는 \"라이선스 두 개(CC BY 2.0 FR, CC0 1.0 링크)와 '예문 작성자 보기' 하위 목록\"을 요구한다. 그런데 `SourceUi.license`는 LinkUi 하나이고, AttributionData에는 문장별 작성자 목록이 없다. S-04는 아직 마일스톤이 없어 당장 깨지지는 않는다.",
+   "fix": "architecture를 정본으로 고친다. libraries.json에 `fullTextAsset`(예: \"apache-2.0.txt\")·`attribution` 키를 더하거나 LicenseUi를 채우는 규칙을 6.6에 적는다. Tatoeba는 S-04를 쓰는 마일스톤을 만들 때 SourceUi에 추가 라이선스 목록을 넣고, 작성자 목록을 어디서 읽을지(grammar_example 집계)를 정한다는 메모를 9.1에 남긴다.",
+   "lens": "consistency",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적 (1)은 맞다. 다만 실제 결함은 '경로가 없다'가 아니라 문서와 코드의 계약 불일치다. 심각도는 low가 맞다.\n\n(1) 근거:\n- architecture.md 6.6(439행)은 libraries.json 형식을 `[{\"name\",\"license\",\"url\",\"distributed\"}]`로 정한다. 7절(622행) `LicenseUi`에는 `fullTextAsset`이 있는데, 이 값을 채울 원천이나 규칙은 6.6에 없다.\n- 이미 끝난 M7(status done)의 구현은 이 빈칸을 문서에 없는 키로 메웠다. app/src/main/assets/licenses/libraries.json에는 `\"key\"`와 `\"fullText\": \"apache-2.0.txt\"` / `\"py-fsrs.txt\"`가 있다(fullText 17곳). app/src/main/java/com/jlptstudy/app/data/attribution/AttributionRepository.kt의 `LibDto`는 `fullText`를 읽어 `LicenseUi.fullTextAsset`에 넣는다.\n- 그래서 정본인 architecture 6.6이 실제 에셋 형식과 다르다. 6.6대로 libraries.json을 다시 쓰거나 줄을 더하면(M17의 room-testing 행 등) `fullText`가 빠져 전문이 화면에 나오지 않는다.\n- manifest S-11 `attribution` 문구 \"Material Symbols © Google, Apache License 2.0\"도 화면까지 전달할 필드가 없다. 구현은 name \"Material Symbols\"와 license \"Apache-2.0\"만 보인다. sources.md S-11.attribution에 따르면 배포처는 이 표시를 요구하지 않는다. Apache §4(a)의 전문 사본은 apache-2.0.txt 카드로 보이므로 라이선스 의무 누락은 아니다.\n- 고칠 곳: 6.6에 `key`·`fullText`(또는 `fullTextAsset`)·선택 `attribution` 키를 적어 문서를 실제 형식과 맞춘다.\n\n(2) Tatoeba 부분은 현재 결함이 아니다:\n- S-04를 쓰는 마일스톤이 없다(architecture 460행 \"지금 마일스톤 목록에는 없다\").\n- 문장별 작성자는 이미 grammar_example의 `author`·`license` 열(840-841행)에 있다.\n- `SourceUi.license`가 LinkUi 하나뿐인 점은 그 마일스톤을 만들 때 고쳐도 늦지 않다. 메모만 남기면 된다.\n\n확인하지 않은 것: 대비 수치는 이 지적과 관계없어 계산하지 않았다. 코드는 /Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/base에서 읽기만 했다."
+   }
+  },
+  {
+   "title": "출처·게이트 상태 서술이 낡았다(manifest·milestones의 현재 값과 다름)",
+   "severity": "low",
+   "targets": [
+    "architecture",
+    "content"
+   ],
+   "location": "docs/spec/architecture.md 머리 인용문(5행)·10절 끝 문단(1230행)·11.3-6(1301행) ↔ milestones.json G-S03·G-S11 status ↔ manifest S-01·S-02·S-03·S-06·S-11 status · docs/content/sources.md S-11 머리말(189행)·N-12(265행)",
+   "evidence": "architecture 5행: \"`manifest.json`의 자료가 모두 `unconfirmed`다\". 실제 manifest에서는 S-01·S-02·S-03·S-06·S-11이 \"confirmed\"다. 1230행: \"G-S03만 `needs-decision`(T03이 판단). 그래서 막힌 것은 M13(G-S03)뿐\". milestones.json G-S03 status는 `done`이다. 11.3-6: \"남은 일: license-verify로 S-11 … 확정\". S-11은 이미 확정이다. sources.md S-11 머리말: \"강제하는 검사는 architecture.md가 정한다(… architect 반영 대기)\". architecture 6.5 '앱 자산'·G-S11로 이미 반영됐다. N-12 \"D-04 결정 대기\"도 decisions.md D-04 잠정 채택·G-D04 done과 다르다. 다음 작업자가 M13이 막혔다고 판단하는 등 잘못 읽을 수 있다.",
+   "fix": "manifest·milestones의 현재 값을 기준으로 architecture 5행·1230행·11.3-6과 sources.md S-11 머리말·N-12 상태를 고친다.",
+   "lens": "consistency",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "인용 위치를 모두 직접 확인했고, 지적에 적힌 사실이 전부 맞다. (1) architecture.md 5행 머리 인용문은 \"manifest.json의 자료가 모두 unconfirmed다\"라고 쓰지만, 실제 manifest는 S-01·S-02·S-03·S-06·S-11이 confirmed다(S-04·05·07·09·10·12는 unconfirmed, S-08은 excluded). (2) 1230행은 \"G-S03만 needs-decision … 막힌 것은 M13뿐\"이라고 쓰지만, milestones.json에서는 G-D06·G-D03·G-S03·G-D04·G-S11이 모두 done이다. (3) 11.3-6(1301행)은 S-11 확정을 \"남은 일\"로 남겨 두었지만, manifest S-11은 이미 confirmed이고 G-S11도 done이다. (4) sources.md S-11 머리말(189행)에는 \"architect 반영 대기\"가 남아 있지만, architecture 6.5의 \"앱 자산\" 검사(386행)와 10절 G-S11에 이미 반영됐다. (5) sources.md N-12(265행)에는 \"D-04(미정)\"·\"D-04 결정 대기\"가 남아 있지만, decisions.md 10행에서 D-04는 잠정 채택이고 G-D04도 done이다. ui-design 9.2 고지 4에도 D-04 A 문구가 있다. 반박할 근거는 이것뿐이다. 워크플로는 dependsOn만 읽으므로(1220행) M13 진행이 실제로 막히지는 않고, 서술이 낡은 것이라 심각도는 low가 맞다. 그래도 architecture 10절의 게이트 상태 서술과 milestones.json이 직접 어긋나는 문서 간 계약 불일치다. 문서만 보는 다음 작업자는 M13을 막힌 것으로 판단하거나, 이미 끝난 S-11 license-verify를 다시 돌릴 수 있다. 문서 어디에도 아직 고쳐져 있지 않다. 이 지적에는 대비 계산이 필요 없어 contrast.py는 실행하지 않았다. 다른 절에 남은 낡은 상태 서술(예: 439행의 \"S-11 unconfirmed로도 진행\"은 조건문이라 문제없음)은 전수 검사하지 않았다."
+   }
+  },
+  {
+   "title": "[Q14] ui-design 1.1의 S06 진입 경로가 존재하지 않는 'S04·S12 결과의 단어 링크'를 적었다(실제 경로는 S15 해설)",
+   "severity": "low",
+   "targets": [
+    "ui-design"
+   ],
+   "location": "docs/spec/ui-design.md 1.1 S06 행(38행) ↔ 1.2 이동 흐름(87행)·6.4 S04·6.10 S15 해설 보기(889행)",
+   "evidence": "1.1: \"S06 … 들어오는 길: S05, S07의 '이 한자가 쓰인 단어', S04·S12 결과의 단어 링크\". 6.4 S04에는 단어 링크가 없다. S12는 연습 홈이라 결과 화면이 아니다. 1.2와 6.10에는 \"S15 해설 '관련 단어·문법 보기' ─▶ S06·S07·S11\"로 적혀 있다. 이 목록을 보고 내비게이션 경로를 대조(Q14)하면 없는 이동을 찾게 된다.",
+   "fix": "1.2·6.10을 기준으로 1.1 S06 행을 'S05, S07의 이 한자가 쓰인 단어, S15 해설의 관련 단어'로 고친다(S07·S11 행에도 S15 경로를 함께 적는다).",
+   "lens": "consistency",
+   "verdict": {
+    "status": "confirmed",
+    "reason": "지적의 근거를 문서에서 직접 확인했고, 모두 사실이다. (1) ui-design.md 38행 1.1 S06 행에 \"S04·S12 결과의 단어 링크\"라고 적혀 있다. (2) 6.4 S04(697~699행)는 StatusScreen 하나뿐이다. 제목·문구·\"홈으로\"·\"새 카드 5장 더 학습\" 버튼만 있고 단어 링크는 없다. (3) S12는 1.1(46행)과 6.10 S12(813행)에서 '연습 홈'으로 정의돼 있어 결과 화면이 아니다. 결과 화면은 S15다. (4) 1.2 이동 흐름 87행 \"S15 해설 '관련 단어·문법 보기' ─▶ S06·S07·S11\"과 6.10 S15 해설 보기(889행, targets_json → S06·S07·S11)에는 S15 경로가 있다. 그런데 1.1의 S06 행(그리고 S07 행 39행, S11 행 45행)에는 이 경로가 빠졌다. 반대로 S11 상태표(977행)는 'S15 관련 문법'을 들어오는 길로 적어 일관되지 않다. architecture.md 480행 라우트 목록에도 S04→S06 이동은 없다. android-integration-qa Q14는 내비게이션 경로 정의와 화면 이동 호출을 대조하는 항목이다. 1.1을 경로 정의로 읽으면 구현에 없는 S04/S12→S06 이동을 결함으로 보고하거나, 정의되지 않은 S04 단어 링크를 구현자가 덧붙이게 된다. 반대로 실제로 있는 S15→S06·S07·S11 경로는 1.1 기준 대조에서 빠진다. 문서 사이의 계약 불일치이므로 confirmed로 판단했다. 결함은 문서 안에서만 생기고 학습 기록이나 접근성 쪽 영향은 없어 심각도 low가 맞다. 제안한 수정(1.2·6.10을 기준으로 1.1의 S06·S07·S11 행에 S15 해설 경로를 넣고 S04·S12 문구는 지우기)이 적절하다. 이번 지적은 대비 수치와 관계가 없어 contrast.py는 돌리지 않았다. 파일은 수정하지 않았다."
+   }
+  }
+ ],
+ "uncertain": [],
+ "failedReviewers": [],
+ "applied": [
+  {
+   "owner": "android-architect",
+   "title": "일본어 낭독 로캘이 clearAndSetSemantics의 AnnotatedString 하나에만 걸려 있고, 부작용과 대체안이 없음 (검증에서 확정된 부분만 반영: architecture 7절 '낭독 문구'에 clearAndSetSemantics 노드의 동작 규칙을 더함. 동작 수정자를 체인 바깥에 두거나 블록 안에서 role·selected·stateDescription·onClick을 다시 선언한다. M19b 선택지 테스트에 Role.RadioButton·Selected·OnClick 검사를 더함. 11.2-42에 ui-design 4.3·11.1 반영 요청)"
+  },
+  {
+   "owner": "android-architect",
+   "title": "글꼴 200% 스크린샷 목록이 MVP 화면 일부를 빠뜨림 (verdict가 정한 좁은 범위로 반영: level_loaded·settings_loaded·done_loaded·kanji_detail_loaded·error_content_db·app_opening의 _font200. 완료된 M5·M6의 계약을 바꾸지 않으려고 새 마일스톤 T12를 두고 T09가 의존하게 함. 11.2-43에 ui-design 12절 반영 요청)"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q1·Q5] manifest S-12(앱 아이콘 생성 이미지)에 대응하는 sources.md 행이 없고, release 검사 '앱 자산'도 S-12를 잡지 못한다 (architecture 몫: 6.5 '앱 자산' 조건을 app-asset 또는 generated-asset으로 넓힘. 10절에 G-S12 게이트를 더함. check.sh를 고치는 T11은 G-S12 뒤에 두고 T09가 T11에 의존하게 함. 11.3-12에 analyst 몫을 넘김)"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q11] M19b 완료 조건은 PracticeHomeUiState.notice(N-11)를 테스트하라고 하는데, architecture.md에서는 그 필드가 지워졌다 (M19b 조건을 'N-11 줄은 문자열 리소스이고 attribution.json이 깨져도 보이며 notice 필드가 없다'로 바꿈. ui-design 13.1·13.3 #1 정리는 11.2-44로 요청)"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q11·Q14] S14 모의고사 '시작 화면'을 담을 라우트·UI 상태가 없다(시도를 만들기 전에 보이는 화면인데 Quiz(attemptId)만 있다) (방안 (a)를 고름: 7절에 ExamStart(level) 라우트, 9.2.6에 ExamStartStatus·ExamSectionLine·ExamStartUiState를 더함. '포기하고 새로 시작'은 ExamStart로 가고 거기서 startAttempt를 한 번 부르게 함. M19c scope·acceptance에 상태 테스트, mock_exam_intro(+_font200)·mock_exam_nav_font200 스크린샷을 더함. 11.2-45로 ui-design 요청)"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q5] 문법 '비공식' N-09 문장(UI-U12 A)을 넣는 마일스톤이 없고 sources.md N-09에도 반영되지 않았다 (6.6 notices 판정 규칙에 N-09 문법 급수 문장 조건을 더함. M15 scope와 acceptance에 문법이 있는 빌드와 없는 빌드를 나눠 보는 테스트를 더함. 문구는 analyst 몫으로 11.3-11에 남김)"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q1] architecture.md 4.2는 JMdict에서 stagk·stagr를 쓴다면서 '매니페스트 S-01 usedFields와 같음'이라고 적었지만, manifest·sources.md에는 둘 다 없다 (4.2의 '같음' 단정을 지우고 이 목록을 기준으로 정함. 11.3-5를 '완료'에서 analyst가 sense/stagk·sense/stagr를 더할 남은 일로 바꿈)"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q11] S07 머리 급수 칩과 S06 '학습 상태' 절이 쓰는 필드가 architecture 7절 상태 모델에 없다(KanjiDetailUiState.level, CardStateSummary 정의) (코드 형태를 그대로 정본으로 올림: KanjiDetailUiState.level, CardProgress enum, CardStateSummary. 11.2-46)"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q5] S09 아이콘 카드와 Tatoeba 카드가 요구하는 값을 전달할 경로가 상태 모델·에셋 형식에 없다 ((1) 6.6 libraries.json 형식을 실제 에셋 형식(key·fullText)에 맞추고 fullText를 LicenseUi.fullTextAsset·fullText로 옮기는 규칙을 적음. 7절 LicenseUi에 코드에 이미 있는 fullText 필드를 더함. S-11 표시 문구는 배포처가 요구하지 않아 키를 두지 않는다고 적음. (2) Tatoeba는 verdict대로 9.1에 메모만 남김)"
+  },
+  {
+   "owner": "android-architect",
+   "title": "출처·게이트 상태 서술이 낡았다(manifest·milestones의 현재 값과 다름) (architecture 머리 인용문, 10절 끝 문단, 11.3-6을 manifest·milestones 현재 값으로 고침. sources.md S-11 머리말·N-12 정리는 11.3-6·11.3-13으로 analyst에게 넘김)"
+  },
+  {
+   "owner": "ui-designer",
+   "title": "카드 뒤집기·다음 카드 알림을 접근성 포커스 이동에만 맡김 (D8의 Polite 알림 없음, 대체 수단 없음) — 4.3에 '카드 세션 알림'을 새로 넣었다. `review_card` 노드 하나에 `liveRegion = Polite`를 걸고, 이 노드는 앞면·뒷면·다음 카드·되돌린 카드 사이에서 같은 노드로 남긴다(`key`·`AnimatedContent`로 감싸지 않는다). 포커스는 코드로 옮기지 않는다(FocusRequester 금지). M4 Compose UI 테스트로 LiveRegion 존재, 같은 시맨틱 ID, 문구 변화를 확인한다. 실제 낭독은 awaiting-device 체크리스트에 넣었다. 11.1의 앞면·뒤집기·다음 카드·되돌리기·문법 카드 행과 5.6, 11.1 끝 실기기 목록도 같이 고쳤다. milestones.json M4 반영은 13.3 #4 요청으로 남겼다."
+  },
+  {
+   "owner": "ui-designer",
+   "title": "일본어 낭독 로캘이 clearAndSetSemantics의 AnnotatedString 하나에만 걸려 있고, 부작용과 대체안이 없음 — (1) 부분만 반영했다. 4.3에 5번 규칙을 더했다. 동작 수정자를 clearAndSetSemantics보다 앞에 두거나 블록 안에서 role·selected·onClick·stateDescription을 다시 선언한다. 자식 RadioButton·Switch는 onClick = null로 둔다. Role·OnClick·Selected를 검사하는 테스트도 적었다. 11.1 첫 단락은 이 규칙을 가리키게 했다."
+  },
+  {
+   "owner": "ui-designer",
+   "title": "설정·온보딩의 '단계 조절'과 '시간 선택' 위젯이 정해지지 않아 드래그 전용·접근성 미정 — 6.8에 `NumberStepper`를 정했다. 구성은 −/값/+, 각 48 dp, 값은 tnum 최소 64 dp, 범위 끝 버튼 비활성이다. 하루 시작 시각은 13개 라디오 행의 ModalBottomSheet로 정하고 TimePicker와 Slider는 금지했다. 6.1에서 이 위젯을 참조하게 했다. 11.1에 스테퍼(stateDescription '{n}장'), 시각 행, 시트 행의 TalkBack 행을 더했다. 11.2에 2.5.7 문장을, 12절에 `settings_day_start_sheet`를 더했다."
+  },
+  {
+   "owner": "ui-designer",
+   "title": "글꼴 200% 스크린샷 목록이 MVP 화면 일부를 빠뜨림 — 12절 _font200 목록에 level_loaded·done_loaded·kanji_detail_loaded·settings_loaded·error_content_db·app_opening을 더해 MVP 화면 12개를 모두 덮었다. milestones.json T12에 이미 들어간 이름과 맞췄다."
+  },
+  {
+   "owner": "ui-designer",
+   "title": "하단 고정 영역·IME가 포커스된 요소를 가리는 경우(WCAG 2.4.11)와 검색란 IME 인셋 규칙이 없음 — 3.3에 공통 규칙 한 줄을 더했다(하단 고정 영역은 스크롤 영역과 나란히 두고, 겹쳐 놓아야 하면 contentPadding을 준다). 6.5 S05에는 adjustResize와 consumeWindowInsets→imePadding을 적고, 결과 목록과 빈 결과 StatusScreen이 키보드 위로 줄어든다고 명시했다."
+  },
+  {
+   "owner": "ui-designer",
+   "title": "[Q11] M19b 완료 조건은 PracticeHomeUiState.notice(N-11)를 테스트하라고 하는데, architecture.md에서는 그 필드가 지워졌다 — 6.10 S12 4번과 13.1 PracticeHome 행에서 notice를 지웠다. 13.3 #1은 'architecture 해소'로 옮겼다. milestones.json에는 이미 문자열 리소스 테스트가 추가돼 있다."
+  },
+  {
+   "owner": "ui-designer",
+   "title": "[Q11·Q14] S14 모의고사 '시작 화면'을 담을 라우트·UI 상태가 없다(시도를 만들기 전에 보이는 화면인데 Quiz(attemptId)만 있다) — architecture.md가 이미 정한 `ExamStart(level)`·`ExamStartUiState`·`ExamStartStatus`에 맞췄다. 6.10 S14 시작 화면에 들어오는 길·starting·백 스택을 적었다. 7절 S14 상태는 LOADING·LOADED·문항 모자람·EMPTY·시작 실패 5행으로 나눴다. S12 confirmReplace의 '새로 시작'은 ExamStart로 가게 했다. 13.1에 ExamStart 행을 넣고 12절에 mock_exam_intro_shortfall을 더했다. 13.3 #3은 해소로 두고 milestones에 스크린샷 하나를 더해 달라는 요청만 남겼다."
+  },
+  {
+   "owner": "ui-designer",
+   "title": "[Q11] ui-design은 홈·대기열 공통 카드 집합을 `StudyPlanRepository.dueForSession`이라고 부르는데, architecture 정본 이름은 `SessionCards.load`다 — 6.2·6.8·7절 S03·13.1 Home·Review 다섯 곳을 `SessionCards.load(kinds, levels)`로 바꿨다. 변경 이력에 남은 옛 이름은 기록이라 그대로 뒀다."
+  },
+  {
+   "owner": "ui-designer",
+   "title": "[Q5] S09 아이콘 카드와 Tatoeba 카드가 요구하는 값을 전달할 경로가 상태 모델·에셋 형식에 없다 — 9.2-5에 libraries.json 키를 대응시켰다(name/license/url/fullText → LicenseUi.fullTextAsset). architecture 6.6에 반영된 실제 형식과 같다. S-11 attribution 문구용 필드는 두지 않는다는 근거도 적었다. 9.2-3 Tatoeba에는 지금 모델로 그릴 수 없다는 점과, S-04 마일스톤을 만들 때 정할 일을 메모로 남겼다(13.3 #5)."
+  },
+  {
+   "owner": "ui-designer",
+   "title": "[Q14] ui-design 1.1의 S06 진입 경로가 존재하지 않는 'S04·S12 결과의 단어 링크'를 적었다(실제 경로는 S15 해설) — 1.1의 S06·S07·S11 행에 S15 해설의 '관련 단어·문법 보기'를 넣고, 없는 S04·S12 경로는 지웠다. S11 행에는 비슷한 문법과 S03 문법 카드 '자세히' 경로도 함께 적었다."
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "[Q1·Q5] manifest S-12(앱 아이콘 생성 이미지)에 대응하는 sources.md 행이 없고, release 검사 '앱 자산'도 S-12를 잡지 못한다 — content 몫만 반영했다. 바꾼 파일은 /Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/base/docs/content/sources.md와 manifest.json이다. sources.md 0절 상태 요약에 S-12 행을 더하고, 'S-12 앱 아이콘 그림' 절을 새로 썼다. 이 절에는 origin, terms-consumer, terms-business, terms-which, similarity, copyright, attribution, used 행과 변경 이력이 있다. OpenAI 약관의 Output 조항은 원문을 인용했다. openai.com은 curl과 WebFetch 모두 HTTP 403이라 원 페이지를 열지 못했고, Wayback 보관본을 근거로 썼다. 인용한 판은 Terms of Use ROW 판(Effective 2026-01-01)과 Services Agreement 4.1·4.4(Effective 2026-01-01)다. manifest S-12는 license 문구를 고치고 notes에 근거와 미확정 항목을 적었으며 checkedAt을 2026-11-03으로 바꿨다. status는 unconfirmed 그대로다. Codex CLI를 어떤 인증으로 썼는지 기록이 없어 적용 약관이 정해지지 않았고, 저작권 성립은 판단하지 않았으며, Service Terms와 Usage Policies는 열지 않았다. 6.5 '앱 자산' 조건을 generated-asset까지 넓히는 일은 architect 몫이라고 S-12 머리말에 적었다"
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "[Q5] 문법 '비공식' N-09 문장(UI-U12 A)을 넣는 마일스톤이 없고 sources.md N-09에도 반영되지 않았다 — sources.md 몫을 반영했다. N-09.not-official 행에 ui-design 9.2 고지 1의 문법 문장을 그대로 기록했다. 문법이 있는 빌드에만 이 문장을 붙이고, 문법이 없는 빌드에는 넣지 않는다고 적었다. notices.ko.json에는 notices.N-09.grammarPrefix 키를 두는 틀을 제안했다. 상태는 M15 반영 후 확인하는 것으로 두었다"
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "[Q1] architecture.md 4.2는 JMdict에서 stagk·stagr를 쓴다면서 '매니페스트 S-01 usedFields와 같음'이라고 적었지만, manifest·sources.md에는 둘 다 없다 — manifest S-01 usedFields에 sense/stagk와 sense/stagr를 더했다. sources.md S-01.used에도 두 필드와 근거(architecture 4.2·6.3·6.7)를 더하고 '수정됨, 재검증 필요'로 표기했다. S-01 변경 이력과 매니페스트 대조 표에도 적었다. 핵심 행이 아니므로 S-01 status confirmed는 그대로다"
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "[Q1] manifest S-11 modifications의 채움 1 파일 이름이 architecture 6.6·ui-design 3.5의 `ic_ms_<이름>_fill.xml` 규칙과 다르다 — manifest S-11 modifications를 '<name>_24px.xml → ic_ms_<name>.xml, <name>_fill1_24px.xml → ic_ms_<name>_fill.xml'로 고쳤다. sources.md S-11 머리말의 파일 이름 서술, 변경 이력, 매니페스트 대조 표도 같이 고쳤다"
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "출처·게이트 상태 서술이 낡았다(manifest·milestones의 현재 값과 다름) — content 몫인 sources.md를 고쳤다. S-11 머리말의 'architect 반영 대기'를 반영된 상태로 바꿨다. 6.5 '앱 자산' 검사와 G-S11이 있고, S-11은 confirmed이며 G-S11은 done이다. N-12.listening-audio는 'D-04 결정 대기'를 'D-04 잠정 채택 A'로 바꾸고 기기 TTS 문구를 넣었으며, 상태는 '사용자 최종 검토 대기'로 두었다"
+  }
+ ],
+ "declined": [
+  {
+   "owner": "android-architect",
+   "title": "일본어 낭독 로캘 지적 중 (2) 대체안(별도 자식 Text 노드·mergeDescendants 등)과 (3) S03 에뮬레이터 TalkBack 스파이크를 M4 완료 조건에 넣기",
+   "reason": "verdict가 이 둘을 기각했다. ui-text-android 1.12.1이 SpanStyle.localeList를 LocaleSpan으로 넘긴다는 구현 근거가 있고, 낭독 문구는 JpSpan·JpSpans.annotate 한 곳에 모여 있어 가정이 틀려도 공통 함수만 고치면 된다. 스파이크는 사용자 결정 U-7(실기기 확인은 개발이 끝난 뒤 한 번에)과 충돌한다. M4(awaiting-device) 조건도 바꾸지 않았다. 카드 '아무 곳 탭'은 처음부터 시맨틱 클릭이 아니고, '답 보기' 버튼이 같은 동작을 맡으므로 결함이 아니다."
+  },
+  {
+   "owner": "android-architect",
+   "title": "글꼴 200% 지적 중 dict_words·review_front_recall·review_save_error의 _font200, 그리고 완료된 M2·M4·M5·M6 항목 직접 수정",
+   "reason": "verdict 판단에 따라 규칙은 화면마다 한 장이고, dict와 review는 이미 한 장씩 있어 필수가 아니다. M5·M6은 done이라 계약을 바꾸지 않고, 새 마일스톤 T12로 같은 이름을 넣었다(architect 규칙: done 마일스톤의 계약이 바뀌면 영향받는 마일스톤을 새로 더한다)."
+  },
+  {
+   "owner": "android-architect",
+   "title": "S-12 지적 중 milestones.json M3(157행) check.sh 픽스처 조건 직접 수정",
+   "reason": "M3는 done이다. 같은 검사 확장은 새 마일스톤 T11(dependsOn M3, G-S12)에 넣었다. T11을 G-S12보다 먼저 두면 S-12를 확인하기 전까지 T05b·M15 같은 모든 release DB 빌드가 멈추므로 게이트 뒤에 두었다."
+  },
+  {
+   "owner": "android-architect",
+   "title": "content·ui-design 몫(sources.md S-12 절·N-09 문구·N-12 상태·S-11 머리말, manifest S-01 usedFields, notices.ko.json 틀, ui-design 4.3·11.1·12절·13.1·13.3)",
+   "reason": "이번 작업의 출력 파일은 architecture.md와 milestones.json뿐이다. 매니페스트·sources.md는 이 문서가 고치지 않는다는 11.1 정본 규칙에 따라 11.3(5·6·11·12·13)으로 analyst에게, 11.2(42~46)로 ui-designer에게 넘겼다."
+  },
+  {
+   "owner": "ui-designer",
+   "title": "일본어 낭독 로캘이 clearAndSetSemantics의 AnnotatedString 하나에만 걸려 있고, 부작용과 대체안이 없음 — (2) 로캘 대체안·(3) 에뮬레이터 스파이크 부분",
+   "reason": "판정에서 확정되지 않은 부분이다. 판정이 바이트코드로 확인했듯이 SpanStyle.localeList는 LocaleSpan으로 전달된다. 문구도 JpSpan·JpSpans.annotate 한 곳에 모여 있어서 가정이 틀려도 공통 함수만 고치면 된다. 그래서 대체안 (2)는 넣지 않았다. M4 에뮬레이터 스파이크 (3)은 사용자 결정 U-7(실기기 확인은 개발이 끝난 뒤 awaiting-device로 한 번에)과 충돌해서 넣지 않았다. 실제 낭독 확인은 기존 awaiting-device 체크리스트 항목으로 둔다."
+  },
+  {
+   "owner": "ui-designer",
+   "title": "milestones.json·architecture.md 직접 수정(지적 1·2·3·4·6·7·9의 fix 중 다른 문서 몫)",
+   "reason": "이 작업의 범위는 docs/spec/ui-design.md 하나다. 다른 문서에 남은 일은 ui-design 13.3 #1·#3·#4·#5에 요청으로 적었다. 남은 요청은 M4 카드 알림 테스트, 스테퍼·시각 시트 테스트, M19c의 mock_exam_intro_shortfall, Tatoeba SourceUi 확장이다. 그 밖의 항목(ExamStart, notice 삭제, Role/Selected 테스트, T12 _font200, libraries.json 형식)은 작업 중에 다른 쪽에서 이미 반영해 두었기에 그 이름에 맞췄다."
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "[Q1·Q5] S-12 지적 중 architecture 몫(6.5 '앱 자산' 조건을 generated-asset까지 넓히기, G-S12 게이트, milestones.json 157행 픽스처 조건)",
+   "reason": "이번 단계에서 고칠 파일은 docs/content/sources.md와 manifest.json뿐이다. architecture.md와 milestones.json은 architect가 고친다. S-12 머리말에 'architect 반영 대기'로 남겼다. S-12는 확정되지 않았으므로 지금 release 빌드는 생성 아이콘을 검사 없이 통과시킨다. 이 위험은 남아 있다"
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "[Q5] N-09 지적 중 content/notices.ko.json 틀 수정과 M15 scope·acceptance 테스트 추가",
+   "reason": "content/notices.ko.json은 이번 단계에서 고칠 파일(sources.md, manifest.json)에 들어 있지 않고, milestones.json은 architect가 고친다. sources.md N-09 행에 키 이름(notices.N-09.grammarPrefix)과 문구를 정해 두었다. 실제로 반영하는 일은 content-engineer 또는 다음 단계가 맡는다"
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "출처·게이트 상태 서술 지적 중 architecture.md 5행·1230행·11.3-6 수정",
+   "reason": "architecture.md는 architect가 고친다. 이번 단계에서 고칠 파일이 아니다"
+  }
+ ],
+ "unapplied": [
+  {
+   "owner": "android-architect",
+   "title": "일본어 낭독 로캘이 clearAndSetSemantics의 AnnotatedString 하나에만 걸려 있고, 부작용과 대체안이 없음"
+  },
+  {
+   "owner": "android-architect",
+   "title": "글꼴 200% 스크린샷 목록이 MVP 화면 일부를 빠뜨림"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q1·Q5] manifest S-12(앱 아이콘 생성 이미지)에 대응하는 sources.md 행이 없고, release 검사 '앱 자산'도 S-12를 잡지 못한다"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q11] M19b 완료 조건은 PracticeHomeUiState.notice(N-11)를 테스트하라고 하는데, architecture.md에서는 그 필드가 지워졌다"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q11·Q14] S14 모의고사 '시작 화면'을 담을 라우트·UI 상태가 없다(시도를 만들기 전에 보이는 화면인데 Quiz(attemptId)만 있다)"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q5] 문법 '비공식' N-09 문장(UI-U12 A)을 넣는 마일스톤이 없고 sources.md N-09에도 반영되지 않았다"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q1] architecture.md 4.2는 JMdict에서 stagk·stagr를 쓴다면서 '매니페스트 S-01 usedFields와 같음'이라고 적었지만, manifest·sources.md에는 둘 다 없다"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q11] S07 머리 급수 칩과 S06 '학습 상태' 절이 쓰는 필드가 architecture 7절 상태 모델에 없다(KanjiDetailUiState.level, CardStateSummary 정의)"
+  },
+  {
+   "owner": "android-architect",
+   "title": "[Q5] S09 아이콘 카드와 Tatoeba 카드가 요구하는 값을 전달할 경로가 상태 모델·에셋 형식에 없다"
+  },
+  {
+   "owner": "android-architect",
+   "title": "출처·게이트 상태 서술이 낡았다(manifest·milestones의 현재 값과 다름)"
+  },
+  {
+   "owner": "ui-designer",
+   "title": "카드 뒤집기·다음 카드 알림을 접근성 포커스 이동에만 맡김 (D8의 Polite 알림 없음, 대체 수단 없음)"
+  },
+  {
+   "owner": "ui-designer",
+   "title": "일본어 낭독 로캘이 clearAndSetSemantics의 AnnotatedString 하나에만 걸려 있고, 부작용과 대체안이 없음"
+  },
+  {
+   "owner": "ui-designer",
+   "title": "설정·온보딩의 '단계 조절'과 '시간 선택' 위젯이 정해지지 않아 드래그 전용·접근성 미정"
+  },
+  {
+   "owner": "ui-designer",
+   "title": "글꼴 200% 스크린샷 목록이 MVP 화면 일부를 빠뜨림"
+  },
+  {
+   "owner": "ui-designer",
+   "title": "하단 고정 영역·IME가 포커스된 요소를 가리는 경우(WCAG 2.4.11)와 검색란 IME 인셋 규칙이 없음"
+  },
+  {
+   "owner": "ui-designer",
+   "title": "[Q11] M19b 완료 조건은 PracticeHomeUiState.notice(N-11)를 테스트하라고 하는데, architecture.md에서는 그 필드가 지워졌다"
+  },
+  {
+   "owner": "ui-designer",
+   "title": "[Q11·Q14] S14 모의고사 '시작 화면'을 담을 라우트·UI 상태가 없다(시도를 만들기 전에 보이는 화면인데 Quiz(attemptId)만 있다)"
+  },
+  {
+   "owner": "ui-designer",
+   "title": "[Q11] ui-design은 홈·대기열 공통 카드 집합을 `StudyPlanRepository.dueForSession`이라고 부르는데, architecture 정본 이름은 `SessionCards.load`다"
+  },
+  {
+   "owner": "ui-designer",
+   "title": "[Q5] S09 아이콘 카드와 Tatoeba 카드가 요구하는 값을 전달할 경로가 상태 모델·에셋 형식에 없다"
+  },
+  {
+   "owner": "ui-designer",
+   "title": "[Q14] ui-design 1.1의 S06 진입 경로가 존재하지 않는 'S04·S12 결과의 단어 링크'를 적었다(실제 경로는 S15 해설)"
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "[Q1·Q5] manifest S-12(앱 아이콘 생성 이미지)에 대응하는 sources.md 행이 없고, release 검사 '앱 자산'도 S-12를 잡지 못한다"
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "[Q5] 문법 '비공식' N-09 문장(UI-U12 A)을 넣는 마일스톤이 없고 sources.md N-09에도 반영되지 않았다"
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "[Q1] architecture.md 4.2는 JMdict에서 stagk·stagr를 쓴다면서 '매니페스트 S-01 usedFields와 같음'이라고 적었지만, manifest·sources.md에는 둘 다 없다"
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "[Q1] manifest S-11 modifications의 채움 1 파일 이름이 architecture 6.6·ui-design 3.5의 `ic_ms_<이름>_fill.xml` 규칙과 다르다"
+  },
+  {
+   "owner": "content-licensing-analyst",
+   "title": "출처·게이트 상태 서술이 낡았다(manifest·milestones의 현재 값과 다름)"
+  }
+ ],
+ "failedRevisions": [],
+ "postRevision": [
+  {
+   "title": "[Q11·Q7 마일스톤 범위] ui-design에 새로 생긴 S03 카드 알림·S01/S08 스테퍼·하루 시작 시각 시트·S05 IME 인셋을 구현하는 마일스톤이 없다",
+   "severity": "medium",
+   "targets": [
+    "architecture"
+   ],
+   "location": "docs/spec/milestones.json 전체(M4 awaiting-device, M5·M6 done, T12) ↔ docs/spec/ui-design.md 4.3 \"카드 세션 알림\"·6.5 IME 인셋·6.8 NumberStepper·하루 시작 시각 선택·11.1·12(settings day_start_sheet)·13.3 #4",
+   "evidence": "ui-design 4.3은 \"review_card 노드에 liveRegion = Polite ... 접근성 포커스는 코드로 옮기지 않는다 ... FocusRequester를 카드에 쓰지 않는다(grep 검사)\"라고 하고, 6.8은 \"NumberStepper(ui/components/NumberStepper.kt) ... OutlinedIconButton\"과 \"라디오 행 13개 ModalBottomSheet\", 6.5는 \"adjustResize ... imePadding()\"을 정한다. 지금 코드는 반대로 되어 있다. Flashcard.kt:116-117 `val focus = remember { FocusRequester() }; LaunchedEffect(card.cardId, revealed) { runCatching { focus.requestFocus() } } // 이동만, liveRegion 없음`, ui/common/Stepper.kt는 값 노드에 `liveRegion = LiveRegionMode.Polite`을 걸고 FilledTonalIconButton을 쓰며, SettingsScreen.kt:126-129는 하루 시작 시각을 StepperRow(±1시간)로 바꾼다. AndroidManifest에는 windowSoftInputMode가 없다. milestones.json에서 review_card·NumberStepper·day_start_sheet·adjustResize·imePadding을 grep하면 하나도 나오지 않는다. T12 scope는 \"기능·상태 모델·스키마는 바꾸지 않는다\"이므로 이 일들을 맡지 않고, T12의 settings_loaded·level_loaded _font200은 지금의 옛 스테퍼로 찍힌다. ui-design 13.3 #4도 \"milestones.json에 없음\"이라고 스스로 밝힌다. 실제로 생길 일: 3차 설계 검증에서 고친 TalkBack 동작(카드를 뒤집을 때 두 번 읽히는 문제, 값 낭독)과 WCAG 2.4.11·2.5.7 수정이 맡을 작업 없이 그대로 출시된다.",
+   "fix": "milestones.json에 새 작업(예: T13, owner feature-engineer, ui: true, dependsOn M4·M5·M6)을 더한다. acceptance에는 ui-design 4.3의 Compose UI 테스트(review_card의 LiveRegion == Polite, 뒤집기·다음 카드·되돌리기 전후에 SemanticsNode.id가 같은지, FocusRequester grep 0건), 6.8·11.1의 스테퍼 검사(범위 끝 버튼 비활성, stateDescription \"{n}장\", 값 노드 liveRegion 없음), 시각 시트가 13개 값만 고르는지, S05 adjustResize·imePadding, 스크린샷 settings_day_start_sheet, 실기기 awaiting-device 항목 \"알림이 한 번씩\"을 넣는다. T12는 이 작업 뒤로 두어(dependsOn에 T13 추가) 새 스테퍼로 _font200을 찍게 하고, T09의 dependsOn에도 넣는다. architecture.md 11.4 선행 표도 같이 고친다."
+  },
+  {
+   "title": "[Q5] N-09 문법 급수 문장의 위치와 틀 형식이 문서마다 다르다(architecture·M15는 '끝'과 틀 자리, ui-design·sources는 '앞'과 grammarPrefix 키)",
+   "severity": "medium",
+   "targets": [
+    "architecture"
+   ],
+   "location": "docs/spec/architecture.md 6.6 notices 항목(420행) · docs/spec/milestones.json M15 scope·acceptance ↔ docs/spec/ui-design.md 9.2 고지 1(1068행) · docs/content/sources.md N-09.not-official",
+   "evidence": "architecture 6.6: \"N-09 본문 끝의 문법 급수 문장(... content/notices.ko.json N-09 틀의 문법 전용 자리)은 grammar 행이 있을 때만 붙이고, 없으면 그 자리를 빈 문자열로 지운다\". M15 scope: \"N-09 body 끝에 문법 급수 문장 ... 그 자리를 지운다\". ui-design 9.2 고지 1: \"문법이 번들에 있으면 그 앞에 '문법 항목의 급수는 ...'\". sources.md N-09: \"문법 콘텐츠가 번들에 있는 빌드에서만 본문 앞에 문법 급수 문장을 붙인다 ... notices.ko.json 틀 제안: notices.N-09에 문법이 있을 때만 쓰는 키 grammarPrefix\". 실제로 생길 일: M15 구현자가 architecture와 M15에 따라 본문 끝의 틀 자리로 만들면, 화면 고지 문구가 ui-design의 기준 문구 순서와 달라진다. analyst가 만들 notices.ko.json의 grammarPrefix 키를 파이프라인이 읽지 않아 문장이 빠질 수도 있다.",
+   "fix": "문구 기준인 ui-design 9.2와 sources.md N-09를 따른다. architecture 6.6과 M15 scope·acceptance를 \"N-09 본문 앞에, notices.ko.json N-09의 grammarPrefix 키 값을 grammar 행이 있을 때만 붙인다(없으면 붙이지 않는다)\"로 고친다. M15 notices 테스트도 'body가 grammarPrefix 문장으로 시작한다' 또는 '그 문장이 없다'로 판정하게 바꾼다."
+  },
+  {
+   "title": "[Q11] ExamStart 화면에서 불러오기가 실패한 상태가 없다: examTemplate·buildSet 예외가 LOADING 중에 나면 자리표시만 남고 '다시 시도'가 무엇을 할지 정해지지 않았다",
+   "severity": "medium",
+   "targets": [
+    "architecture",
+    "ui-design"
+   ],
+   "location": "docs/spec/architecture.md 9.2.6 ExamStartUiState(1109~1121행) · docs/spec/ui-design.md 7절 S14 '시작 실패'(1021행)·13.1 ExamStart 행 · milestones.json M19c acceptance",
+   "evidence": "architecture: `enum class ExamStartStatus { LOADING, LOADED, EMPTY }`, `val startFailed: Boolean = false) // examTemplate·buildSet·startAttempt 예외`. 그런데 ExamStartViewModel은 \"열 때 examTemplate(level)·pool(level)로 ... buildSet을 한 번\" 한다. 그래서 examTemplate·buildSet 예외는 status가 LOADING일 때 난다. ui-design 7절 S14 '시작 실패'는 \"화면 그대로, 스낵바 ... '다시 시도'\"이고 LOADING 행은 \"본문 자리표시 행 5개\"다. M19c는 \"examTemplate이 예외면 startFailed == true\"만 요구하고 status는 정하지 않는다. 실제로 생길 일: template_json이 깨진 빌드에서 시작 화면이 자리표시 상태로 멈춘다. '다시 시도'가 불러오기를 다시 할지 startAttempt를 부를지(sections가 비어 있는데 시도를 만들지) 구현자마다 달라진다.",
+   "fix": "architecture를 기준으로 고친다. ExamStartStatus에 FAILED(불러오기 실패)를 더하고, startFailed는 startAttempt 예외에만 쓴다. ui-design 7절에 'S14 시작 화면 불러오기 실패(FAILED)' 행을 둔다(StatusScreen 문구 + '다시 시도' = 불러오기 재실행). '시작 실패' 행의 조건은 startAttempt 예외만으로 줄인다. M19c acceptance를 \"examTemplate 예외면 status FAILED, startAttempt 예외면 startFailed == true이고 시도 행이 없다\"로 고친다."
+  },
+  {
+   "title": "[G-S12 도달 불가] sources.md S-12에 법률 판단이라 영구히 미확정인 행이 있는데 핵심 행 정의가 없어, G-S12(→T11→T09)가 풀릴 길이 없다",
+   "severity": "medium",
+   "targets": [
+    "content",
+    "architecture"
+   ],
+   "location": "docs/content/sources.md S-12 절(S-12.copyright 228행)·0절 S-12 상태 요약 행 ↔ docs/spec/milestones.json G-S12 acceptance · docs/spec/architecture.md 10절 G-S12",
+   "evidence": "sources.md S-12.copyright: \"판단하지 않는다 ... 미확정(법률 판단 범위, 사용자에게 넘김)\". 다른 자료는 요약 상태를 '핵심 행에서 계산'하지만 S-12 요약 행에는 핵심 행 정의가 없고, 상태 칸에 copyright를 미확정으로 적는다. G-S12 acceptance는 \"S-12의 status가 confirmed\", \"상태가 manifest와 같으며 license 칸에 생성 도구 약관의 생성물 권리 조항 인용과 확인 날짜가 있다\"를 요구한다. 그런데 요약 행의 라이선스 칸은 \"외부 라이선스 없음. 생성물 권리는 OpenAI 약관의 Output 귀속 조항(...)\"뿐이다. 인용은 S-12.terms-* 행에, 날짜는 확인일 칸에 있다. architecture 10절은 \"G-S12가 done이 되기 전에는 앱을 배포하지 않는다(T09가 마지막이고 T11에 의존)\"라고 한다. 실제로 생길 일: license-verify가 copyright 행을 확정할 수 없으므로 S-12는 계속 unconfirmed로 남고, T11·T09가 영원히 막혀 출시할 수 없다.",
+   "fix": "content: S-12의 핵심 행(origin, terms-which, terms-consumer 또는 terms-business, attribution)을 머리말에 정한다. copyright는 상태를 `사용자 결정`으로 바꾸고 decisions.md D-09에 기록하게 해서 요약 상태 계산에서 뺀다. architecture(milestones G-S12 acceptance): \"license 칸에 인용과 날짜\"를 \"S-12.terms-* 행에 약관 인용이 있고 0절 확인일이 채워져 있으며 핵심 행이 모두 확정\"으로 고친다."
+  },
+  {
+   "title": "[마일스톤 범위] M19c 스크린샷 목록에 ui-design 12절·13.1이 요구하는 mock_exam_intro_shortfall이 없다",
+   "severity": "low",
+   "targets": [
+    "architecture"
+   ],
+   "location": "docs/spec/milestones.json M19c acceptance 'Roborazzi 스크린샷' ↔ docs/spec/ui-design.md 12절 mock_exam 행·13.1 ExamStart 행·13.3 #3",
+   "evidence": "ui-design 12: mock_exam 상태 \"intro_shortfall('시작' 비활성)\". 13.1 ExamStart: \"스크린샷 mock_exam_intro(+_font200)·mock_exam_intro_shortfall(12절)\". 13.3 #3: \"milestones.json M19c 스크린샷에 mock_exam_intro_shortfall을 더한다\". M19c acceptance: \"mock_exam_intro(...), mock_exam_nav, mock_exam_confirm_exit, mock_exam_confirm_submit, mock_exam_intro_light_font200, mock_exam_nav_light_font200\" — intro_shortfall이 없다. 실제로 생길 일: '시작 화면 문항 모자람' 상태(비활성 '시작'과 이유 문구)가 시각 검증 없이 지나간다.",
+   "fix": "M19c 스크린샷 acceptance에 mock_exam_intro_shortfall(_light·_dark)을 더한다(ui-design 12절이 기준)."
+  },
+  {
+   "title": "[Q1] architecture 4.2와 11.3-5가 stagk·stagr가 매니페스트에 '아직 없다'고 적지만, 매니페스트와 sources.md에는 이미 들어갔다",
+   "severity": "low",
+   "targets": [
+    "architecture"
+   ],
+   "location": "docs/spec/architecture.md 4.2 '쓰는 필드'(202행)·11.3-5(1332행) ↔ docs/content/manifest.json S-01 usedFields · docs/content/sources.md S-01.used",
+   "evidence": "architecture 4.2: \"매니페스트 S-01 usedFields·sources.md S-01.used에는 sense/stagk·sense/stagr가 아직 없어 analyst가 더한다(11.3-5)\". 11.3-5: \"남은 일(2026-11-03 설계 검증)\". 매니페스트 S-01 usedFields에는 이제 \"sense/stagk\", \"sense/stagr\"가 있고, sources.md S-01.used에도 \"sense별 sense/stagk·sense/stagr(있을 때만 ...)\"이 더해졌다. 실제로 생길 일: 다음 설계 검증이나 analyst가 이미 끝난 일을 다시 요청받는다.",
+   "fix": "architecture 4.2의 '아직 없어 analyst가 더한다' 문장을 '매니페스트 S-01 usedFields·sources.md S-01.used와 같음'으로 바꾸고, 11.3-5를 '완료(2026-11-03)'로 고친다."
+  },
+  {
+   "title": "[Q1] sources.md S-12 머리말과 매니페스트 S-12 notes가 architecture 반영을 아직 '대기'로 적는다",
+   "severity": "low",
+   "targets": [
+    "content"
+   ],
+   "location": "docs/content/sources.md S-12 머리말 '출시 조건'(217행) · docs/content/manifest.json S-12 notes ↔ docs/spec/architecture.md 6.5 '앱 자산'·10절 G-S12·milestones.json T11",
+   "evidence": "sources.md: \"지금 architecture.md 6.5 '앱 자산' 검사는 scope가 app-asset으로 시작하는 자료만 보므로 S-12를 잡지 못한다. 조건을 ... 넓히거나 S-12 게이트를 두는 일은 architecture 몫이다(설계 검증 지적 [Q1·Q5], architect 반영 대기)\". 매니페스트 notes: \"release 검사 '앱 자산'이 generated-asset을 포함하도록 하는 것은 architecture 몫\". 그런데 architecture 6.5는 이미 \"app-asset 또는 generated-asset ... 넓히는 것은 T11(G-S12 뒤)\"로, 10절은 G-S12로 반영했고, milestones.json에 G-S12·T11이 있다. 실제로 생길 일: 다음 license-verify나 설계 검증이 architecture에 같은 일을 다시 요청한다.",
+   "fix": "sources.md S-12 머리말을 \"architecture.md 6.5 '앱 자산'에 generated-asset이 정해졌고(구현은 T11, G-S12 뒤) 10절 G-S12가 출시를 막는다\"로 바꾼다. 매니페스트 S-12 notes의 'architecture 몫'도 'T11(G-S12 뒤)'로 고친다."
+  },
+  {
+   "title": "[Q11] ui-design 6.10 S14 시작 화면의 영역 문항 수 정의가 같은 절의 새 문단·ExamSectionLine.count와 다르다",
+   "severity": "low",
+   "targets": [
+    "ui-design"
+   ],
+   "location": "docs/spec/ui-design.md 6.10 S14 '시작 화면' 첫 항목(877행) ↔ 같은 절 하위 항목·docs/spec/architecture.md 9.2.6 ExamSectionLine",
+   "evidence": "877행: \"영역별 줄 '{titleKo} · {문항 수}문항 · 기준 {minutes}분'(... 문항 수 = 그 영역 parts[].count 합 ...)\". 바로 아래 새 하위 항목과 architecture는 \"count는 buildSet이 그 영역에서 실제로 고른 수\"(`val count: Int, // 그 영역에서 buildSet이 실제로 고른 수(shortfall 반영)`)다. 7절 '시작 화면 문항 모자람' 행도 \"count는 실제 고른 수\"다. 실제로 생길 일: shortfall이 있으면 두 정의가 다른 수를 내고, 구현자가 템플릿 값으로 그리면 합계 total(= BuiltSet.questionIds.size)과 영역 줄의 합이 맞지 않는다.",
+   "fix": "877행의 '문항 수 = 그 영역 parts[].count 합'을 '문항 수 = ExamSectionLine.count(buildSet이 그 영역에서 실제로 고른 수, shortfall이면 템플릿 수보다 적다)'로 고친다(architecture 9.2.6이 기준)."
+  },
+  {
+   "title": "[Q11] architecture 11.2-46 요청(S06 학습 상태 = CardStateSummary/CardProgress, S07 칩 = KanjiDetailUiState.level)이 ui-design에 반영되지 않았다",
+   "severity": "low",
+   "targets": [
+    "ui-design"
+   ],
+   "location": "docs/spec/ui-design.md 6.6 '학습 상태'(722행)·6.7 머리 급수 칩(727행)·13.1 VocabDetail/KanjiDetail 행 ↔ docs/spec/architecture.md 7절·11.2-46",
+   "evidence": "architecture 7절에 새로 생긴 `enum class CardProgress { NEW, LEARNING, REVIEW }`, `data class CardStateSummary(val kind: CardKind, val progress: CardProgress, val dueAtEpochMs: Long? = null)`, `KanjiDetailUiState.level: JlptLevel?`와 11.2-46 \"6.7 S07 머리 급수 칩은 KanjiDetailUiState.level, 6.6 '학습 상태' 절은 CardStateSummary(...)라고 적는다\". ui-design 6.6은 여전히 \"카드 종류별 '새 카드' / '학습 중' / '다음 복습 {날짜}', 앱 계산 값\"이고, 13.1 VocabDetail/KanjiDetail 행에는 cardStates·level이 없다(grep CardStateSummary 결과 0건). 코드(DetailModels.kt)에는 이미 같은 이름이 있다. 실제로 생길 일: 동작에는 영향이 없지만, 다음 설계 대조 때 화면 값과 상태 필드의 대응을 다시 찾아야 한다.",
+   "fix": "ui-design 6.6 '학습 상태'에 CardProgress NEW→'새 카드', LEARNING→'학습 중', REVIEW→'다음 복습 {dueAtEpochMs의 학습일}'을 적는다. 6.7 칩 문장에 KanjiDetailUiState.level(null이면 칩을 숨긴다)을 적고, 13.1 VocabDetail/KanjiDetail 행에 cardStates·level을 더한다."
+  }
+ ],
+ "postRevisionFailed": false
+}

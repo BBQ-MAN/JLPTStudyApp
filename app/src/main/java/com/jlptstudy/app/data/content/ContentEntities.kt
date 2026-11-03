@@ -63,3 +63,98 @@ data class RetiredEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "retired_in") val retiredIn: String,
 )
+
+// architecture.md 9.0~9.4 (콘텐츠 DB v2). 출처 열 묶음 P = 4.2 끝 7열.
+
+@Entity(tableName = "kanji_stroke")
+data class KanjiStrokeEntity(
+    @PrimaryKey val literal: String,
+    @ColumnInfo(name = "paths_json") val pathsJson: String,
+    @ColumnInfo(name = "source_id") val sourceId: String,
+)
+
+@Entity(tableName = "grammar", indices = [Index("level", "sort_key")])
+data class GrammarEntity(
+    @PrimaryKey val id: String,
+    val level: Int,
+    @ColumnInfo(name = "sort_key") val sortKey: Int,
+    val title: String,
+    @ColumnInfo(name = "meaning_ko") val meaningKo: String,
+    @ColumnInfo(name = "explanation_ko") val explanationKo: String,
+    @ColumnInfo(name = "connections_json") val connectionsJson: String,
+    @ColumnInfo(name = "contrasts_json") val contrastsJson: String,
+    @ColumnInfo(name = "source_id") val sourceId: String,
+    @ColumnInfo(name = "ko_source") val koSource: String,
+    @ColumnInfo(name = "ko_method") val koMethod: String,
+    @ColumnInfo(name = "ko_review_status") val koReviewStatus: String,
+    @ColumnInfo(name = "ko_reviewed_at") val koReviewedAt: String?,
+    @ColumnInfo(name = "ko_reviewer_kind") val koReviewerKind: String?,
+    @ColumnInfo(name = "needs_review") val needsReview: Boolean,
+)
+
+@Entity(tableName = "grammar_example", primaryKeys = ["grammar_id", "ord"])
+data class GrammarExampleEntity(
+    @ColumnInfo(name = "grammar_id") val grammarId: String,
+    val ord: Int,
+    val ja: String,
+    val ko: String,
+    @ColumnInfo(name = "source_id") val sourceId: String,
+    @ColumnInfo(name = "source_ref") val sourceRef: String?,
+    val author: String?,
+    val license: String?,
+)
+
+@Entity(tableName = "question", indices = [Index("level", "section", "type", "sort_key")])
+data class QuestionEntity(
+    @PrimaryKey val id: String,
+    val level: Int,
+    val section: String,
+    val type: String,
+    @ColumnInfo(name = "sort_key") val sortKey: Int,
+    val stem: String,
+    val passage: String?,
+    val target: String?,
+    @ColumnInfo(name = "choices_json") val choicesJson: String,
+    @ColumnInfo(name = "answer_index") val answerIndex: Int,
+    @ColumnInfo(name = "explanation_ko") val explanationKo: String,
+    @ColumnInfo(name = "why_wrong_ko_json") val whyWrongKoJson: String,
+    @ColumnInfo(name = "targets_json") val targetsJson: String,
+    @ColumnInfo(name = "source_id") val sourceId: String,
+    @ColumnInfo(name = "ko_source") val koSource: String,
+    @ColumnInfo(name = "ko_method") val koMethod: String,
+    @ColumnInfo(name = "ko_review_status") val koReviewStatus: String,
+    @ColumnInfo(name = "ko_reviewed_at") val koReviewedAt: String?,
+    @ColumnInfo(name = "ko_reviewer_kind") val koReviewerKind: String?,
+    @ColumnInfo(name = "needs_review") val needsReview: Boolean,
+)
+
+@Entity(tableName = "exam_template")
+data class ExamTemplateEntity(
+    @PrimaryKey val level: Int,
+    @ColumnInfo(name = "template_json") val templateJson: String,
+    @ColumnInfo(name = "source_url") val sourceUrl: String,
+    @ColumnInfo(name = "checked_at") val checkedAt: String,
+    @ColumnInfo(name = "source_id") val sourceId: String,
+)
+
+@Entity(tableName = "listening", indices = [Index("level", "type", "sort_key")])
+data class ListeningEntity(
+    @PrimaryKey val id: String,
+    val level: Int,
+    @ColumnInfo(name = "sort_key") val sortKey: Int,
+    val type: String,
+    @ColumnInfo(name = "lines_json") val linesJson: String,
+    val question: String?,
+    @ColumnInfo(name = "choices_json") val choicesJson: String,
+    @ColumnInfo(name = "answer_index") val answerIndex: Int,
+    @ColumnInfo(name = "explanation_ko") val explanationKo: String,
+    @ColumnInfo(name = "why_wrong_ko_json") val whyWrongKoJson: String,
+    @ColumnInfo(name = "targets_json") val targetsJson: String,
+    @ColumnInfo(name = "source_id") val sourceId: String,
+    @ColumnInfo(name = "ko_source") val koSource: String,
+    @ColumnInfo(name = "ko_method") val koMethod: String,
+    @ColumnInfo(name = "ko_review_status") val koReviewStatus: String,
+    @ColumnInfo(name = "ko_reviewed_at") val koReviewedAt: String?,
+    @ColumnInfo(name = "ko_reviewer_kind") val koReviewerKind: String?,
+    @ColumnInfo(name = "needs_review") val needsReview: Boolean,
+)

@@ -106,20 +106,38 @@ class CheckFailuresTest(TempRoot):
         self.has("FAIL: attribution meaningSourceTexts missing key authored-llm-nomodel")
 
     def test_n11_n12_required_when_rows_exist(self):
-        self.sql("CREATE TABLE grammar (id TEXT)", "INSERT INTO grammar VALUES ('gr-n5-0001')", "CREATE TABLE listening (id TEXT)", "INSERT INTO listening VALUES ('ls-n5-0001')")
+        self.sql("DROP TABLE grammar", "CREATE TABLE grammar (id TEXT)", "INSERT INTO grammar VALUES ('gr-n5-0001')", "DROP TABLE listening", "CREATE TABLE listening (id TEXT)", "INSERT INTO listening VALUES ('ls-n5-0001')")
         out = check.run_checks(self.p)
         self.assertIn("FAIL: attribution N-11 missing while grammar or question rows exist", out)
         self.assertIn("FAIL: attribution N-12 missing while listening rows exist", out)
 
     def test_schema_version_and_hash(self):
-        self.sql("PRAGMA user_version = 2")
-        self.has("FAIL: schema user_version db=2 json=1")
+        self.sql("PRAGMA user_version = 1")
+        self.has("FAIL: schema user_version db=1 json=2")
         self.sql("UPDATE room_master_table SET identity_hash = 'zzz'")
         self.assertTrue(any(l.startswith("FAIL: schema room_master_table identity hash zzz") for l in check.run_checks(self.p)))
         self.sql("ALTER TABLE vocab ADD COLUMN extra TEXT")
         self.assertIn("FAIL: schema vocab differs from schema json", check.run_checks(self.p))
         self.sql("DROP INDEX index_vocab_level_sort_key")
         self.assertIn("FAIL: schema index_vocab_level_sort_key missing in content.db", check.run_checks(self.p))
+
+    def test_asset_v1_schema(self):
+        self.sql("PRAGMA user_version = 1")
+        self.assertTrue(any(l.startswith("FAIL: schema ") for l in check.run_checks(self.p)))
+
+    def test_p_columns_when_rows_exist(self):
+        self.assertEqual(check.run_checks(self.p), [])  # 0행 테이블은 통과
+        P = "'authored','authored','human','unreviewed',NULL,NULL,0"
+        self.sql(f"INSERT INTO grammar VALUES ('gr-n5-0001',5,1,'t','m','e','[]','[]',{P})")
+        self.assertFalse([l for l in check.run_checks(self.p) if "ko-columns" in l])
+        self.sql("UPDATE grammar SET ko_method = ''")
+        self.assertIn("FAIL: ko-columns grammar gr-n5-0001 ko_method empty", check.run_checks(self.p))
+
+    def test_ref_checks(self):
+        self.sql("INSERT INTO kanji_stroke VALUES ('龍','[]','S-03')")
+        self.assertIn("FAIL: refs kanji_stroke.literal not in kanji: 龍", check.run_checks(self.p))
+        self.sql("INSERT INTO grammar_example VALUES ('gr-x',0,'ja','ko','authored',NULL,NULL,NULL)")
+        self.assertIn("FAIL: refs grammar_example.grammar_id not in grammar: gr-x", check.run_checks(self.p))
 
     def test_sqlite_header(self):
         db = self.p.assets / "content.db"

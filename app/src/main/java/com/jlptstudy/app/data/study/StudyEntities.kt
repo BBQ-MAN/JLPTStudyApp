@@ -67,3 +67,26 @@ data class UserSettingsEntity(
     @ColumnInfo(name = "onboarding_done", defaultValue = "0") val onboardingDone: Boolean = false,
     @ColumnInfo(name = "first_notice_dismissed", defaultValue = "0") val firstNoticeDismissed: Boolean = false,
 )
+
+// architecture.md 9.2.4(v2). 외래 키 없음 — 삭제는 저장소가 한 트랜잭션으로 한다.
+@Entity(tableName = "quiz_attempt")
+data class QuizAttemptEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "exam_id") val examId: String?,
+    val seed: Long,
+    @ColumnInfo(name = "question_order_json") val questionOrderJson: String,
+    @ColumnInfo(name = "current_index", defaultValue = "0") val currentIndex: Int = 0,
+    @ColumnInfo(name = "elapsed_ms", defaultValue = "0") val elapsedMs: Long = 0,
+    @ColumnInfo(name = "started_at_epoch_ms") val startedAtEpochMs: Long,
+    @ColumnInfo(name = "finished_at_epoch_ms") val finishedAtEpochMs: Long? = null,
+)
+
+@Entity(tableName = "quiz_answer", primaryKeys = ["attempt_id", "question_id"])
+data class QuizAnswerEntity(
+    @ColumnInfo(name = "attempt_id") val attemptId: Long,
+    @ColumnInfo(name = "question_id") val questionId: String,
+    @ColumnInfo(name = "chosen_index") val chosenIndex: Int,
+    val correct: Boolean,
+    @ColumnInfo(name = "answered_at_epoch_ms") val answeredAtEpochMs: Long,
+    @ColumnInfo(name = "script_shown", defaultValue = "0") val scriptShown: Boolean = false,
+)
