@@ -309,8 +309,8 @@
       "N5 어휘에서 파생한 한자 목록이 KANJIDIC2의 4.2절 필드로 채워지고 kanji_missing.tsv가 보고서에 있다(단위 테스트 + 행 수 보고)",
       "python3 -I -m unittest discover -s content/pipeline 와 .claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "awaiting-device",
-    "note": "2026-11-02 wf_42ec0e0f-c26 통과. 미판정 1건은 스냅샷 \"커밋\" 조건(사용자 지시로 커밋 안 함) — 커밋 승인 대기"
+    "status": "done",
+    "note": "2026-11-02 wf_42ec0e0f-c26 통과. 미판정 1건은 스냅샷 \"커밋\" 조건(사용자 지시로 커밋 안 함) — 커밋 승인 대기 / 2026-11-03 T02: 스냅샷 5개 파일이 e623390에 커밋됨, 같은 raw로 재생성한 데이터 파일 sha256 일치(LICENSE.md는 낡아 dev/base에서 갱신) → done"
   },
   {
     "id": "M9",
