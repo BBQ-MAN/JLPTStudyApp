@@ -458,7 +458,7 @@ JMdict·KANJIDIC2는 같은 URL이 매일, Tatoeba는 매주 덮어써지므로 
   - `levels-<levelSource>-<version>.tsv`: 급수 목록 행(`LevelRow`). 공개 저장소에 커밋하지 않기로 하면(decisions.md D-08, 미정) 이 파일 대신 방식 B — 원본 사본을 저장소 밖 고정 위치(릴리스 첨부)에 판별로 두고 매니페스트 `pinning.method = "archive"`, `pinning.pinnedCopy` = 그 사본 URL로 적는다(`downloadUrl`·`files[].url`은 원 URL 그대로).
   - `S-03-<version>.jsonl.gz`(M13): DB 한자의 `kvg:StrokePaths` 경로만(`kvg:StrokeNumbers`는 읽지 않는다. 획 번호는 앱이 계산한다, 9.4).
   - `S-04-<version>.jsonl.gz`(Tatoeba 예문을 처음 쓰는 마일스톤, S-04 `confirmed` 뒤 — 지금 마일스톤 목록에는 없다): DB에 넣는 문장 행만(`id`, `lang`, `text`, `username`, 문장별 라이선스, jpn–kor 연결). 매주 덮어써지는 원 URL과 무관하게 다시 빌드할 수 있게 한다. 이 마일스톤을 만들 때 refresh-snapshot 대상에 S-04를 더한다.
-  - `LICENSE.md`: 자료별 저작자 표시 문구·라이선스 URI·"원 자료에서 일부 필드만 뽑음"이라는 변경 내용(CC BY-SA 4.0 재배포 조건).
+  - `LICENSE.md`: 자료별 저작자 표시 문구·라이선스 URI·"원 자료에서 일부 필드만 뽑음"이라는 변경 내용. 재배포 조건은 **자료마다 그 자료의 라이선스**를 따른다(S-01·S-02 CC BY-SA 4.0, S-03 KanjiVG CC BY-SA 3.0 등 — 매니페스트 `license`·`licenseUrl` 그대로). 한 라이선스로 묶어 적지 않는다.
 - 스냅샷은 결정적이다: 행은 키 순서로 정렬, JSON 키 정렬, gzip `mtime=0`. 같은 원본으로 두 번 만들면 sha256이 같다.
 - 빌드(6.2 `build.py`)는 스냅샷만 읽는다. `check`·다시 빌드·새 작업 공간·다른 컴퓨터에서 fetch가 필요 없다. 스냅샷을 바꾸는 것(D-07)은 콘텐츠 갱신 작업이며 ID 안정성 검사(6.5)와 stale gloss 보고를 거친다.
 
@@ -784,7 +784,7 @@ sealed interface SpeakerState {
     data object Error : SpeakerState               // 초기화 시간 초과, 엔진이 있는데 onInit ERROR, 재생 중 onError
 }
 // AppContainer.speakerFactory: () -> Speaker. 청해 ViewModel이 생성 때 하나 만들고 onCleared에서 그것만 shutdown.
-// 다시 시도(Error)·설치 후 돌아옴(MissingJapaneseData에서 ON_START): ViewModel이 지금 인스턴스를 shutdown하고 speakerFactory()로 새로 만든다.
+// 다시 시도(Error)·설치·설정 후 돌아옴(ON_START에서 MissingJapaneseData·NoEngine·Error, 9.3.2): ViewModel이 지금 인스턴스를 shutdown하고 speakerFactory()로 새로 만든다.
 // 인터페이스에 retry·init을 두지 않는다.
 // AudioFileMissing(ui-design 5.8)은 D-04 B(사전 생성 음성) 구현이 생길 때 더한다.
 ```
@@ -890,7 +890,8 @@ data class GrammarDetailUiState(val status: DetailStatus = DetailStatus.LOADING,
 
 표 밖 `type`은 `authored` 단계가 `FAIL: authored <id> type`으로 멈춘다.
 - 대상 구간 규칙(`authored` 검사): 유형 **한자 읽기·표기·유의 표현**은 `stem`(없으면 `passage`)에 `[[…]]`가 정확히 1개, `target`이 필수이고 그 구간 base 글자를 이은 문자열과 같다. **한자 읽기** 문항의 `[[…]]` 안에는 루비를 쓰지 않는다(정답 노출). **용법**은 `target`이 필수이고 `[[…]]`는 없어도 된다. 그 밖의 유형은 `target`이 없고 `[[…]]`는 0개 이상(짝만 검사). `targets`(ID 목록)와 `target`(지시문 글자)은 다른 필드다.
-- **문장 배열**도 4지선다다: `stem`에 빈칸 넷과 `★` 자리를 두고(`★`는 정확히 1개, 빈칸 표기는 `＿＿`), `choices`는 조각 넷, `answerIndex`는 ★ 자리에 들어갈 조각(실제 시험 형식과 같은 채점). 전체 순서 채점 필드는 두지 않는다(ui-design 6.10과 같음).
+- **빈칸 표기(일본어 필드 `stem`·`passage`):** 빈칸 하나 = `＿＿`(U+FF3F 두 개), ★ 칸 하나 = `＿★＿`(U+FF3F U+2605 U+FF3F). 이 두 토큰 말고는 `＿`·`★`를 본문에 쓰지 않고, 루비 base·`[[…]]` 안에 두지 않는다. 화면은 `Furigana.parse` 뒤 `ui/practice/QuizStem.kt`의 `fun split(segments: List<RubySegment>): List<StemPart>`(`sealed interface StemPart { Text(segment), Blank, StarBlank }`) 한 곳에서 토큰을 칸으로 바꾼다. `authored` 검사: 문장 배열은 `＿＿` 3개 + `＿★＿` 1개(정확히), 문맥 규정·문법 형식 판단·단어 형성·글의 문법은 `＿＿` 1개 이상·`＿★＿` 0개, 그 밖의 유형은 둘 다 0개. 어기면 `FAIL: authored <id> blank`.
+- **문장 배열**도 4지선다다: `stem`에 빈칸 넷(위 표기)을 두고, `choices`는 조각 넷, `answerIndex`는 ★ 자리에 들어갈 조각(실제 시험 형식과 같은 채점). 전체 순서 채점 필드는 두지 않는다(ui-design 6.10과 같음).
 - 독해 지문 하나에 문항이 여럿이면 각 문항 파일에 같은 `passage`를 넣는다(shortcut: 지문 중복 저장, 독해 지문이 크기 예산의 10%를 넘으면 `passage` 테이블로 나누는 v3를 만든다).
 
 #### 9.2.3 콘텐츠 DB v2: `question`, `exam_template`
@@ -949,7 +950,7 @@ data class GrammarDetailUiState(val status: DetailStatus = DetailStatus.LOADING,
 | `chosen_index` | INTEGER NOT NULL | 0..3, **섞기 전 원래 선택지 색인** |
 | `correct` | INTEGER NOT NULL | 0/1. 저장 때 `chosen_index == answer_index` |
 | `answered_at_epoch_ms` | INTEGER NOT NULL | |
-| `script_shown` | INTEGER NOT NULL DEFAULT 0 | 청해 문항을 대본이 펼쳐진 상태에서 답했으면 1("대본으로 풂", ui-design 6.11). 청해가 아니면 0 |
+| `script_shown` | INTEGER NOT NULL DEFAULT 0 | 청해 문항에서 **답하기 전에 대본을 한 번이라도 펼쳤으면** 1("대본으로 풂", ui-design 6.11, UI-U13 A). 답하는 순간 접혀 있어도 1이다. 펼친 적이 없으면 0. 청해가 아니면 0 |
 미응답 문항은 행이 없다. 미응답 수 = `question_order_json` 길이 − 그 시도의 답 행 수(콘텐츠에서 사라진 ID는 양쪽에서 뺀다).
 
 엔티티는 `data/study/StudyEntities.kt`에 `QuizAttemptEntity`, `QuizAnswerEntity`. DEFAULT 열은 `@ColumnInfo(defaultValue = "0")`. 스키마 JSON `app/schemas/com.jlptstudy.app.data.study.StudyDatabase/2.json`.
@@ -993,11 +994,14 @@ data class PoolItem(val id: String, val section: Section, val type: String)
 data class Shortfall(val section: Section, val type: String, val required: Int, val available: Int)
 data class BuiltSet(val questionIds: List<String>, val shortfalls: List<Shortfall>)
 
-/** 채점 입력. 색인은 모두 원래 색인. chosenIndex == null이면 미응답(오답으로 센다). */
-data class AnswerInput(val questionId: String, val section: Section, val answerIndex: Int, val chosenIndex: Int?)
+/** 채점 입력. 색인은 모두 원래 색인. chosenIndex == null이면 미응답(오답으로 센다). 콘텐츠에서 빠진 문항은 넣지 않는다(9.2.6 QuizSessionLoader). */
+data class AnswerInput(val questionId: String, val section: Section, val type: String, val answerIndex: Int, val chosenIndex: Int?)
 data class SectionScore(val section: Section, val correct: Int, val total: Int) // 비율 표시(반올림)는 화면이 correct/total로(ui-design 6.10)
-data class Score(val sections: List<SectionScore>, val correct: Int, val total: Int, val unanswered: Int)
-// Score·SectionScore에 척도 점수·합격 판정·예상 점수 필드를 두지 않는다.
+/** 모의고사 영역 점수. 키는 템플릿 sections[].id(예 N5 "언어지식(문법)·독해"는 grammar·reading parts를 합친 한 영역). */
+data class ExamSectionScore(val sectionId: String, val titleKo: String, val correct: Int, val total: Int)
+data class Score(val sections: List<SectionScore>, val examSections: List<ExamSectionScore>,
+    val correct: Int, val total: Int, val unanswered: Int)
+// Score·SectionScore·ExamSectionScore에 척도 점수·합격 판정·예상 점수 필드를 두지 않는다.
 
 object Quiz {
     /** java.util.Random(attemptSeed * 31 + id.hashCode())로 java.util.Collections.shuffle(원래 색인 목록). 같은 (id, attemptSeed) → 같은 순서. */
@@ -1005,12 +1009,16 @@ object Quiz {
     /** template.sections → parts 순서대로, 각 part마다 pool에서 (section, type)이 같은 항목을 id로 정렬한 뒤 Random(seed)로 섞어 앞에서 count개.
      *  모자라면 있는 만큼 넣고 shortfalls에 담는다(예외 없음). 한 ID는 결과에 한 번만. excluded 영역의 parts는 건너뛰고 shortfall에도 넣지 않는다. */
     fun buildSet(pool: List<PoolItem>, template: ExamTemplate, seed: Long, excluded: Set<Section> = emptySet()): BuiltSet
-    /** sections는 Section 선언 순서, total > 0인 영역만. */
-    fun score(answers: List<AnswerInput>): Score
+    /** sections는 Section 선언 순서, total > 0인 영역만(문항 section 코드가 키 — 연습·청해 결과용).
+     *  template != null이면 examSections를 template.sections 순서로 채운다: 문항의 (section, type)이 들어 있는 part의 sections[].id에 센다.
+     *  어느 part에도 없는 문항은 examSections에서 빠지고 sections에는 남는다. excluded로 뺀 영역(청해)과 total 0인 영역은 examSections에 없다. template == null이면 examSections는 빈 목록. */
+    fun score(answers: List<AnswerInput>, template: ExamTemplate? = null): Score
 }
 ```
 
-- 연습(S13)은 parts 하나짜리 `ExamTemplate(level, listOf(ExamSection("practice", "", 0, listOf(ExamPart(section, type, PRACTICE_SIZE)))))`로 `buildSet`을 부른다. `PRACTICE_SIZE = 10`(`:app` 상수, 화면 문구는 ui-design). 별도 함수를 두지 않는다.
+- **화면이 쓰는 키(ui-design 6.10 S14·S15):** 모의고사(`QuizMode.EXAM`)는 `examSections`(템플릿 영역 `id`·`titleKo`)를 보이고, 연습·청해는 `sections`(문항 `section` 코드, 표시 이름은 `QuizTypeLabels`)를 보인다.
+
+- 연습(S13)·청해(S16)는 parts 하나짜리 `ExamTemplate(level, listOf(ExamSection("practice", "", 0, listOf(ExamPart(section, type, PRACTICE_SIZE)))))`로 `buildSet`을 부른다(별도 함수를 두지 않는다). `PRACTICE_SIZE = 10`(UI-U08 A)은 `:app`의 `ui/practice/PracticeConfig.kt` 상수 하나. 시드는 `Clock` 시각에서 만든 `Long`이고 `quiz_attempt.seed`에 저장된다. 연습·청해 시도는 `exam_id = NULL`, 모의고사만 `exam-n<급>`.
 - 모의고사는 `excluded = setOf(Section.LISTENING)`로 부른다(AR-U11 A: 청해 영역 제외. 바꾸면 이 인자만 뺀다).
 - `:core:quiz`는 의존이 없다(JSON 파싱은 `:app`이 한다). 시스템 시계·난수 기본 시드를 쓰지 않는다(시드는 호출자가 `Clock`에서 만든다).
 
@@ -1045,13 +1053,32 @@ interface QuizRepository {
     suspend fun finish(attemptId: Long, finishedAtEpochMs: Long)
     suspend fun attempt(attemptId: Long): QuizAttemptRecord?
     suspend fun answers(attemptId: Long): List<QuizAnswerRecord>
-    suspend fun unfinishedExam(): QuizAttemptRecord?                 // exam_id IS NOT NULL AND finished_at IS NULL
-    suspend fun abandon(attemptId: Long)                             // 시도·답 삭제, 한 트랜잭션(S12 "포기하기" 확인 뒤만)
+    suspend fun unfinishedExam(): QuizAttemptRecord?                 // exam_id IS NOT NULL AND finished_at IS NULL(0~1개)
 }
+// 포기(S12 "포기하기", S12 "포기하고 새로 시작")는 행을 지우지 않는다: 포기 = finish(attemptId, now)(ui-design 7절 S12).
+// "포기하고 새로 시작"은 finish를 따로 부르지 않고 startAttempt(examId = …)만 부른다(같은 트랜잭션에서 이전 시도를 닫는다).
+// 그래서 "미완료 모의고사는 한 번에 하나"는 저장소(startAttempt)가 지키고, 화면은 그 전에 확인 대화상자만 띄운다.
+// 연습·청해 시도(exam_id NULL)는 이 규칙과 무관하다. 시도·답 삭제 함수는 두지 않는다.
+// shortcut: 포기한 모의고사와 제출한 모의고사를 행으로 구분하지 않는다(둘 다 finished_at만). 지난 시도 목록 화면이 생기면 v3에 종료 사유 열을 더한다.
 ```
 `AppContainer`에 `grammarRepository`, `quizContentRepository`, `quizRepository`를 더한다(각 첫 사용 마일스톤 M14·M19a에서).
 
-재개(M19c): `attempt(id)`의 `questionOrder`·`seed`로 `Quiz.shuffle(q, seed)`를 다시 해 같은 선택지 순서를 만들고, `currentIndex`·`elapsedMs`에서 잇는다. `answers(id)`의 `chosenIndex`(원래 색인)는 `toShown`으로 바꿔 보인다. 경과 시간은 주입한 `Clock`으로 ON_START~ON_STOP 동안만 더하고 ON_STOP에서 `saveProgress`. 콘텐츠에서 사라진 ID는 건너뛰고 `total`·미응답 수에서 뺀다.
+**시도 불러오기 한 곳(`data/QuizSessionLoader.kt`, M19a).** Quiz·QuizResult·Listening ViewModel은 시도를 이 함수로만 읽는다(8.2 `SessionCards`와 같은 이유 — 빠진 문항 처리를 한 곳에).
+
+```kotlin
+data class AttemptMeta(val mode: QuizMode, val level: JlptLevel, val section: Section?, val type: String?) // EXAM이면 section·type null
+data class LoadedAttempt(val record: QuizAttemptRecord, val meta: AttemptMeta?,  // meta == null: 남은 문항이 0이라 정할 수 없음
+    val items: List<QuizContent>,           // question_order 순서, 콘텐츠에서 빠진 ID는 제외
+    val answers: Map<String, QuizAnswerRecord>, // questionId → 답(items에 있는 것만)
+    val retiredCount: Int)                  // questionOrder.size − items.size
+class QuizSessionLoader(private val quiz: QuizRepository, private val content: QuizContentRepository) {
+    suspend fun load(attemptId: Long): LoadedAttempt?   // 시도 행이 없으면 null
+}
+```
+- **급수·모드·유형(13.3 #4):** `quiz_attempt`에 열을 더하지 않고 유도한다. `mode` = `examId != null`이면 `EXAM`, 아니면 첫 항목이 `listening` 행(`lines != null`)이면 `LISTENING`, 그 밖은 `PRACTICE`. `level` = `EXAM`이면 `examId`(`exam-n<급>`)의 숫자, 아니면 첫 항목의 `level`. `section`·`type` = `EXAM`이 아니면 첫 항목의 값(연습·청해 시도는 한 유형만 담는다). 남은 항목이 0이면 `EXAM`만 `examId`로 정하고 나머지는 `meta = null`. S12 이어서 풀기 카드의 급수는 `unfinishedExam().examId`에서 같은 규칙으로 읽는다.
+- **빠진 문항(13.3 #8):** `QuizSessionLoader`가 `items`·`answers`에서 빼고 `retiredCount`로 센다. `Quiz.score`에는 남은 문항의 `AnswerInput`만 넘긴다(`score`는 빠진 문항을 모른다). `total`·미응답 수·분모는 남은 문항 기준이다.
+
+재개(M19c): `load(id)`의 `items`·`record.seed`로 `Quiz.shuffle(q, seed)`를 다시 해 같은 선택지 순서를 만들고, `currentIndex`·`elapsedMs`에서 잇는다(`currentIndex`가 빠진 문항을 가리키면 그 다음 남은 문항). `answers`의 `chosenIndex`(원래 색인)는 `toShown`으로 바꿔 보인다. 경과 시간은 주입한 `Clock`으로 ON_START~ON_STOP 동안만 더하고 ON_STOP에서 `saveProgress`. 기준 시간 `limitMs` = 템플릿 `sections[].minutes` 합(청해 영역 제외, AR-U11) × 60,000. 넘어도 자동 제출하지 않는다(UI-U07 A).
 
 ```kotlin
 // S12 연습 홈
@@ -1063,14 +1090,20 @@ data class PracticeHomeUiState(
     val level: JlptLevel = JlptLevel.N5,          // 처음: target_levels 중 문항이 있는 가장 쉬운 급수
     val levels: List<JlptLevel> = emptyList(),     // 문항이 있는 급수(급수 칩)
     val types: List<PracticeTypeUi> = emptyList(), // 청해 유형은 M23부터 들어온다
-    val examLevels: Set<JlptLevel> = emptySet(),   // exam_template이 있는 급수
+    val exam: ExamCardUi? = null,                  // 고른 급수의 exam_template. null = 그 급수 모의고사 없음
     val resume: ResumeExamUi? = null,              // unfinishedExam()
-    val notice: NoticeUi? = null)                  // attribution.json notices의 N-11. null이면 요약 줄 숨김
+    val confirmReplace: ResumeExamUi? = null,      // 미완료가 있는데 "시작"을 누름 → "풀던 모의고사가 있습니다" 대화상자
+    val confirmAbandon: Boolean = false,           // "포기하기" 확인 대화상자
+    val startFailed: Boolean = false,              // startAttempt·buildSet 예외(ui-design 7절 "시작 실패")
+    )                                    // "공식 아님"·N-11 요약 줄은 문자열 리소스로 늘 보인다(ui-design 6.10, 에셋 실패와 무관). notice 필드 없음(2026-11-03)
+data class ExamCardUi(val level: JlptLevel, val questionCount: Int, // buildSet 결과 수(청해 제외, shortfall 반영)
+    val limitMs: Long, val hasShortfall: Boolean)
 // S13 연습 · S14 모의고사(한 화면, mode로 나눔). 라우트 Quiz(attemptId)
-enum class QuizMode { PRACTICE, EXAM }
-enum class QuizStatus { LOADING, ANSWERING, FEEDBACK, CONFIRM_EXIT, CONFIRM_SUBMIT, SUBMITTED }
-// ANSWERING: 문항 표시(EXAM은 고른 뒤에도 여기) / FEEDBACK: PRACTICE에서 고른 직후(5.5) / CONFIRM_EXIT: EXAM 이탈 대화상자 /
-// CONFIRM_SUBMIT: 미응답 > 0인 제출 대화상자 / SUBMITTED: QuizResult(attemptId)로 이동. PRACTICE 이탈은 확인 없이 finish 후 S12
+enum class QuizMode { PRACTICE, EXAM, LISTENING }  // LISTENING은 S16·S15에서만(AttemptMeta.mode)
+enum class QuizStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, CONFIRM_EXIT, CONFIRM_SUBMIT, SUBMITTED }
+// EMPTY: 남은 문항 0(세트가 빔·재개할 문항 없음) / ANSWERING: 문항 표시(EXAM은 고른 뒤에도 여기) / FEEDBACK: PRACTICE에서 고른 직후(5.5) /
+// CONFIRM_EXIT: EXAM 이탈 대화상자 / CONFIRM_SUBMIT: 미응답 > 0인 제출 대화상자 / SUBMITTED: QuizResult(attemptId)로 이동.
+// PRACTICE 이탈은 확인 없이 finish 후 S12. "기준 시간 지남"은 상태가 아니라 elapsedMs > limitMs로 화면이 판정
 data class ListeningLineUi(val voice: Voice, val text: List<RubySegment>, val speakText: String) // speakText 규칙 9.3.1
 data class QuizQuestionUi(val id: String, val section: Section, val type: String,
     val target: String?,                              // 지시문 {대상}
@@ -1086,24 +1119,35 @@ data class QuizUiState(
     val question: QuizQuestionUi? = null,
     val chosenIndex: Int? = null,                     // 이 문항에서 고른 섞은 뒤 색인
     val answeredIndices: Set<Int> = emptySet(),       // 답한 문항 순번(S14 번호 줄)
-    val elapsedMs: Long = 0,                          // EXAM만
+    val sectionStarts: List<Int> = emptyList(),       // EXAM: 템플릿 영역마다 첫 문항 순번(번호 줄 구분)
+    val elapsedMs: Long = 0, val limitMs: Long? = null, // EXAM만. limitMs는 9.2.6 "재개" 규칙
     val unansweredCount: Int = 0,
-    val saveFailed: Boolean = false)                  // saveAnswer 예외. "다시 시도"는 같은 답을 다시 저장, 저장 전에는 다음으로 가지 않음
-// S15 결과. 라우트 QuizResult(attemptId) — 연습·모의고사·청해 공통
-enum class QuizResultStatus { LOADING, LOADED }
-data class QuizReviewItemUi(val question: QuizQuestionUi, val chosenIndex: Int?, val scriptShown: Boolean) // 섞은 뒤 색인, null = 미응답
+    val saving: Boolean = false,                      // 저장 300 ms 초과 시 화면이 선택지 비활성(ui-design 3.6과 같은 기준)
+    val saveFailed: Boolean = false)                  // saveAnswer·finish 예외. "다시 시도"는 같은 답(같은 제출)을 다시 저장, 저장 전에는 다음으로 가지 않음
+// S15 결과. 라우트 QuizResult(attemptId) — 연습·모의고사·청해 공통. 해설 보기는 하위 라우트가 아니라 이 라우트 안 상태(reviewIndex)
+enum class QuizResultStatus { LOADING, LOADED, EMPTY }  // EMPTY = 남은 문항 0(채점할 문항 없음)
+enum class ResultFilter { WRONG, ALL }
+data class QuizReviewItemUi(val index: Int, val question: QuizQuestionUi, val chosenIndex: Int?, // 섞은 뒤 색인, null = 미응답
+    val correct: Boolean, val scriptShown: Boolean)
 data class QuizResultUiState(val status: QuizResultStatus = QuizResultStatus.LOADING, val mode: QuizMode = QuizMode.PRACTICE,
-    val examLevel: JlptLevel? = null,
-    val score: Score? = null,                         // :core:quiz Score 그대로
-    val wrong: List<QuizReviewItemUi> = emptyList())  // 틀렸거나 미응답, 보인 순서
+    val level: JlptLevel? = null, val type: String? = null,      // 연습·청해 제목 "{유형} 연습"(이름은 QuizTypeLabels), EXAM은 null
+    val score: Score? = null,                         // :core:quiz Score 그대로(EXAM은 examSections를 보임, 9.2.5)
+    val elapsedMs: Long? = null, val limitMs: Long? = null,      // EXAM만(참고 표시)
+    val scriptShownCount: Int = 0,                    // LISTENING: script_shown = 1 답 수
+    val retiredCount: Int = 0,                        // LoadedAttempt.retiredCount
+    val filter: ResultFilter = ResultFilter.WRONG,
+    val items: List<QuizReviewItemUi> = emptyList(),  // 남은 문항 전부, 보인 순서(필터는 화면이 적용)
+    val reviewIndex: Int? = null)                     // null = 목록, 값 = 그 items 순번의 해설 보기. 시스템 뒤로는 null로 되돌린다(BackHandler)
 ```
+- **해설 보기(13.3 #2):** `QuizResult` 라우트 안의 상태 `reviewIndex`다. 하위 라우트를 두지 않는다(결과 계산을 다시 하지 않고, 해설에서 뒤로 가면 같은 스크롤 위치의 목록으로 돌아온다). 프로세스 재시작 뒤에는 `SavedStateHandle`에 둔 `reviewIndex`로 복원한다.
 
 ### 9.3 청해(4순위)
 
 #### 9.3.1 대본 파일과 `listening` 테이블
 
-- 대본 파일 `content/authored/listening/N<급>/<id>.json`: 공통 필드 + 출처 필드(9.1과 같은 `method`, `reviewStatus`, `reviewedAt`, `reviewerKind`) + `type`(9.2.2 `listening` 코드), `lines`(`[{"speaker": "M"|"F"|"N", "text": "…", "ttsText": "…(선택)"}]` — `text`는 일본어 필드(루비 허용, `[[…]]` 금지), `ttsText`는 가나·한자 평문(루비·`[[…]]` 금지)), `question`(일본어 필드, 화면에 보이는 질문), `choices`(일본어 4개), `answerIndex`, `explanationKo`, `whyWrongKo`(9.2.2와 같은 4칸 배열), `targets`(없으면 `[]`). ID `ls-n<급>-<4자리>`.
-- **읽는 문자열(`SpeechLine.text`):** 줄마다 `ttsText`가 있으면 그것, 없으면 `Furigana.parse(text)`의 `base`만 이은 문자열(루비 읽기를 쓰지 않는다 — 한자가 TTS의 형태소 단서다. 잘못 읽는 곳은 작성자가 `ttsText`로 고친다). `question`은 재생하지 않는다. 질문을 들려주려면 작성자가 `lines`에 `N` 줄로 넣는다.
+- 대본 파일 `content/authored/listening/N<급>/<id>.json`: 공통 필드 + 출처 필드(9.1과 같은 `method`, `reviewStatus`, `reviewedAt`, `reviewerKind`) + `type`(9.2.2 `listening` 코드), `lines`(`[{"speaker": "M"|"F"|"N", "text": "…", "ttsText": "…(선택)"}]` — `text`는 일본어 필드(루비 허용, `[[…]]` 금지), `ttsText`는 가나·한자 평문(루비·`[[…]]` 금지)), `question`(선택, 일본어 필드 — 루비 허용·`[[…]]` 금지, 화면에 보이는 질문. 즉시 응답처럼 질문 글이 없는 유형은 생략하고 화면은 그 줄을 숨긴다), `choices`(일본어 4개), `answerIndex`, `explanationKo`, `whyWrongKo`(9.2.2와 같은 4칸 배열), `targets`(없으면 `[]`). ID `ls-n<급>-<4자리>`.
+- **읽는 문자열(`SpeechLine.text`):** 줄마다 `ttsText`가 있으면 그것, 없으면 `Furigana.parse(text)`의 `base`만 이은 문자열(루비 읽기를 쓰지 않는다 — 한자가 TTS의 형태소 단서다. 잘못 읽는 곳은 작성자가 `ttsText`로 고친다). `question`은 재생하지 않는다. 질문을 들려주려면 작성자가 `lines`에 `N` 줄로 넣는다. 변환은 `ui/listening/ScriptSpeech.kt`의 `object ScriptSpeech { fun lines(lines: List<ListeningLine>): List<SpeechLine> }` 한 곳(speaker `M`/`F`/`N` → `Voice.MALE`/`FEMALE`/`NARRATOR`)이다. `utteranceId`는 문항 ID(`ls-…`). 문항 하나의 대본 전체를 `speak` 한 번에 넘긴다.
+- **줄 사이 쉼:** `Speaker` 구현 몫이다. `DeviceTtsSpeaker`는 줄 사이에 `playSilentUtterance(LINE_GAP_MS = 400, QUEUE_ADD, …)`를 넣는다(9.3.2). 화면·`ScriptSpeech`는 쉼을 넣지 않는다.
 
 **`listening`**
 | 열 | 타입 | 필드 | 내용 |
@@ -1113,7 +1157,7 @@ data class QuizResultUiState(val status: QuizResultStatus = QuizResultStatus.LOA
 | `sort_key` | INTEGER NOT NULL | | ID 끝 4자리 번호 |
 | `type` | TEXT NOT NULL | | 9.2.2 `listening` 코드 |
 | `lines_json` | TEXT NOT NULL | `text` 일본어 | `[{"speaker","text","ttsText"?}]`, 1줄 이상. `ttsText` 없으면 키 생략 |
-| `question` | TEXT NOT NULL | 일본어 | |
+| `question` | TEXT NULL | 일본어(루비 허용, `[[…]]` 금지) | 질문 글이 없으면 NULL(빈 문자열로 쓰지 않는다). `QuizContent.stem`은 NULL이면 `""`, 화면은 빈 `stem`이면 질문 줄을 숨긴다 |
 | `choices_json` | TEXT NOT NULL | 일본어 | 4개 |
 | `answer_index` | INTEGER NOT NULL | | 0..3 |
 | `explanation_ko` | TEXT NOT NULL | 한국어 | |
@@ -1128,28 +1172,31 @@ data class QuizResultUiState(val status: QuizResultStatus = QuizResultStatus.LOA
 
 - 인터페이스·상태는 8.2(이 절에서 확정). 구현 `DeviceTtsSpeaker(context: Context, scope: CoroutineScope, initTimeoutMs: Long = 10_000)`는 `TextToSpeech(context, listener)`(기본 엔진)를 만든다. 엔진에 연결하려면 매니페스트 `<queries>` `TTS_SERVICE` 선언이 필요하다(5.1). 권한은 더하지 않는다.
 - 상태 전이: 생성 → `Initializing`. `onInit(SUCCESS)` 뒤 `setLanguage(Locale.JAPAN)`이 `LANG_MISSING_DATA`·`LANG_NOT_SUPPORTED`면 `MissingJapaneseData`, 아니면 `Ready`. `onInit(ERROR)`이면 `engines`가 비었을 때 `NoEngine`, 아니면 `Error`. `initTimeoutMs` 안에 `onInit`이 없으면 `Error`(시간은 `scope`의 가상 시간으로 테스트).
-- `speak(id, lines, rate)`: `setSpeechRate(rate)`를 먼저 부르고, 줄마다 `setPitch(voice별 상수)` 뒤 `speak(text, 첫 줄 QUEUE_FLUSH·나머지 QUEUE_ADD, null, "$id#$i")`. 상태 `Playing(id)`. 마지막 줄의 `onDone` → `Ready`, `stop()` → `tts.stop()` 후 `Ready`, `onError` → `Error`. 화자별 피치 상수 `MALE 0.85f`, `FEMALE 1.15f`, `NARRATOR 1.0f`(AR-U12 A, 실기기 확인 항목). 기기의 성별 음성(`Voice`) 선택은 하지 않는다.
+- `speak(id, lines, rate)`: `setSpeechRate(rate)`를 먼저 부르고, 줄마다 `setPitch(voice별 상수)` 뒤 `speak(text, 첫 줄 QUEUE_FLUSH·나머지 QUEUE_ADD, null, "$id#$i")`, 줄 사이(마지막 줄 뒤 제외)에 `playSilentUtterance(400, QUEUE_ADD, "$id#gap$i")`. 상태 `Playing(id)`. 마지막 줄의 `onDone` → `Ready`, `stop()` → `tts.stop()` 후 `Ready`, `onError` → `Error`. 화자별 피치 상수 `MALE 0.85f`, `FEMALE 1.15f`, `NARRATOR 1.0f`(AR-U12 A, 실기기 확인 항목). 기기의 성별 음성(`Voice`) 선택은 하지 않는다.
 - 일본어 데이터 설치(`TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA`)·TTS 설정 열기(`com.android.settings.TTS_SETTINGS`)는 `startExternal`(7절)로 부르고 `false`면 화면이 안내 문구를 보인다. 미리 판정해 버튼을 숨기지 않는다.
+- **설치 뒤 재확인(13.3 #11):** `Speaker`에 `recheck()`를 두지 않는다. 청해 ViewModel이 ON_START에서 `speaker.state`가 `MissingJapaneseData`·`NoEngine`·`Error`면 지금 인스턴스를 `shutdown()`하고 `speakerFactory()`로 새로 만든다(설치·설정 화면에서 돌아오면 ON_START가 온다. ON_RESUME은 쓰지 않는다 — ON_STOP의 `stop()`과 짝을 맞춘다). `Error`의 "다시 시도" 버튼도 같은 경로다.
 - 청해 ViewModel은 재생 버튼을 누르면 TalkBack(`AccessibilityManager.isTouchExplorationEnabled`)이 켜져 있을 때 1,000 ms 뒤, 꺼져 있으면 즉시 `speak`한다. 화면을 떠나거나 ON_STOP이면 `stop()`. 자동 재생하지 않는다(ui-design 5.8).
 
 #### 9.3.3 S16 UI 상태(M23)
 
 ```kotlin
 // 라우트 Listening(attemptId). 시도는 QuizRepository.startAttempt(examId = null, …), 끝나면 QuizResult(attemptId)(S15)
-enum class ListeningStatus { LOADING, ANSWERING, FEEDBACK, SUBMITTED }
+enum class ListeningStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, SUBMITTED } // EMPTY = 남은 문항 0
 data class ListeningUiState(
     val status: ListeningStatus = ListeningStatus.LOADING,
     val attemptId: Long = 0, val index: Int = 0, val total: Int = 0,
-    val question: QuizQuestionUi? = null,              // lines != null(9.2.6)
+    val question: QuizQuestionUi? = null,              // lines != null(9.2.6). stem이 비면 질문 줄 숨김
     val chosenIndex: Int? = null,
-    val scriptOpen: Boolean = false,                   // listening_script_first, NoEngine, 사용자가 펼침 → 답할 때 script_shown
+    val scriptOpen: Boolean = false,                   // 지금 대본이 펼쳐져 있는가(listening_script_first, NoEngine, 사용자가 펼침)
+    val scriptSeen: Boolean = false,                   // 이 문항에서 답하기 전에 한 번이라도 펼쳤는가 → quiz_answer.script_shown(UI-U13 A). 문항이 바뀌면 false로
     val speaker: SpeakerState = SpeakerState.Initializing,
     val rate: Float = 1.0f,                            // 0.8f / 1.0f. 저장하지 않는다(화면을 다시 열면 1.0f)
     val audioNotice: NoticeUi? = null,                 // attribution.json notices의 N-12. null이면 줄 숨김
     val externalOpenFailed: Boolean = false,           // 설치·설정 인텐트를 열 앱이 없음 → 안내 문구
+    val saving: Boolean = false,
     val saveFailed: Boolean = false)
 ```
-- `scriptOpen`이 처음부터 참인 경우: `user_settings.listening_script_first = 1`, 또는 `speaker`가 `NoEngine`(D-04 B 이후 `AudioFileMissing` 포함). 답을 고를 때의 `scriptOpen` 값을 `quiz_answer.script_shown`에 쓴다.
+- `scriptOpen`이 처음부터 참인 경우: `user_settings.listening_script_first = 1`, 또는 `speaker`가 `NoEngine`(D-04 B 이후 `AudioFileMissing` 포함). `scriptOpen`이 한 번이라도 참이 되면 그 문항의 `scriptSeen = true`이고, 답을 고를 때 `scriptSeen`을 `quiz_answer.script_shown`에 쓴다(답하는 순간 접혀 있어도 1, UI-U13 A).
 - 청해 연습 한 회는 고른 유형의 `ls-` 항목 최대 `PRACTICE_SIZE`개(9.2.5와 같은 `buildSet`).
 
 ### 9.4 필순(KanjiVG, S-03 확정 시)
@@ -1164,7 +1211,7 @@ data class ListeningUiState(
 
 - 부수·요소 속성(`kvg:element`, `kvg:radical` 등)과 `kvg:StrokeNumbers_*`(획 번호 글자·위치)는 읽지 않는다. 화면의 획 번호(ui-design 6.7.1)는 앱이 각 경로의 순번(1부터)과 시작점(`d`의 첫 `M`/`m` 좌표)에서 계산한다(`ui/detail/StrokeGeometry.kt`의 `fun start(d: String): Pair<Float, Float>?`, 해석 실패면 그 번호만 생략).
 - KanjiVG에 없는 한자는 행을 만들지 않고 `_workspace/03_content-engineer_M13_strokes_missing.tsv`(문자)에 남긴다. 그래서 릴리스 DB `kanji_stroke` 행 수 = `kanji` 행 수 − 그 파일 행 수.
-- 앱: `ContentRepository.kanji(literal)`가 `kanji_stroke`를 함께 읽어 `KanjiDetailUiState.strokes: List<String>?`(7절, 이미 있음)를 채운다. 행 없음·`paths_json` 파싱 실패 → `null`(절 숨김, 앱이 죽지 않음). M12가 `KanjiDetailUiState`에 `strokeSourceName: String? = null`(attribution.json `sources`의 `S-03` `name`, 없으면 출처 줄 숨김)을 더한다.
+- 앱: `ContentRepository.kanji(literal)`가 `kanji_stroke`를 함께 읽어 `KanjiDetailUiState.strokes: List<String>?`(7절, 이미 있음)를 채운다. 행 없음·`paths_json` JSON 파싱 실패·**경로 하나라도 해석 실패**(각 `d`를 `PathParser.createPathFromPathData`로 미리 해석해 예외가 나면) → `null`(절 숨김, 앱이 죽지 않음). 판정은 저장소 한 곳에서 하고 화면은 `strokes == null`만 본다(13.3 #13). 그래서 `StrokeOrder`가 받는 경로는 모두 해석되는 것이다. M12가 `KanjiDetailUiState`에 `strokeSourceName: String? = null`(attribution.json `sources`의 `S-03` `name`, 없으면 출처 줄 숨김)을 더한다.
 - 그리기는 `ui/detail/StrokeOrder.kt` 컴포저블 하나가 `androidx.core.graphics.PathParser.createPathFromPathData(d)`로 한다(`androidx.core`는 이미 쓰는 의존. 새 라이브러리 없음). 재생 상태 `enum class StrokePlayback { IDLE, PLAYING, DONE }`(ui-design 6.7.1의 "획 순서대로 보기"/"멈추기"/"다시 보기")는 화면 안 `rememberSaveable` 상태이고 UiState에 두지 않는다. 획 400 ms·간격 150 ms는 ui-design 6.7.1 값.
 - 크기: KanjiVG `d`는 한자당 약 1~2 KB라 N5 411자는 1 MiB 미만, N5~N1(약 2,100자)도 6.3 예산(12 MiB) 안으로 본다. M13이 실제 크기를 보고서에 적는다.
 
@@ -1235,7 +1282,7 @@ fetch가 `confirmed` 아닌 자료를 받지 않으므로(6.2) 게이트가 잘�
 2026-11-03 T04(9절 확정) 후속 — ui-designer가 맞출 이름:
 
 33. 6.9.1 "초안 — 착수 때 확정" 표기를 지운다. 상태 모델은 7절 `ReviewCardUi.Grammar` 그대로(`example` = `grammar_example` `ord = 0`).
-34. 13.1에 행을 더한다(이름은 9절 그대로): GrammarList(S10) `GrammarListUiState(status: GrammarListStatus { LOADING, LOADED, EMPTY }, levels, rows: List<GrammarRow(id, level, title, meaningKo)>)`, GrammarDetail(S11) `GrammarDetailUiState(status: DetailStatus, detail: GrammarDetailUi?)`(`connections: List<ConnectionUi(posKo, form, example)>`, `examples: List<ExampleUi(ja, ko, sourceId, sourceRef, author, license)>`, `contrasts: List<ContrastUi(grammarId, title, mine, other)>`, `provenance`, `needsReview`), Practice(S12) `PracticeHomeUiState(status: PracticeHomeStatus { LOADING, LOADED, EMPTY }, level, levels, types: List<PracticeTypeUi(section, type, count)>, examLevels, resume: ResumeExamUi?, notice: NoticeUi?)`, Quiz(S13·S14) `QuizUiState(status: QuizStatus { LOADING, ANSWERING, FEEDBACK, CONFIRM_EXIT, CONFIRM_SUBMIT, SUBMITTED }, mode: QuizMode { PRACTICE, EXAM }, …, saveFailed)`, QuizResult(S15) `QuizResultUiState(status: QuizResultStatus { LOADING, LOADED }, mode, examLevel, score: Score?, wrong: List<QuizReviewItemUi>)`, Listening(S16) `ListeningUiState(status: ListeningStatus { LOADING, ANSWERING, FEEDBACK, SUBMITTED }, …, scriptOpen, speaker: SpeakerState, rate, audioNotice, externalOpenFailed, saveFailed)`. 13.1 MockExam 행의 "타입 이름은 M19 착수 때 architecture.md가 정한다"를 이 이름으로 바꾼다. ui-design 7절 상태와의 대응: S13 "문항" = `ANSWERING`, "피드백" = `FEEDBACK`, S14 "진행 중 이탈" = `CONFIRM_EXIT`, "제출 전 미응답" = `CONFIRM_SUBMIT`.
+34. 13.1에 행을 더한다(이름은 9절 그대로): GrammarList(S10) `GrammarListUiState(status: GrammarListStatus { LOADING, LOADED, EMPTY }, levels, rows: List<GrammarRow(id, level, title, meaningKo)>)`, GrammarDetail(S11) `GrammarDetailUiState(status: DetailStatus, detail: GrammarDetailUi?)`(`connections: List<ConnectionUi(posKo, form, example)>`, `examples: List<ExampleUi(ja, ko, sourceId, sourceRef, author, license)>`, `contrasts: List<ContrastUi(grammarId, title, mine, other)>`, `provenance`, `needsReview`), Practice(S12) `PracticeHomeUiState(status: PracticeHomeStatus { LOADING, LOADED, EMPTY }, level, levels, types: List<PracticeTypeUi(section, type, count)>, exam: ExamCardUi?, resume: ResumeExamUi?, confirmReplace, confirmAbandon, startFailed)`, Quiz(S13·S14) `QuizUiState(status: QuizStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, CONFIRM_EXIT, CONFIRM_SUBMIT, SUBMITTED }, mode: QuizMode { PRACTICE, EXAM, LISTENING }, …, sectionStarts, limitMs, saving, saveFailed)`, QuizResult(S15) `QuizResultUiState(status: QuizResultStatus { LOADING, LOADED, EMPTY }, mode, level, type, score: Score?, elapsedMs, limitMs, scriptShownCount, retiredCount, filter: ResultFilter { WRONG, ALL }, items: List<QuizReviewItemUi>, reviewIndex)`, Listening(S16) `ListeningUiState(status: ListeningStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, SUBMITTED }, …, scriptOpen, scriptSeen, speaker: SpeakerState, rate, audioNotice, externalOpenFailed, saving, saveFailed)` (2026-11-03 2차 갱신, 13.3 대응은 11.6). 13.1 MockExam 행의 "타입 이름은 M19 착수 때 architecture.md가 정한다"를 이 이름으로 바꾼다. ui-design 7절 상태와의 대응: S13 "문항" = `ANSWERING`, "피드백" = `FEEDBACK`, S14 "진행 중 이탈" = `CONFIRM_EXIT`, "제출 전 미응답" = `CONFIRM_SUBMIT`.
 35. 5.8·6.11·13.1 Playback: `Speaker.speak(utteranceId, text, rate)` → **`Speaker.speak(utteranceId, lines: List<SpeechLine>, rate)`**(`SpeechLine(text, voice: Voice { MALE, FEMALE, NARRATOR })`, 8.2). 화자 구분은 피치 차이(AR-U12 A)이고 대본 화자 표시("M:"/"F:"/"내레이션")는 그대로.
 36. 6.10 S12·S14: 모의고사에 **청해 영역이 없다**(AR-U11 A). 모의고사 시작 화면에 "청해 영역은 포함하지 않습니다" 같은 한 줄을 정한다(문구는 ui-design). S15 영역 이름은 `Section`(`vocab` 문자·어휘, `grammar` 문법, `reading` 독해, `listening` 청해)이고 비율 반올림 규칙을 6.10에 적는다(`SectionScore`는 `correct`·`total`만 준다).
 37. 6.10 S12: 미완료 모의고사가 있는데 새 모의고사를 시작하면 이전 시도를 닫는다(AR-U14 A, 답은 남음). 그 전에 보일 확인 대화상자 문구를 정한다(예: "진행 중인 모의고사를 끝내고 새로 시작할까요?").
@@ -1256,6 +1303,8 @@ fetch가 `confirmed` 아닌 자료를 받지 않으므로(6.2) 게이트가 잘�
 8. **S-03 `usedFields`·sources.md S-03.used:** 설계는 `kvg:StrokePaths`만 쓰고 획 번호는 앱이 경로 순서·시작점에서 계산한다(6.7·9.4). "stroke order numbers(`kvg:StrokeNumbers_*`)"를 빼거나 "앱이 경로 순서에서 계산"으로 고치고, S-03.used의 "미확정(앱 사용 여부는 설계 단계 결정)"을 이 결정으로 바꾼다.
 9. **sources.md S-02.excluded:** "architecture.md 4.3 U-04" → "architecture.md 4.3 **AR-U04**".
 10. **D-06 후보의 빈 값(S-05·S-09):** release 빌드는 쓰인 자료의 `attribution`·`licenseUrl`·`modifications`가 비면 FAIL이다(6.5). S-05(CC BY, 버전 미상)를 고르면 표시할 라이선스 URL을 sources.md L-04.waller에 정해 매니페스트 `licenseUrl`에 적고, S-09를 고르면 `attribution`·`modifications`를 채운다. 확정 전 값 채우기는 G-D06 확인 항목이다.
+
+11. **N-09 문구에 문법 급수 문장 추가(UI-U12 A, ui-design 13.3 #14):** 문법 콘텐츠가 있는 빌드에서 N-09 본문에 "문법 항목의 급수도 이 앱이 정한 것으로 공식 분류가 아닙니다"에 해당하는 문장을 덧붙인다. analyst가 sources.md N-09 문구와 `content/notices.ko.json` 틀(문법 행이 있을 때만 붙는 자리)을 정한다. 넣을지 판정은 파이프라인이 빌드 때 한다(6.6 규칙, 새 고지 ID 없음, 앵커는 `About(anchor = "N-09")`). 파이프라인 반영은 M15.
 
 ### 11.4 milestones.json에 반영한 것
 
@@ -1328,6 +1377,36 @@ ui-design 12·13.3이 요구한 테스트·스크린샷 이름을 M4·M5·M6·M1
 - 기기 후보: Galaxy Z Fold8(Android 17), Fold5(Android 16)(decisions.md U-7). 결과는 `_workspace/04_device_results.md`에 기기 이름·Android 버전과 함께 적고, 항목이 모두 "통과"인 마일스톤을 `done`으로 바꾼다.
 - 위험(decisions.md U-7): DEV-2가 실패하면 청해 대본(M25)을 쓴 뒤에 D-04를 다시 판단한다. 대본은 기기 TTS·사전 생성 음성 모두에 쓰이므로 손실은 작다. AR-U05(글꼴)가 실패하면 글꼴 번들 마일스톤과 S-10 확인이 추가된다.
 
+### 11.6 ui-design 13.3 "architecture.md와 맞출 이름" 답(2026-11-03)
+
+| # | 확정 답 | 절 |
+|---|---------|----|
+| 1 | S12~S16 이름은 9.2.6·9.3.3 그대로(`PracticeHomeUiState`·`PracticeHomeStatus`, `QuizUiState`·`QuizStatus`·`QuizMode`, `QuizResultUiState`·`QuizResultStatus`·`ResultFilter`, `ListeningUiState`·`ListeningStatus`). ui-design의 "제안 이름"(`PracticeStatus`, `QUESTION`, `QuestionUi`, `ResultRow` 등)은 이 이름으로 바꾼다 | 9.2.6, 9.3.3 |
+| 2 | 해설 보기는 `QuizResult` 라우트 안 상태 `reviewIndex: Int?`. 하위 라우트 없음 | 9.2.6 |
+| 3 | 연습 세트 = parts 하나짜리 템플릿으로 `Quiz.buildSet`, `PRACTICE_SIZE = 10`(`ui/practice/PracticeConfig.kt`). 연습·청해 시도는 `exam_id = NULL` | 9.2.5 |
+| 4 | 열을 더하지 않고 `QuizSessionLoader`의 `AttemptMeta(mode, level, section, type)`로 유도(`exam_id`, 첫 남은 항목) | 9.2.6 |
+| 5 | 포기 = `QuizRepository.finish(attemptId, now)`(행 삭제 없음, `abandon` 함수 없음). "미완료 모의고사 하나"는 `startAttempt(examId != null)`가 같은 트랜잭션에서 이전 시도를 닫아 저장소가 지킨다 | 9.2.6 |
+| 6 | `Score`는 둘 다 준다: `sections`(문항 `section` 코드, 연습·청해용), `examSections`(템플릿 `sections[].id`·`titleKo`, 모의고사용). `score(answers, template)` | 9.2.5 |
+| 7 | 빈칸 `＿＿`, ★ 칸 `＿★＿`(전각 밑줄). 화면은 `ui/practice/QuizStem.kt` `split`으로 칸을 만든다. 유형별 개수는 `authored` 검사 | 9.2.2 |
+| 8 | 빠진 문항은 `QuizSessionLoader`가 빼고 `retiredCount = questionOrder.size − items.size`. `score`에는 남은 문항만 넘긴다 | 9.2.6 |
+| 9 | 청해 `question`: 일본어 필드, 루비 허용, `[[…]]` 금지, **NULL 허용**(없으면 줄 숨김) | 9.3.1 |
+| 10 | 변환은 `ui/listening/ScriptSpeech.lines()` 한 곳, `utteranceId` = 문항 ID, 대본 전체를 `speak` 한 번에. 줄 사이 400 ms 쉼은 `Speaker` 구현(`playSilentUtterance`) 몫. 재생 글자는 ui-design 가정과 같다(`ttsText ?: 루비 base`) | 9.3.1, 9.3.2 |
+| 11 | `recheck()` 없음. ON_START에서 상태가 `MissingJapaneseData`·`NoEngine`·`Error`면 `shutdown()` 후 `speakerFactory()`로 새로 만든다(ON_RESUME 아님) | 9.3.2 |
+| 12 | UI-U13 A 채택: `script_shown` = 답하기 전에 한 번이라도 펼쳤으면 1. 상태 필드 `ListeningUiState.scriptSeen` | 9.2.4, 9.3.3 |
+| 13 | 경로 해석 실패는 저장소(`ContentRepository.kanji`)가 판정해 `strokes = null`. 화면은 판정하지 않는다 | 9.4 |
+| 14 | analyst 몫(N-09 문구·`notices.ko.json` 틀), 11.3-11. 파이프라인 반영은 M15 | 11.3 |
+
+**milestones.json 후속(이 문서와 맞추려면 고쳐야 할 완료 조건) — 반영함(2026-11-03, M18·M19a·M19b·M19c·M19d·M20·M21·M22·M23·M24·T05a):**
+- M18: `AnswerInput`에 `type`, `Score`에 `examSections`, `score(answers, template)`. 리플렉션 테스트의 필드 목록이 `sections·examSections·correct·total·unanswered`로 바뀐다. N5 템플릿 픽스처에서 grammar·reading이 한 `examSections` 항목으로 합쳐지는 테스트를 더한다.
+- M19a: `abandon` 테스트 2개를 "포기 = `finish`, 행이 남는다"로 바꾼다. `QuizSessionLoader`(`AttemptMeta` 유도, `retiredCount`) 테스트를 더한다.
+- M19b: "확인해야만 abandon이 불리고" → "확인해야만 finish가 불리고 시도·답 행이 남는다". `confirmReplace` 대화상자(이어서 풀기·포기하고 새로 시작·취소)는 M19c.
+- M19d: `ResultFilter`·`reviewIndex`·`retiredCount`·`examSections` 표시 조건.
+- M20·M21: 빈칸 토큰 `authored` 검사(`FAIL: authored <id> blank`).
+- M22: 줄 사이 `playSilentUtterance(400)` 호출 순서를 가짜 엔진 테스트에 넣는다.
+- M23: "펼쳐진 채 답한 quiz_answer의 script_shown이 1, 접힌 채 답하면 0" → "답하기 전에 한 번이라도 펼쳤으면(접고 답해도) 1, 한 번도 펼치지 않았으면 0". 재확인은 ON_START. `question` NULL이면 질문 줄 숨김.
+- M24: `question` 생략 허용, 빈 문자열이면 FAIL.
+- T05a: `listening.question`이 NULL 허용(9.3.1 표).
+
 ## 12. 사용자 승인 항목
 
 ID는 `AR-Uxx`(이 문서)와 `UI-Uxx`(ui-design.md 14절)로 나눈다. 두 문서에 걸친 결정은 **AR-U 하나로만** 부르고 ui-design 14절은 그 ID에 의견만 적는다(AR-U01·AR-U04·AR-U05·AR-U06). 아래에서 사용자가 정할 미정 결정(D-03·D-04·D-06)은 확정하지 않는다.
@@ -1369,3 +1448,4 @@ ui-design.md 14절의 UI-U 항목(그 문서가 정본, 이 문서에 걸리는 
 | 2026-11-02 | design-review 후속(wf_31d285cb-453): 정본 기준(0·11.1), 일본어 구간 문자 집합·한국어 필드 루비 금지(4.4·6.2·6.4·9.1), `pinning.method`와 방식 B `pinnedCopy`·S-04 스냅샷(4.6·6.2·6.7·10), `notices` 파이프라인 완성·`showWhen` 없음·`modelNames` 파이프라인 수집·`extraCredits` 원문 그대로·`meaningSourceTexts` 키 7개·최소 표시는 쓰인 자료 기준·S-11 고지 경로와 아이콘 대조 테스트(6.5·6.6), `listening_script_first`·빈 `target_levels` 거부·`NO_LEVEL_SELECTED` 방어용(5·7), 간격 미리보기 표시 정본은 ui-design 5.3·`IntervalFormat`·"1분 안에"(7), `ReviewCardUi.Grammar` 출처·예문 번역·`needsReview`와 grammar `ko_*`·`needs_review` 열(7·9.1), `quiz_answer.script_shown`(9.2), About 보조 타입(7), 11절 ui-designer·analyst 목록 갱신, 승인 ID `AR-Uxx`/`UI-Uxx`·AR-U10(D-04)(12) |
 | 2026-11-02 | 설계 검증(2차) 반영: `<queries>` TTS_SERVICE·외부 인텐트는 `startActivity` + `ActivityNotFoundException`(5.1·7·9.3), 출처 열 묶음 P와 `question`·`exam_template`·`listening` 열(4.2·9.2·9.3), `[[…]]` 대상 구간·`RubySegment.emphasis`·문항 `target`(4.4·9.1·9.2), grammar `contrasts_json`·`connections {posKo, form, example}`(9.1), 6.5 검사 "출처 열"·"앱 자산"·N-11/N-12·빈 저작자 값, N-11 포함 시점(6.6), `G-S11`(10), 시작·Opening·S90 NavHost·`About(anchor)`·`Settings(openLevelPicker)`(7), About의 reviewCounts 실패 처리·`AttributionData`(7), `SessionCards`·`statesOfKinds`·`cardLevels`(dueCandidates·nextDueAt·countDueBefore 대체, 8.2), `AttributionRepository` 분리, `Speaker.speak(rate)`(8.2), 획 번호 앱 계산(6.7·9.4), 낡은 참조(4.2), 11.2 23~32·11.3 6·8~10 |
 | 2026-11-03 | T04 설계 확정(U-1 A·U-7 변경, decisions.md "MVP 이후 잠정 결정"): 9절 "초안" 표기 삭제·확정 — 9.0 콘텐츠 DB v2 공통 규칙, 9.1 `grammar`·`grammar_example` 열(S-04 열 `author`·`license` 포함)·`sort_key` 규칙·`GrammarRepository`·S10·S11 UiState, 9.2 모의고사 템플릿 형식·유형 코드표·`question`·`exam_template` 열·학습 기록 DB v2(`quiz_attempt`·`quiz_answer`, `script_shown` NOT NULL DEFAULT 0)·Migration(1,2) 계약·`fallbackToDestructiveMigration*` 금지·`MigrationTestHelper` 테스트 장치(`room-testing` 2.8.5)·`:core:quiz` 시그니처·`QuizContentRepository`·`QuizRepository`·S12~S15 UiState, 9.3 `listening` 열·읽는 문자열 규칙·`DeviceTtsSpeaker` 상태 전이·S16 UiState, 9.4 `kanji_stroke` 열·viewBox·빠진 한자 보고. 콘텐츠 DB 버전 표를 v2 한 번으로(0·4.2·4.5), `:core:quiz`가 `settings.gradle.kts`에 이미 있고 소스가 없음(0·1), `StudyDatabase` v2 안내(5), 검수 도구 6.8(T07), 2순위 이후 라우트(7), `Speaker.speak(…, lines: List<SpeechLine>, rate)`·상태 판정 조건(8.2), 11.2 33~41, 11.4 마일스톤 재구성·선행 표·병렬 갈래·공유 파일 충돌 규칙, 11.5 실기기 일괄 체크리스트(DEV-1~3), 승인 항목 AR-U11~AR-U14(12) |
+| 2026-11-03 | ui-design 13.3 14건 답(11.6): `Score.examSections`·`AnswerInput.type`·`score(answers, template)`·연습 세트 규칙(9.2.5), 빈칸 `＿＿`·`＿★＿` 표기(9.2.2), 포기 = `finish`(삭제 없음, `abandon` 삭제)·`QuizSessionLoader`·`AttemptMeta` 유도·`retiredCount`·`limitMs`(9.2.6), S12·S13·S15 UiState 필드 보강·해설 보기 = `reviewIndex`(9.2.6), `listening.question` NULL 허용·`ScriptSpeech`·줄 사이 400 ms(9.3.1·9.3.2), 설치 뒤 재확인 = ON_START 재생성(9.3.2), `scriptSeen`(9.3.3), 필순 경로 해석 실패 판정은 저장소(9.4). UI-U13 A로 `script_shown` = 답하기 전 한 번이라도 펼침(9.2.4). analyst 보고 반영: LICENSE.md 재배포 조건은 자료별 라이선스(6.7, S-03은 CC BY-SA 3.0). 11.3-11 N-09 문법 문장(analyst 몫) |
