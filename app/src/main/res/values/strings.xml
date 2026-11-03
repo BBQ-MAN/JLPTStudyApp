@@ -2,6 +2,7 @@
 <resources>
     <string name="tab_home">홈</string>
     <string name="tab_dictionary">사전</string>
+    <string name="tab_grammar">문법</string>
     <string name="tab_settings">설정</string>
     <string name="about_title">출처와 라이선스</string>
     <string name="about_section_notices">고지</string>
@@ -46,6 +47,8 @@
     <string name="review_loading_a11y">불러오는 중</string>
     <string name="review_kind_word">단어</string>
     <string name="review_kind_kanji">한자</string>
+    <string name="review_kind_grammar">문법</string>
+    <string name="review_grammar_detail">자세히</string>
     <string name="review_kind_recall">뜻 → 일본어</string>
     <string name="review_remaining">남은 %1$d장</string>
     <string name="review_progress_a11y">남은 %1$d장, 복습 %2$d, 새 카드 %3$d</string>
@@ -119,6 +122,7 @@
     <string name="settings_kind_vr">단어 인식</string>
     <string name="settings_kind_kr">한자</string>
     <string name="settings_kind_vp">단어 회상</string>
+    <string name="settings_kind_gr">문법</string>
     <string name="settings_kinds_warning">카드 종류를 하나 이상 켜세요</string>
     <string name="settings_kinds_note">끈 종류는 새 카드와 복습이 모두 멈춥니다. 학습 기록은 남고, 다시 켜면 이어집니다.</string>
     <string name="settings_front_furigana">앞면 후리가나</string>
@@ -162,4 +166,34 @@
     <string name="detail_readings">읽기</string>
     <string name="detail_words_more">더 보기</string>
     <string name="detail_strokes_section">필순</string>
+    <string name="stroke_play">획 순서대로 보기</string>
+    <string name="stroke_stop">멈추기</string>
+    <string name="stroke_replay">다시 보기</string>
+    <string name="stroke_done">필순 보기를 마쳤습니다</string>
+    <string name="stroke_numbers">획 번호</string>
+    <string name="stroke_on">켜짐</string>
+    <string name="stroke_off">꺼짐</string>
+    <string name="stroke_figure">필순 그림, %1$d획</string>
+    <string name="stroke_source">필순: %1$s</string>
+
+    <string name="grammar_title">문법</string>
+    <string name="grammar_note">문법 급수는 이 앱이 정한 것으로 공식 자료가 아닙니다.</string>
+    <string name="grammar_note_more">자세히</string>
+    <string name="grammar_level_header">%1$s 문법 · 비공식</string>
+    <string name="grammar_row_click">자세히 보기</string>
+    <string name="grammar_empty_title">이 급수의 문법은 아직 준비 중입니다</string>
+    <string name="grammar_empty_body">다른 급수를 골라 보세요.</string>
+    <string name="grammar_review_chip">설명 검토 중</string>
+    <string name="grammar_sec_meaning">한국어로는</string>
+    <string name="grammar_sec_connect">접속</string>
+    <string name="grammar_col_pos">품사</string>
+    <string name="grammar_col_form">형태</string>
+    <string name="grammar_col_example">예</string>
+    <string name="grammar_sec_explain">설명</string>
+    <string name="grammar_sec_examples">예문</string>
+    <string name="grammar_sec_contrast">비슷한 문법</string>
+    <string name="grammar_mine">이 문법</string>
+    <string name="grammar_other">비교</string>
+    <string name="grammar_example_source">출처: %1$s</string>
+    <string name="grammar_footer">문법 급수와 설명은 이 앱이 직접 정하고 작성했습니다. 공식 자료가 아닙니다.</string>
 </resources>

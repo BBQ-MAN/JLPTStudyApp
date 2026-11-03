@@ -3,6 +3,7 @@ package com.jlptstudy.app.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jlptstudy.app.CardKind
+import com.jlptstudy.app.data.content.GrammarRepository
 import com.jlptstudy.app.JlptLevel
 import com.jlptstudy.app.ThemeMode
 import com.jlptstudy.app.data.content.ContentRepository
@@ -29,6 +30,8 @@ data class SettingsUiState(
     val kanjiCardsEnabled: Boolean = true,
     val vocabRecallEnabled: Boolean = false,
     val grammarCardsEnabled: Boolean = true,
+    /** 계약 밖 필드: 번들에 문법 행이 있을 때만 문법 스위치를 보인다(architecture.md 9.1). */
+    val grammarAvailable: Boolean = false,
     val frontFurigana: Boolean = false,
     val bodyFurigana: Boolean = true,
     val listeningScriptFirst: Boolean = false,
@@ -41,7 +44,7 @@ data class SettingsUiState(
     val kindsWarning: Boolean = false,
 )
 
-private data class Local(val contentVersion: String = "", val options: List<LevelOption> = emptyList(), val saveFailed: Boolean = false, val kindsWarning: Boolean = false, val loaded: Boolean = false)
+private data class Local(val contentVersion: String = "", val options: List<LevelOption> = emptyList(), val saveFailed: Boolean = false, val kindsWarning: Boolean = false, val grammarAvailable: Boolean = false, val loaded: Boolean = false)
 
 private const val KINDS_REJECTED = "at least one card kind must be enabled"
 
@@ -57,7 +60,7 @@ class SettingsViewModel(private val study: StudyRepository, private val content:
             vocabRecallEnabled = s.vocabRecallEnabled, grammarCardsEnabled = s.grammarCardsEnabled,
             frontFurigana = s.frontFurigana, bodyFurigana = s.bodyFurigana, listeningScriptFirst = s.listeningScriptFirst,
             theme = s.theme, contentVersion = l.contentVersion, saveFailed = l.saveFailed,
-            levelOptions = l.options, kindsWarning = l.kindsWarning,
+            levelOptions = l.options, kindsWarning = l.kindsWarning, grammarAvailable = l.grammarAvailable,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
@@ -65,7 +68,8 @@ class SettingsViewModel(private val study: StudyRepository, private val content:
         viewModelScope.launch {
             try {
                 val (options, _) = loadLevelOptions(content)
-                local.update { it.copy(options = options, contentVersion = content.meta().contentVersion, loaded = true) }
+                val grammar = (content as? GrammarRepository)?.levels().orEmpty().isNotEmpty()
+                local.update { it.copy(options = options, contentVersion = content.meta().contentVersion, grammarAvailable = grammar, loaded = true) }
             } catch (e: CancellationException) { throw e } catch (_: Exception) {
                 local.update { it.copy(loaded = true) }
             }
@@ -88,9 +92,9 @@ class SettingsViewModel(private val study: StudyRepository, private val content:
                 CardKind.GR -> s.copy(grammarCardsEnabled = on)
             }
         }
-        // 검사는 저장 트랜잭션 안(현재 저장값 기준)에서 한다. 문법 카드는 M17 전까지 세지 않는다(저장소 검증과 같은 규칙).
+        // 검사는 저장 트랜잭션 안(현재 저장값 기준)에서 한다. 문법 카드는 번들에 문법이 있을 때만 센다(저장소 검증과 같은 규칙).
         local.update { it.copy(kindsWarning = false) }
-        save({ s -> next(s).also { require((it.enabledKinds - CardKind.GR).isNotEmpty()) { KINDS_REJECTED } } })
+        save({ s -> next(s).also { require((if (local.value.grammarAvailable) it.enabledKinds else it.enabledKinds - CardKind.GR).isNotEmpty()) { KINDS_REJECTED } } })
     }
 
     fun retrySave() { lastSave?.let { save(it) } }

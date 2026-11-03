@@ -63,6 +63,12 @@ abstract class ReviewShots {
         kun = listOf("ただ(ちに)", "なお(す)", "なお(る)"),
     )
 
+    protected val grammar = grammarCard(
+        "n5-1", example = "これを[[{見|み}てください]]。", exampleKo = "시험 예문 번역", meaningKo = "시험용 대응 표현",
+        summaryKo = "시험용 설명 요약이 네 줄을 넘도록 길게 이어지는 문장입니다. ".repeat(6), needsReview = true,
+    )
+    protected val grammarLong = grammarCard("n5-2", title = "〜なければならない", example = "{毎日|まいにち}[[{勉強|べんきょう}しなければならない]]。")
+
     protected fun state(card: ReviewCardUi, revealed: Boolean, saving: Boolean = false, failed: Rating? = null) = ReviewUiState(
         status = ReviewStatus.READY, card = card, revealed = revealed, previews = previews, saving = saving, saveFailed = failed,
         remainingReview = 4, remainingNew = 6, reviewedInSession = 3, newInSession = 2, canUndo = true,
@@ -80,14 +86,14 @@ abstract class ReviewShots {
                 JlptTheme(if (dark) ThemeMode.DARK else ThemeMode.LIGHT) {
                     val host = remember { SnackbarHostState() }
                     if (snackbarText != null) LaunchedEffect(Unit) { host.showSnackbar(snackbarText, "다시 시도", duration = SnackbarDuration.Indefinite) }
-                    ReviewScreen(s, prefs, host, {}, {}, {}, {}, {}, {}, onChipClick = null)
+                    ReviewScreen(s, prefs, host, {}, {}, {}, {}, {}, {}, onChipClick = null, onGrammarDetail = {})
                 }
             }
         }
         rule.mainClock.advanceTimeBy(600)
         if (scrollPx > 0f) { // 긴 뒷면은 카드 안에서 스크롤된다: 아래쪽(뜻·칩)이 보이게 끌어올린 상태를 찍는다
             rule.onNodeWithTag("review_card", useUnmergedTree = true).performTouchInput {
-                repeat(3) { swipe(Offset(centerX, height - 8f), Offset(centerX, 8f), 150) } // 노드 안에서만 끌어야 눌림이 닿는다
+                repeat((scrollPx / 200f).toInt().coerceAtLeast(1)) { swipe(Offset(centerX, height - 8f), Offset(centerX, 8f), 150) } // 노드 안에서만 끌어야 눌림이 닿는다
             }
             rule.mainClock.advanceTimeBy(600)
         }
@@ -110,6 +116,11 @@ class ReviewScreenshotTest : ReviewShots() {
     @Test fun review_back_kanji() = shots("review_back_kanji", s = state(kanjiCard, true))
     @Test fun review_front_recall() = shots("review_front_recall", s = state(recall, false))
     @Test fun review_back_word_long_katakana() = shots("review_back_word_long_katakana", s = state(katakana, true))
+    @Test fun review_front_grammar() = shots("review_front_grammar", s = state(grammar, false))
+    @Test fun review_back_grammar() = shots("review_back_grammar", s = state(grammar, true))
+    @Test fun review_back_grammar_scrolled() = shots("review_back_grammar_scrolled", scrollPx = 600f, s = state(grammar, true))
+    @Test fun review_front_grammar_long_title() = shots("review_front_grammar_long_title", s = state(grammarLong, false))
+    @Test fun review_back_grammar_font200() = shots("review_back_grammar", fontScale = 2f, s = state(grammar, true))
     @Test fun review_saving() = shots("review_saving", s = state(word, true, saving = true))
     @Test fun review_save_error() = shots("review_save_error", snackbarText = "평가를 저장하지 못했습니다", s = state(word, true, failed = Rating.EASY))
     @Test fun review_furigana_off() = shots("review_furigana_off", prefs = ReviewPrefs(bodyFurigana = false), s = state(today, true))

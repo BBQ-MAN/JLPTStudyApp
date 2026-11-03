@@ -12,3 +12,5 @@ import kotlinx.serialization.Serializable
 @Serializable data object Review
 @Serializable data class VocabDetail(val id: String)
 @Serializable data class KanjiDetail(val literal: String)
+@Serializable data object Grammar
+@Serializable data class GrammarDetail(val id: String)

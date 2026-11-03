@@ -132,6 +132,7 @@ fun SettingsScreen(
                     SwitchRow(stringResource(R.string.settings_kind_vr), state.vocabRecognitionEnabled) { actions.onKind(CardKind.VR, it) }
                     SwitchRow(stringResource(R.string.settings_kind_kr), state.kanjiCardsEnabled) { actions.onKind(CardKind.KR, it) }
                     SwitchRow(stringResource(R.string.settings_kind_vp), state.vocabRecallEnabled) { actions.onKind(CardKind.VP, it) }
+                    if (state.grammarAvailable) SwitchRow(stringResource(R.string.settings_kind_gr), state.grammarCardsEnabled) { actions.onKind(CardKind.GR, it) }
                     if (state.kindsWarning) {
                         Text(stringResource(R.string.settings_kinds_warning), Modifier.testTag("kinds_warning").semantics { liveRegion = LiveRegionMode.Polite }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                     }

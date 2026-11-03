@@ -51,13 +51,21 @@ fun kanji(literal: String, level: JlptLevel = JlptLevel.N5) = ReviewCardUi.Kanji
     koreanReadings = listOf("직"), words = listOf(WordRef("v1", "直接", "ちょくせつ", "직접")),
 )
 
+fun grammarCard(
+    id: String, level: JlptLevel = JlptLevel.N5, title: String = "〜てください", example: String = "これを[[{見|み}てください]]。",
+    exampleKo: String = "시험 예문 뜻", meaningKo: String = "시험 대응 표현", summaryKo: String = "시험 요약 첫 문단", needsReview: Boolean = false,
+) = ReviewCardUi.Grammar(
+    cardId = "gr:$id", level = level, title = title, example = Furigana.parse(example), exampleKo = exampleKo, meaningKo = meaningKo,
+    summaryKo = summaryKo, provenance = meaning(summaryKo, "authored", "llm:test-model@2026-11-03", "unreviewed", null), needsReview = needsReview,
+)
+
 class FakeContent(
     cards: List<ReviewCardUi>, val retired: MutableSet<String> = mutableSetOf(),
     private val metaLevels: Set<JlptLevel> = JlptLevel.entries.toSet(), private val kind: String = "sample",
 ) : ContentRepository {
     val all = cards
     private fun alive() = all.filter { it.cardId !in retired }
-    private fun levelOf(c: ReviewCardUi) = when (c) { is ReviewCardUi.Vocab -> c.level; is ReviewCardUi.Kanji -> c.level }
+    private fun levelOf(c: ReviewCardUi) = when (c) { is ReviewCardUi.Vocab -> c.level; is ReviewCardUi.Kanji -> c.level; is ReviewCardUi.Grammar -> c.level }
     override suspend fun meta() = ContentMeta(kind, "test", metaLevels)
     override suspend fun levelCounts(): Map<JlptLevel, LevelCounts> = JlptLevel.entries.associateWith { l ->
         LevelCounts(all.count { it is ReviewCardUi.Vocab && it.level == l }, all.count { it is ReviewCardUi.Kanji && it.level == l })

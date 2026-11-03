@@ -63,6 +63,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.jlptstudy.app.R
@@ -91,6 +93,7 @@ fun Flashcard(
     onReveal: () -> Unit,
     modifier: Modifier = Modifier,
     onChipClick: ((MeaningUi) -> Unit)? = null,
+    onGrammarDetail: ((String) -> Unit)? = null,
     header: (@Composable () -> Unit)? = null,
     bottomInset: Dp = 0.dp,
 ) {
@@ -103,6 +106,7 @@ fun Flashcard(
             val headEstimate: Dp = with(density) {
                 when (card) {
                     is ReviewCardUi.Kanji -> jp.kanjiHero.lineHeight.toDp()
+                    is ReviewCardUi.Grammar -> jp.headword.lineHeight.toDp()
                     is ReviewCardUi.Vocab ->
                         if (card.direction == VocabDirection.JA_TO_KO) {
                             jp.headword.lineHeight.toDp() + (jp.rubySize(jp.headword.fontSize) * 1.2f).toDp() + 2.dp
@@ -115,12 +119,22 @@ fun Flashcard(
             val topPad = (cardHeight * 0.4f - chrome - headEstimate / 2).coerceAtLeast(0.dp)
             val focus = remember { FocusRequester() }
             LaunchedEffect(card.cardId, revealed) { runCatching { focus.requestFocus() } } // 이동만, liveRegion 없음(11.1)
-            val frontText = remember(card, remaining) { frontText(card, remaining) }
+            val frontText = remember(card, remaining, prefs.bodyFurigana) { frontText(card, remaining, prefs.bodyFurigana) }
             val backText = remember(card) { backText(card) }
             // 표제어는 고정, 그 아래 뒷면 정보만 스크롤한다(ui-design 5.1). 낮은 카드에서는 표제어 위 여백을 먼저 줄인다.
             val scroll = rememberScrollState()
             // 카드가 너무 낮으면(낮은 높이·글꼴 200%) 뒷면 영역이 보이지 않으므로 카드 전체를 스크롤한다. 스크롤 0에서 표제어 위치는 같다.
-            val compact = revealed && cardHeight < headEstimate + chrome + 120.dp
+            // 문법 카드는 형식(줄바꿈 가능)과 예문이 표제어와 뒷면 영역 사이에 있어, 둘을 실측한 높이를 더해 남은 높이를 따진다.
+            val measurer = rememberTextMeasurer()
+            val grammarExtra: Dp = (card as? ReviewCardUi.Grammar)?.let { g ->
+                with(density) {
+                    val c = Constraints(maxWidth = maxWidthPx)
+                    val title = measurer.measure(AnnotatedString(g.title), jp.headword.copy(fontSize = jp.headword.fontSize * 0.6f), constraints = c).size.height
+                    val ex = measurer.measure(AnnotatedString(g.example.joinToString("") { it.base }), jp.bodyLarge, constraints = c).size.height
+                    (title - jp.headword.lineHeight.roundToPx()).coerceAtLeast(0).toDp() + ex.toDp() + (jp.rubySize(jp.bodyLarge.fontSize) * 1.2f).toDp() + Spacing.xl
+                }
+            } ?: 0.dp
+            val compact = revealed && cardHeight < headEstimate + grammarExtra + chrome + 120.dp // 위 여백을 다 줄여도 모자랄 때만
             val bar = MaterialTheme.colorScheme.outline
             Column(
                 Modifier.fillMaxSize()
@@ -147,11 +161,17 @@ fun Flashcard(
                     Text(kindLabel(card), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     LevelChip(levelOf(card))
                 }
-                Spacer(Modifier.height((topPad).coerceAtMost((cardHeight - chrome - headEstimate - 120.dp).coerceAtLeast(0.dp))))
+                Spacer(Modifier.height((topPad).coerceAtMost((cardHeight - chrome - headEstimate - grammarExtra - 120.dp).coerceAtLeast(0.dp))))
                 when (card) {
                     is ReviewCardUi.Kanji -> {
                         JpText(card.literal, Modifier.testTag("review_headword"), style = jp.kanjiHero)
                         BackArea(revealed, scroll, compact, bottomInset) { KanjiBack(card) }
+                    }
+                    is ReviewCardUi.Grammar -> {
+                        GrammarTitle(card.title, maxWidthPx)
+                        Spacer(Modifier.height(Spacing.xl)) // 24 dp, 뒷면에서도 예문이 같은 자리
+                        RubyText(card.example, Modifier.testTag("review_example"), style = jp.bodyLarge, showRuby = prefs.bodyFurigana)
+                        BackArea(revealed, scroll, compact, bottomInset) { GrammarBack(card, onChipClick, onGrammarDetail) }
                     }
                     is ReviewCardUi.Vocab -> if (card.direction == VocabDirection.JA_TO_KO) {
                         Headword(card, maxWidthPx, showRuby = if (revealed) prefs.bodyFurigana else prefs.frontFurigana, reserve = true, tag = true)
@@ -205,6 +225,52 @@ private fun Headword(
         card.ruby, if (tag) Modifier.testTag("review_headword") else Modifier,
         style = style, showRuby = showRuby, reserveRubyLine = reserve,
     )
+}
+
+/** 문법 형식. 폭에 맞을 때까지 줄여 최저 60%(27 sp), 그래도 넘치면 줄바꿈(ui-design 6.9.1). 루비가 없으므로 루비 줄을 확보하지 않는다. */
+@Composable
+private fun GrammarTitle(title: String, availablePx: Int) {
+    val jp = LocalJpTypography.current
+    val measurer = rememberTextMeasurer()
+    val scale = remember(title, availablePx, jp) {
+        val w = measurer.measure(AnnotatedString(title), jp.headword).size.width
+        if (w <= 0) 1f else (availablePx.toFloat() / w).coerceIn(0.6f, 1f)
+    }
+    JpText(
+        title, Modifier.testTag("review_headword"),
+        style = jp.headword.copy(fontSize = jp.headword.fontSize * scale, lineHeight = jp.headword.lineHeight * scale),
+    )
+}
+
+@Composable
+private fun GrammarBack(card: ReviewCardUi.Grammar, onChipClick: ((MeaningUi) -> Unit)?, onDetail: ((String) -> Unit)?) {
+    var overflow by remember(card.cardId) { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().padding(top = Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        HorizontalDivider()
+        Text(JpSpans.annotate(card.meaningKo), style = MaterialTheme.typography.bodyLarge)
+        Text(JpSpans.annotate(card.exampleKo), style = MaterialTheme.typography.bodyMedium)
+        Text(
+            JpSpans.annotate(card.summaryKo), style = MaterialTheme.typography.bodyMedium,
+            maxLines = 4, overflow = TextOverflow.Ellipsis, onTextLayout = { overflow = it.hasVisualOverflow },
+        )
+        if (overflow && onDetail != null) {
+            TextButton({ onDetail(card.cardId.substringAfter(':')) }, Modifier.heightIn(min = 48.dp).testTag("review_grammar_detail")) {
+                Text(stringResource(R.string.review_grammar_detail))
+            }
+        }
+        @OptIn(ExperimentalLayoutApi::class)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs), itemVerticalAlignment = Alignment.CenterVertically) {
+            ProvenanceChip(card.provenance, onChipClick)
+            if (card.needsReview) {
+                Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.surfaceContainerHighest) {
+                    Text(
+                        stringResource(R.string.grammar_review_chip), Modifier.padding(horizontal = Spacing.sm, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -330,23 +396,32 @@ fun ProvenanceChip(meaning: MeaningUi, onClick: ((MeaningUi) -> Unit)?, modifier
 private fun levelOf(card: ReviewCardUi) = when (card) {
     is ReviewCardUi.Vocab -> card.level
     is ReviewCardUi.Kanji -> card.level
+    is ReviewCardUi.Grammar -> card.level
 }
 
 @Composable
 private fun kindLabel(card: ReviewCardUi): String = stringResource(
     when {
         card is ReviewCardUi.Kanji -> R.string.review_kind_kanji
+        card is ReviewCardUi.Grammar -> R.string.review_kind_grammar
         (card as ReviewCardUi.Vocab).direction == VocabDirection.JA_TO_KO -> R.string.review_kind_word
         else -> R.string.review_kind_recall
     },
 )
 
 /** 앞면 낭독(11.1): 일본어 구간에 JpSpan. contentDescription이 아니라 semantics text로 건다(4.3). */
-internal fun frontText(card: ReviewCardUi, remaining: Int): AnnotatedString = buildAnnotatedString {
+internal fun frontText(card: ReviewCardUi, remaining: Int, bodyFurigana: Boolean = false): AnnotatedString = buildAnnotatedString {
     fun ko(s: String) = withStyle(KoSpan) { append(s) }
     when (card) {
         is ReviewCardUi.Kanji -> {
             ko("한자 카드, 앞면. "); withStyle(JpSpan) { append(card.literal) }
+        }
+        is ReviewCardUi.Grammar -> {
+            ko("문법 카드, 앞면. "); withStyle(JpSpan) { append(card.title) }
+            ko(". 예문 "); withStyle(JpSpan) { append(card.example.joinToString("") { it.base }) }
+            if (bodyFurigana && card.example.any { it.ruby != null }) {
+                ko(", 읽기 "); withStyle(JpSpan) { append(card.example.joinToString("") { it.ruby ?: it.base }) }
+            }
         }
         is ReviewCardUi.Vocab ->
             if (card.direction == VocabDirection.JA_TO_KO) {
@@ -365,5 +440,12 @@ internal fun backText(card: ReviewCardUi): AnnotatedString = buildAnnotatedStrin
     when (card) {
         is ReviewCardUi.Vocab -> { ko(" 읽기 "); withStyle(JpSpan) { append(card.reading) } }
         is ReviewCardUi.Kanji -> { ko(" "); withStyle(JpSpan) { append(card.literal) } }
+        is ReviewCardUi.Grammar -> {
+            ko(" 뜻 "); append(JpSpans.annotate(card.meaningKo))
+            ko(". 예문 뜻 "); append(JpSpans.annotate(card.exampleKo))
+            ko(". "); append(JpSpans.annotate(card.summaryKo))
+            ko(". ${ProvenanceLabel.of(card.provenance)}")
+            if (card.needsReview) ko(". 설명 검토 중")
+        }
     }
 }

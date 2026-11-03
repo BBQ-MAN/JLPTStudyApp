@@ -79,7 +79,7 @@ import java.time.format.DateTimeFormatter
 private const val MAX_WORDS = 20
 
 class DetailActions(
-    val onFailed: () -> Unit = {}, val onToggleFurigana: () -> Unit = {}, val onBack: () -> Unit = {}, val onAboutLevel: () -> Unit = {}, val onKanji: (String) -> Unit = {}, val onWord: (String) -> Unit = {},
+    val onFailed: () -> Unit = {}, val onToggleFurigana: () -> Unit = {}, val onBack: () -> Unit = {}, val onAboutLevel: () -> Unit = {}, val onKanji: (String) -> Unit = {}, val onWord: (String) -> Unit = {}, val onStrokeSource: () -> Unit = {},
     val onChipClick: ((com.jlptstudy.app.ui.review.MeaningUi) -> Unit)? = null,
 )
 
@@ -98,7 +98,7 @@ fun KanjiDetailRoute(vm: KanjiDetailViewModel, actions: DetailActions) {
 }
 
 @Composable
-private fun DetailFrame(status: DetailStatus, actions: DetailActions, tag: String, topEnd: @Composable () -> Unit = {}, content: @Composable () -> Unit) {
+internal fun DetailFrame(status: DetailStatus, actions: DetailActions, tag: String, topEnd: @Composable () -> Unit = {}, content: @Composable () -> Unit) {
     Surface(Modifier.fillMaxSize().testTag(tag), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top))) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -124,12 +124,12 @@ private fun DetailFrame(status: DetailStatus, actions: DetailActions, tag: Strin
 }
 
 @Composable
-private fun SectionTitle(text: String) {
-    Text(text, Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium)
+internal fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+    Text(text, modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium)
 }
 
 @Composable
-private fun LevelButton(level: JlptLevel, label: String, onClick: () -> Unit) {
+internal fun LevelButton(level: JlptLevel, label: String, onClick: () -> Unit) {
     val detail = stringResource(R.string.detail_level_about)
     Row(Modifier.minimumInteractiveComponentSize().clickable(onClickLabel = detail, role = Role.Button, onClick = onClick)) {
         Text(
@@ -139,30 +139,35 @@ private fun LevelButton(level: JlptLevel, label: String, onClick: () -> Unit) {
     }
 }
 
+/** 상단 바 오른쪽 본문 후리가나 토글(ui-design 5.2). */
+@Composable
+internal fun FuriganaToggle(showRuby: Boolean, onToggle: () -> Unit) {
+    val jp = LocalJpTypography.current
+    val furiganaLabel = stringResource(R.string.review_furigana)
+    val on = stringResource(R.string.level_state_on)
+    val off = stringResource(R.string.level_state_off)
+    IconButton(
+        onToggle,
+        Modifier.minimumInteractiveComponentSize().clearAndSetSemantics {
+            contentDescription = furiganaLabel; stateDescription = if (showRuby) on else off; role = Role.Switch
+            onClick { onToggle(); true }
+        },
+    ) {
+        val bg = if (showRuby) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+        Box(
+            Modifier.size(36.dp).clip(CircleShape).background(bg)
+                .border(1.dp, if (showRuby) Color.Transparent else MaterialTheme.colorScheme.outline, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) { JpText("あ", style = jp.bodyLarge, color = if (showRuby) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant) }
+    }
+}
+
 /** S06(ui-design 6.6). 예문 절은 콘텐츠에 예문이 들어오는 마일스톤에서 더한다. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VocabDetailScreen(state: VocabDetailUiState, actions: DetailActions = DetailActions()) {
     val jp = LocalJpTypography.current
-    val furiganaLabel = stringResource(R.string.review_furigana)
-    val on = stringResource(R.string.level_state_on)
-    val off = stringResource(R.string.level_state_off)
-    val toggle: @Composable () -> Unit = {
-        if (state.status == DetailStatus.LOADED) IconButton(
-            actions.onToggleFurigana,
-            Modifier.minimumInteractiveComponentSize().clearAndSetSemantics {
-                contentDescription = furiganaLabel; stateDescription = if (state.showRuby) on else off; role = Role.Switch
-                onClick { actions.onToggleFurigana(); true }
-            },
-        ) {
-            val bg = if (state.showRuby) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
-            Box(
-                Modifier.size(36.dp).clip(CircleShape).background(bg)
-                    .border(1.dp, if (state.showRuby) Color.Transparent else MaterialTheme.colorScheme.outline, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) { JpText("あ", style = jp.bodyLarge, color = if (state.showRuby) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant) }
-        }
-    }
+    val toggle: @Composable () -> Unit = { if (state.status == DetailStatus.LOADED) FuriganaToggle(state.showRuby, actions.onToggleFurigana) }
     DetailFrame(state.status, actions, "vocab_detail", toggle) {
         RubyText(state.ruby, style = jp.headword, showRuby = state.showRuby)
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.md), verticalAlignment = Alignment.CenterVertically) {
@@ -219,7 +224,7 @@ private fun progressText(c: CardStateSummary): String = when (c.progress) {
     CardProgress.REVIEW -> stringResource(R.string.detail_card_due, DueFormat.format(Instant.ofEpochMilli(c.dueAtEpochMs ?: 0).atZone(ZoneId.systemDefault())))
 }
 
-/** S07(ui-design 6.7). 뜻 절은 없다. 필순 절은 strokes가 null이면 그리지 않는다(M12가 그림을 채운다). */
+/** S07(ui-design 6.7). 뜻 절은 없다. 필순 절은 strokes가 null이면 그리지 않는다(StrokeOrder.kt). */
 @Composable
 fun KanjiDetailScreen(state: KanjiDetailUiState, actions: DetailActions = DetailActions()) {
     val jp = LocalJpTypography.current
@@ -262,6 +267,7 @@ fun KanjiDetailScreen(state: KanjiDetailUiState, actions: DetailActions = Detail
         }
         if (state.strokes != null) {
             SectionTitle(stringResource(R.string.detail_strokes_section))
+            StrokeOrder(state.strokes, state.strokeSourceName, actions.onStrokeSource)
         }
     }
 }

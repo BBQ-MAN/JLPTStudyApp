@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 /** ViewModel을 화면에 잇는 얇은 층: 스낵바(저장 실패 "다시 시도", 되돌림 알림)만 여기서 띄운다. */
 @Composable
-fun ReviewRoute(vm: ReviewViewModel, onExit: () -> Unit, onChipClick: ((MeaningUi) -> Unit)? = null) {
+fun ReviewRoute(vm: ReviewViewModel, onExit: () -> Unit, onChipClick: ((MeaningUi) -> Unit)? = null, onGrammarDetail: ((String) -> Unit)? = null) {
     val state by vm.state.collectAsStateWithLifecycle()
     val prefs by vm.prefs.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
@@ -36,6 +36,6 @@ fun ReviewRoute(vm: ReviewViewModel, onExit: () -> Unit, onChipClick: ((MeaningU
             scope.launch { snackbar.currentSnackbarData?.dismiss(); snackbar.showSnackbar(undone, duration = SnackbarDuration.Short) }
         },
         onToggleFurigana = vm::toggleFurigana, onReveal = vm::reveal, onRate = vm::rate, onStudyMore = vm::studyMore,
-        onChipClick = onChipClick,
+        onChipClick = onChipClick, onGrammarDetail = onGrammarDetail,
     )
 }

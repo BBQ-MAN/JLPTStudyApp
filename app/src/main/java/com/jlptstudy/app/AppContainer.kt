@@ -5,6 +5,8 @@ import com.jlptstudy.app.data.attribution.AssetAttributionRepository
 import com.jlptstudy.app.data.attribution.AttributionRepository
 import com.jlptstudy.app.data.content.ContentDatabase
 import com.jlptstudy.app.data.content.ContentRepository
+import com.jlptstudy.app.data.content.GrammarRepository
+import com.jlptstudy.app.data.content.NoGrammarRepository
 import com.jlptstudy.app.data.content.RoomContentRepository
 import com.jlptstudy.app.data.study.RoomStudyRepository
 import com.jlptstudy.app.data.study.StudyDatabase
@@ -53,6 +55,10 @@ class AppContainer(
     var studyRepository: StudyRepository? = null
         private set
 
+    /** 콘텐츠 저장소가 문법 조회도 구현하면 그것, 아니면 빈 문법(시험용 가짜 저장소). 열기 전에는 null. */
+    var grammarRepository: GrammarRepository? = null
+        private set
+
     private val _theme = MutableStateFlow(ThemeMode.SYSTEM)
     /** user_settings.theme. MainActivity가 JlptTheme에 넘긴다. */
     val theme: StateFlow<ThemeMode> = _theme.asStateFlow()
@@ -76,7 +82,7 @@ class AppContainer(
     fun onboardingCompleted() { _state.update { if (it is AppState.Ready) AppState.Ready(needsOnboarding = false) else it } }
 
     /** 화면의 콘텐츠 읽기 실패: S90으로 보낸다. 재시도가 DB를 다시 열도록 캐시를 비운다. */
-    fun contentReadFailed() { openedContent = null; contentRepository = null; _state.value = AppState.ContentDbFailed }
+    fun contentReadFailed() { openedContent = null; contentRepository = null; grammarRepository = null; _state.value = AppState.ContentDbFailed }
 
     // 열린 DB는 재시도 사이에 재사용한다(같은 파일을 또 열어 연결이 쌓이지 않게).
     private var openedContent: ContentRepository? = null
@@ -93,6 +99,7 @@ class AppContainer(
             return AppState.RecordDbFailed
         }
         contentRepository = content
+        grammarRepository = content as? GrammarRepository ?: NoGrammarRepository
         studyRepository = study
         if (themeJob == null) themeJob = scope.launch { study.settings().map { it.theme }.collect { _theme.value = it } }
         return AppState.Ready(needsOnboarding)
@@ -101,12 +108,13 @@ class AppContainer(
     companion object {
         fun create(context: Context, scope: CoroutineScope): AppContainer {
             val app = context.applicationContext
+            val grammar = java.util.concurrent.atomic.AtomicReference<GrammarRepository?>()
             return AppContainer(
                 scope = scope,
                 attributionRepository = AssetAttributionRepository.create(app),
                 speakerFactory = { DeviceTtsSpeaker(app, CoroutineScope(SupervisorJob() + Dispatchers.Main)) },
-                openContent = { RoomContentRepository(ContentDatabase.open(app).contentDao()) },
-                openStudy = { RoomStudyRepository(StudyDatabase.open(app).studyDao()) },
+                openContent = { RoomContentRepository(ContentDatabase.open(app).contentDao()).also { grammar.set(it as? GrammarRepository) } },
+                openStudy = { RoomStudyRepository(StudyDatabase.open(app).studyDao()) { grammar.get()?.levels().orEmpty().isNotEmpty() } },
             )
         }
     }

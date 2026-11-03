@@ -11,6 +11,8 @@ data class BrowseVocabRow(val id: String, val written: String?, val reading: Str
 data class BrowseKanjiRow(val literal: String, val level: Int, @ColumnInfo(name = "korean_readings") val koreanReadings: String)
 data class KanjiWordRow(val kanji: String, val vocabId: String, val written: String?, val reading: String, val textKo: String?)
 
+data class GrammarTitleRow(val id: String, val title: String)
+
 data class ReviewCountRow(val status: String?, val kind: String?, val n: Int)
 
 /** SELECT만 둔다(architecture.md 4.5). ID 목록을 받는 함수는 저장소가 900개 이하로 나눠 부른다. */
@@ -30,6 +32,18 @@ interface ContentDao {
 
     @Query("SELECT literal AS id, level, sort_key FROM kanji WHERE level IN (:levels) AND literal NOT IN (SELECT id FROM retired)")
     suspend fun kanjiOrder(levels: List<Int>): List<OrderRow>
+
+    @Query("SELECT id, level, sort_key FROM grammar WHERE level IN (:levels) AND id NOT IN (SELECT id FROM retired)")
+    suspend fun grammarOrder(levels: List<Int>): List<OrderRow>
+
+    @Query("SELECT id, level FROM grammar WHERE id IN (:ids)")
+    suspend fun grammarLevelsOf(ids: List<String>): List<IdLevelRow>
+
+    @Query("SELECT * FROM grammar WHERE id IN (:ids)")
+    suspend fun grammarByIds(ids: List<String>): List<GrammarEntity>
+
+    @Query("SELECT * FROM grammar_example WHERE ord = 0 AND grammar_id IN (:ids)")
+    suspend fun grammarFirstExamples(ids: List<String>): List<GrammarExampleEntity>
 
     @Query("SELECT * FROM vocab WHERE id IN (:ids)")
     suspend fun vocabByIds(ids: List<String>): List<VocabEntity>
@@ -86,6 +100,24 @@ interface ContentDao {
 
     @Query("SELECT kanji FROM vocab_kanji WHERE vocab_id = :id AND kanji NOT IN (SELECT id FROM retired)")
     suspend fun vocabKanji(id: String): List<String>
+
+    @Query("SELECT paths_json FROM kanji_stroke WHERE literal = :literal")
+    suspend fun strokePaths(literal: String): String?
+
+    @Query("SELECT * FROM grammar WHERE level IN (:levels) AND id NOT IN (SELECT id FROM retired) ORDER BY level DESC, sort_key, id")
+    suspend fun grammarRows(levels: List<Int>): List<GrammarEntity>
+
+    @Query("SELECT DISTINCT level FROM grammar WHERE id NOT IN (SELECT id FROM retired)")
+    suspend fun grammarLevels(): List<Int>
+
+    @Query("SELECT * FROM grammar WHERE id = :id AND id NOT IN (SELECT id FROM retired)")
+    suspend fun grammarById(id: String): GrammarEntity?
+
+    @Query("SELECT * FROM grammar_example WHERE grammar_id = :id ORDER BY ord")
+    suspend fun grammarExamples(id: String): List<GrammarExampleEntity>
+
+    @Query("SELECT id, title FROM grammar WHERE id IN (:ids) AND id NOT IN (SELECT id FROM retired)")
+    suspend fun grammarTitles(ids: List<String>): List<GrammarTitleRow>
 
     @Query("SELECT COUNT(*) FROM kanji_stroke")
     suspend fun countKanjiStroke(): Int

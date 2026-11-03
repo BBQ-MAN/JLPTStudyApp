@@ -27,4 +27,5 @@ data class KanjiDetailUiState(
     val strokeCount: Int = 0, val on: List<String> = emptyList(), val kun: List<String> = emptyList(),
     val koreanReadings: List<String> = emptyList(), val words: List<WordRef> = emptyList(),
     val strokes: List<String>? = null, // null = 필순 데이터 없음 → 절 숨김(S-03 확정 전)
+    val strokeSourceName: String? = null, // attribution.json S-03 name. null이면 출처 줄 숨김
 )

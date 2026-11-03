@@ -162,7 +162,7 @@ class ReviewViewModel(
     /** 후리가나 토글(상단 바). */
     fun toggleFurigana() {
         // 지금 보이는 면의 설정을 바꾼다(앞면 = frontFurigana, 뒷면 = bodyFurigana).
-        val front = !_state.value.revealed
+        val front = !_state.value.revealed && _state.value.card !is ReviewCardUi.Grammar // 문법 예문은 앞면에서도 body_furigana
         viewModelScope.launch {
             runCatching {
                 study.updateSettings { if (front) it.copy(frontFurigana = !it.frontFurigana) else it.copy(bodyFurigana = !it.bodyFurigana) }

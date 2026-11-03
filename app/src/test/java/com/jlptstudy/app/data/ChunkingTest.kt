@@ -1,6 +1,9 @@
 package com.jlptstudy.app.data
 
 import com.jlptstudy.app.data.content.ContentDao
+import com.jlptstudy.app.data.content.GrammarEntity
+import com.jlptstudy.app.data.content.GrammarExampleEntity
+import com.jlptstudy.app.data.content.GrammarTitleRow
 import com.jlptstudy.app.data.content.IdLevelRow
 import com.jlptstudy.app.data.content.KanjiEntity
 import com.jlptstudy.app.data.content.KanjiWordRow
@@ -63,6 +66,10 @@ class ChunkingTest {
             override suspend fun kanjiCounts(): List<LevelCountRow> = TODO()
             override suspend fun vocabOrder(levels: List<Int>): List<OrderRow> = TODO()
             override suspend fun kanjiOrder(levels: List<Int>): List<OrderRow> = TODO()
+            override suspend fun grammarOrder(levels: List<Int>): List<OrderRow> = TODO()
+            override suspend fun grammarLevelsOf(ids: List<String>): List<IdLevelRow> = TODO()
+            override suspend fun grammarByIds(ids: List<String>): List<GrammarEntity> = TODO()
+            override suspend fun grammarFirstExamples(ids: List<String>): List<GrammarExampleEntity> = TODO()
             override suspend fun vocabLevels(ids: List<String>): List<IdLevelRow> = TODO()
             override suspend fun kanjiLevels(literals: List<String>): List<IdLevelRow> = TODO()
             override suspend fun browseVocab(levels: List<Int>, q: String) = TODO()
@@ -70,6 +77,12 @@ class ChunkingTest {
             override suspend fun vocabKanji(id: String): List<String> = TODO()
             override suspend fun meaningReviewRows(): List<ReviewCountRow> = TODO()
             override suspend fun countKanjiStroke(): Int = TODO()
+            override suspend fun strokePaths(literal: String): String? = TODO()
+            override suspend fun grammarRows(levels: List<Int>): List<GrammarEntity> = TODO()
+            override suspend fun grammarLevels(): List<Int> = TODO()
+            override suspend fun grammarById(id: String): GrammarEntity? = TODO()
+            override suspend fun grammarExamples(id: String): List<GrammarExampleEntity> = TODO()
+            override suspend fun grammarTitles(ids: List<String>): List<GrammarTitleRow> = TODO()
             override suspend fun countGrammar(): Int = TODO()
             override suspend fun countGrammarExample(): Int = TODO()
             override suspend fun countQuestion(): Int = TODO()

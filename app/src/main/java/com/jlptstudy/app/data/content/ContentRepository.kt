@@ -10,6 +10,7 @@ import com.jlptstudy.app.ui.review.MeaningUi
 import com.jlptstudy.app.ui.review.ReviewCardUi
 import com.jlptstudy.app.ui.review.VocabDirection
 import com.jlptstudy.app.ui.review.WordRef
+import androidx.core.graphics.PathParser
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
@@ -31,7 +32,7 @@ data class VocabDetail(
 
 data class KanjiDetail(
     val literal: String, val level: JlptLevel, val strokeCount: Int, val on: List<String>, val kun: List<String>,
-    val koreanReadings: List<String>, val words: List<WordRef>, val strokes: List<String>?, // strokes: kanji_stroke 테이블이 생기면(M12)
+    val koreanReadings: List<String>, val words: List<WordRef>, val strokes: List<String>?,
 )
 
 /** S09 집계 줄(ui-design 8절). 번들된 한국어 뜻 전체 기준. */
@@ -54,7 +55,7 @@ interface ContentRepository {
     suspend fun meaningReviewCounts(): ReviewCounts
 }
 
-class RoomContentRepository(private val dao: ContentDao) : ContentRepository {
+class RoomContentRepository(private val dao: ContentDao) : ContentRepository, GrammarRepository by RoomGrammarRepository(dao) {
     private val json = Json
 
     override suspend fun meta(): ContentMeta {
@@ -77,6 +78,7 @@ class RoomContentRepository(private val dao: ContentDao) : ContentRepository {
             val vocab = if (CardKind.VR in kinds || CardKind.VP in kinds) dao.vocabOrder(ns) else emptyList()
             for (k in listOf(CardKind.VR, CardKind.VP)) if (k in kinds) vocab.forEach { add(Row(k, it.id, it.level, it.sortKey)) }
             if (CardKind.KR in kinds) dao.kanjiOrder(ns).forEach { add(Row(CardKind.KR, it.id, it.level, it.sortKey)) }
+            if (CardKind.GR in kinds) dao.grammarOrder(ns).forEach { add(Row(CardKind.GR, it.id, it.level, it.sortKey)) }
         }
         return rows
             .sortedWith(compareByDescending<Row> { it.level }.thenBy { it.sortKey }.thenBy { it.kind.ordinal }.thenBy { it.id })
@@ -88,13 +90,15 @@ class RoomContentRepository(private val dao: ContentDao) : ContentRepository {
         val out = HashMap<String, JlptLevel>()
         val vocabIds = parsed.filter { it.kind == CardKind.VR || it.kind == CardKind.VP }.map { it.contentId }
         val kanjiIds = parsed.filter { it.kind == CardKind.KR }.map { it.contentId }
-        val retired = retired(vocabIds + kanjiIds)
+        val grammarIds = parsed.filter { it.kind == CardKind.GR }.map { it.contentId }
+        val retired = retired(vocabIds + kanjiIds + grammarIds)
         val levelOf = HashMap<String, JlptLevel>()
+        chunkedQuery(grammarIds) { dao.grammarLevelsOf(it) }.forEach { r -> JlptLevel.fromN(r.level)?.let { levelOf["g:" + r.id] = it } }
         chunkedQuery(vocabIds) { dao.vocabLevels(it) }.forEach { r -> JlptLevel.fromN(r.level)?.let { levelOf["v:" + r.id] = it } }
         chunkedQuery(kanjiIds) { dao.kanjiLevels(it) }.forEach { r -> JlptLevel.fromN(r.level)?.let { levelOf["k:" + r.id] = it } }
         for (p in parsed) {
             if (p.contentId in retired) continue
-            val key = (if (p.kind == CardKind.KR) "k:" else "v:") + p.contentId
+            val key = (if (p.kind == CardKind.KR) "k:" else if (p.kind == CardKind.GR) "g:" else "v:") + p.contentId
             levelOf[key]?.let { out[p.cardId] = it }
         }
         return out
@@ -104,7 +108,10 @@ class RoomContentRepository(private val dao: ContentDao) : ContentRepository {
         val parsed = parse(cardIds)
         val vocabIds = parsed.filter { it.kind == CardKind.VR || it.kind == CardKind.VP }.map { it.contentId }
         val kanjiIds = parsed.filter { it.kind == CardKind.KR }.map { it.contentId }
-        val retired = retired(vocabIds + kanjiIds)
+        val grammarIds = parsed.filter { it.kind == CardKind.GR }.map { it.contentId }
+        val retired = retired(vocabIds + kanjiIds + grammarIds)
+        val grammar = chunkedQuery(grammarIds) { dao.grammarByIds(it) }.associateBy { it.id }
+        val grammarEx = chunkedQuery(grammarIds) { dao.grammarFirstExamples(it) }.associateBy { it.grammarId }
         val vocab = chunkedQuery(vocabIds) { dao.vocabByIds(it) }.associateBy { it.id }
         val meanings = chunkedQuery(vocabIds) { dao.meaningsByIds(it) }.groupBy { it.vocabId }
         val kanji = chunkedQuery(kanjiIds) { dao.kanjiByIds(it) }.associateBy { it.literal }
@@ -135,7 +142,17 @@ class RoomContentRepository(private val dao: ContentDao) : ContentRepository {
                         words = words[k.literal].orEmpty().take(3).map { WordRef(it.vocabId, it.written, it.reading, it.textKo.orEmpty()) },
                     )
                 }
-                CardKind.GR -> continue // 문법은 M14 이후
+                CardKind.GR -> {
+                    val g = grammar[p.contentId] ?: continue
+                    val ex = grammarEx[g.id] ?: continue // 예문 0행이면 앞면을 그릴 수 없다
+                    val level = JlptLevel.fromN(g.level) ?: continue
+                    ReviewCardUi.Grammar(
+                        cardId = p.cardId, level = level, title = g.title, example = Furigana.parse(ex.ja), exampleKo = ex.ko,
+                        meaningKo = g.meaningKo, summaryKo = g.explanationKo.substringBefore("\n\n"),
+                        provenance = MeaningUi(g.explanationKo.substringBefore("\n\n"), g.koSource, g.koMethod, g.koReviewStatus, g.koReviewedAt, g.koReviewerKind),
+                        needsReview = g.needsReview,
+                    )
+                }
             }
             out[p.cardId] = card
         }
@@ -175,8 +192,18 @@ class RoomContentRepository(private val dao: ContentDao) : ContentRepository {
             literal = k.literal, level = level, strokeCount = k.strokeCount,
             on = strings(k.onReadings), kun = strings(k.kunReadings), koreanReadings = strings(k.koreanReadings),
             words = dao.kanjiWords(listOf(literal)).map { WordRef(it.vocabId, it.written, it.reading, it.textKo.orEmpty()) },
-            strokes = null,
+            strokes = strokes(literal),
         )
+    }
+
+    /** 행 없음·JSON 깨짐·경로 하나라도 해석 실패면 null(절 숨김, 일부 획만 그린 필순은 틀린 정보다). */
+    private suspend fun strokes(literal: String): List<String>? {
+        val raw = dao.strokePaths(literal) ?: return null
+        return try {
+            strings(raw).takeIf { it.isNotEmpty() }?.also { l -> l.forEach { PathParser.createPathFromPathData(it) } }
+        } catch (e: Exception) { // SerializationException, 경로 해석의 RuntimeException
+            android.util.Log.w("Content", "필순 해석 실패: $literal", e); null
+        }
     }
 
     override suspend fun meaningReviewCounts(): ReviewCounts {

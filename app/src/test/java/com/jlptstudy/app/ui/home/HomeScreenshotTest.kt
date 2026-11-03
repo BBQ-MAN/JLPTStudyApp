@@ -115,4 +115,13 @@ class SettingsScreenshotTest : HomeShots() {
             SnackbarHostState(),
         )
     }
+    @Test fun settings_with_grammar() = shots("settings_with_grammar") {
+        SettingsScreen(
+            SettingsUiState(
+                loading = false, targetLevels = setOf(JlptLevel.N5, JlptLevel.N4), newCardsPerDay = 15, dayBoundaryHour = 4,
+                vocabRecallEnabled = false, grammarAvailable = true, contentVersion = "v1abdec2bac5e", levelOptions = levelOptions,
+            ),
+            SnackbarHostState(),
+        )
+    }
 }

@@ -55,6 +55,8 @@ class VocabDetailViewModel(
 class KanjiDetailViewModel(
     private val literal: String,
     private val content: ContentRepository,
+    /** attribution.json S-03 name. 못 읽으면 null(출처 줄만 숨는다). */
+    private val strokeSourceName: suspend () -> String? = { null },
 ) : ViewModel() {
     val state: StateFlow<KanjiDetailUiState> = flow {
         val d = try { content.kanjiDetail(literal) } catch (e: CancellationException) { throw e } catch (e: Exception) {
@@ -62,7 +64,8 @@ class KanjiDetailViewModel(
         }
         emit(
             if (d == null) KanjiDetailUiState(DetailStatus.RETIRED, literal)
-            else KanjiDetailUiState(DetailStatus.LOADED, d.literal, d.level, d.strokeCount, d.on, d.kun, d.koreanReadings, d.words, d.strokes),
+            else KanjiDetailUiState(DetailStatus.LOADED, d.literal, d.level, d.strokeCount, d.on, d.kun, d.koreanReadings, d.words, d.strokes,
+                if (d.strokes != null) loadOrNull { strokeSourceName() } else null),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), KanjiDetailUiState(literal = literal))
 }

@@ -90,6 +90,7 @@ fun ReviewScreen(
     onRate: (Rating) -> Unit,
     onStudyMore: () -> Unit,
     onChipClick: ((MeaningUi) -> Unit)? = null,
+    onGrammarDetail: ((String) -> Unit)? = null,
 ) {
     when {
         state.finished -> DoneScreen(state, onClose, onStudyMore)
@@ -109,7 +110,7 @@ fun ReviewScreen(
                     val cardView: @Composable (Modifier) -> Unit = { m ->
                         Flashcard(
                             card, state.revealed, state.remainingReview + state.remainingNew, prefs, onReveal, m,
-                            onChipClick, header = if (low) progress else null,
+                            onChipClick, onGrammarDetail, header = if (low) progress else null,
                             bottomInset = if (twoPane) 0.dp else with(LocalDensity.current) { snackPx.toDp() }, // 스낵바 실측 높이
                         )
                     }
@@ -169,7 +170,7 @@ private fun TopBar(
     val on = stringResource(R.string.review_on)
     val off = stringResource(R.string.review_off)
     val furiganaLabel = stringResource(R.string.review_furigana)
-    val furiganaOn = if (state.revealed) prefs.bodyFurigana else prefs.frontFurigana
+    val furiganaOn = if (state.revealed || state.card is ReviewCardUi.Grammar) prefs.bodyFurigana else prefs.frontFurigana
     val undoLabel = stringResource(if (state.canUndo) R.string.review_undo else R.string.review_undo_none)
     Row(
         Modifier.fillMaxWidth().height(if (compact) 48.dp else 64.dp).padding(horizontal = Spacing.xs)
