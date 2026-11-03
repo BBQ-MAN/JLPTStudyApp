@@ -197,6 +197,17 @@ class ReleaseFlowTest(TempRoot):
                or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(r["reviewedAt"]))]
         self.assertEqual(bad, [])
 
+    def test_committed_ko_gloss_n4(self):
+        # M26a: N4 뜻은 LLM 생성, 검수 전이므로 모두 unreviewed이고 N5와 vocabId가 겹치지 않는다.
+        from pl_common import Paths
+        import pl_db
+        n4 = pl_db.load_ko_gloss(Paths(), {"levels": [4]})
+        self.assertEqual(len(n4), 630)
+        self.assertFalse(set(n4) & set(pl_db.load_ko_gloss(Paths(), {"levels": [5]})))
+        bad = [v for v, r in n4.items() if (r["koSource"], r["reviewStatus"], r["reviewedAt"], r["reviewerKind"]) != ("jmdict-translated", "unreviewed", None, None)
+               or not re.fullmatch(r"llm:[\w.-]+@\d{4}-\d{2}-\d{2}", r["method"]) or not 1 <= len(r["meanings"]) <= 7]
+        self.assertEqual(bad, [])
+
     def test_release_checks_catch_empty_fields_and_app_assets(self):
         self.assertEqual(self.full_build(), 0, self.log)
         ap = self.p.assets / "attribution.json"
