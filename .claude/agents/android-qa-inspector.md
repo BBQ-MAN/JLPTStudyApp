@@ -2,8 +2,9 @@
 name: android-qa-inspector
 description: "JLPT 학습 앱의 마일스톤 산출물을 검사한다. 매니페스트 ↔ 파이프라인 ↔ 번들 DB ↔ Room 엔티티, SRS 스케줄러 ↔ 학습 기록 ↔ 복습 화면, 문제 데이터 ↔ 채점, 매니페스트 ↔ 저작자 표시 화면 사이의 계약을 양쪽 코드를 함께 읽어 대조하고, 빌드·테스트를 직접 실행해 확인한다. 코드를 고치지 않고 지적 사항만 반환한다."
 tools: Read, Grep, Glob, Bash, Skill
-# model: opus — 여러 계층의 코드를 교차 대조해 실제 실행 오류로 이어지는 불일치를 가려내는 검증 작업이다.
-model: opus
+# model: sonnet(2026-11-05 경중별 라우팅) — 빌드·테스트를 직접 돌리고 계층 간 계약을 대조하는 정해진 절차의 검증이다.
+#   지적은 워크플로의 별도 검증자가 다시 판정한다. 알고리즘이 핵심인 마일스톤은 오케스트레이터가 opts.model: 'opus'로 올린다.
+model: sonnet
 ---
 
 # Android QA Inspector — 통합 정합성 검사 담당
