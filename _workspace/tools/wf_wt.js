@@ -13,6 +13,7 @@ export const meta = {
 // wt 사본: args.workdir(갈래 worktree 절대 경로)를 모든 프롬프트 앞에 붙인다. 수렴 규칙은 wf_b5.js와 같다(라운드 1부터 QA만, medium은 보고만).
 const WD = (args && args.workdir) || ''
 const PRE = WD ? `작업 디렉터리(git worktree): ${WD}\n먼저 cd ${WD} 하고, 모든 읽기·쓰기·명령 실행·verify.sh를 이 디렉터리에서 한다. 아래의 상대 경로는 모두 이 디렉터리 기준이다(Read/Edit/Write에는 ${WD}/로 시작하는 절대 경로를 쓴다). 메인 체크아웃(/Users/bbqman/HermesAgents/ETC/JLPTStudyApp)의 파일은 읽기만 하고 고치지 않는다. git commit·push·브랜치 변경을 하지 않는다(메인 세션이 커밋한다).\n\n` : ''
+// 모델 라우팅(2026-11-05): agentType 없는 추출·검증·리뷰 호출은 sonnet 으로 고정한다. 지정하지 않으면 세션 모델(opus)을 상속해 주장·지적마다 opus 가 돈다.
 const call = (prompt, opts) => agent(PRE + prompt, opts).catch(e => {
   if (!opts || !opts.agentType || !/not found/i.test(String((e && e.message) || e))) throw e
   const rest = Object.assign({}, opts)
@@ -115,7 +116,7 @@ function reviewersFor(m, changed, shots) {
 async function review(m, changed, shots, round) {
   const reviewers = round >= 1 ? reviewersFor(m, changed, shots).filter(r => r.key === 'qa') : reviewersFor(m, changed, shots)
   const run = (r, tag) => call(r.prompt,
-    Object.assign({ label: `리뷰:${r.key}:${m.id}#${round}${tag}`, phase: '리뷰', schema: r.schema || FINDINGS }, r.agentType ? { agentType: r.agentType } : {}))
+    Object.assign({ label: `리뷰:${r.key}:${m.id}#${round}${tag}`, phase: '리뷰', schema: r.schema || FINDINGS }, r.agentType ? { agentType: r.agentType } : { model: 'sonnet' }))
     .then(res => res && Object.assign({ key: r.key }, res))
   // QA가 완료 조건을 다 판정하지 않으면 결과가 없는 것과 같다.
   const usable = (r, x) => x && (r.key !== 'qa' || x.acceptance.length >= (m.acceptance || []).length)
@@ -136,7 +137,7 @@ const judge = (m, round, f, i) => call(
   (f.carried ? '\n이전 라운드에서 확정된 지적이다. 현재 상태에서 아직 유효한지 판정한다.' : '') +
   (f.rejection ? `\n구현자 반박: ${f.rejection}\n반박 근거가 맞으면 refuted, 틀리면 confirmed로 판정하고 이유를 적는다.` : '') +
   `\n지적: ${JSON.stringify(f)}\n${SPECS}`,
-  { label: `검증:${m.id}#${round}.${i}`, phase: '지적 검증', schema: VERDICT, effort: 'high' })
+  { label: `검증:${m.id}#${round}.${i}`, phase: '지적 검증', schema: VERDICT, effort: 'high', model: 'sonnet' })
 const withVerdict = (f, v) => Object.assign({}, f, { verdict: v || { status: 'uncertain', reason: NO_VERDICT } })
 
 const report = []
