@@ -62,7 +62,7 @@ class RoomStudyRepository(
     private val dao: StudyDao,
     /** 번들에 문법 행이 있는가. 있어야 문법(gr)만 켜 둔 설정이 유효하다. */
     private val grammarAvailable: suspend () -> Boolean = { false },
-) : StudyRepository {
+) : StudyRepository, QuizRepository by RoomQuizRepository(dao) {
     override suspend fun applyReview(result: ScheduleResult) {
         val r = result.record
         dao.applyReview(

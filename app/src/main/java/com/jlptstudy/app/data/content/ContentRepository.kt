@@ -55,7 +55,8 @@ interface ContentRepository {
     suspend fun meaningReviewCounts(): ReviewCounts
 }
 
-class RoomContentRepository(private val dao: ContentDao) : ContentRepository, GrammarRepository by RoomGrammarRepository(dao) {
+class RoomContentRepository(private val dao: ContentDao) :
+    ContentRepository, GrammarRepository by RoomGrammarRepository(dao), QuizContentRepository by RoomQuizContentRepository(dao) {
     private val json = Json
 
     override suspend fun meta(): ContentMeta {

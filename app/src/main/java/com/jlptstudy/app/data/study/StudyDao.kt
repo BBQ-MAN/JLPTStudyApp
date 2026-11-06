@@ -92,4 +92,42 @@ abstract class StudyDao {
     open suspend fun updateSettings(transform: (UserSettingsEntity) -> UserSettingsEntity) {
         putSettings(transform(settingsRow() ?: UserSettingsEntity()))
     }
+
+    // 시도·답 삭제 쿼리는 두지 않는다(포기 = finish, architecture.md 9.2.6).
+    @Insert
+    abstract suspend fun insertAttempt(attempt: QuizAttemptEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertAnswer(answer: QuizAnswerEntity)
+
+    /** 끝난 시도(finished_at != null)에는 기록하지 않는다. 없는 시도는 FK 예외 그대로. */
+    @Transaction
+    open suspend fun upsertAnswer(answer: QuizAnswerEntity) {
+        if (attemptById(answer.attemptId)?.finishedAtEpochMs != null) return
+        insertAnswer(answer)
+    }
+
+    @Query("UPDATE quiz_attempt SET current_index = :currentIndex, elapsed_ms = :elapsedMs WHERE id = :id AND finished_at_epoch_ms IS NULL")
+    abstract suspend fun updateProgress(id: Long, currentIndex: Int, elapsedMs: Long)
+
+    @Query("UPDATE quiz_attempt SET finished_at_epoch_ms = :at WHERE id = :id AND finished_at_epoch_ms IS NULL")
+    abstract suspend fun finishAttempt(id: Long, at: Long)
+
+    @Query("UPDATE quiz_attempt SET finished_at_epoch_ms = :at WHERE exam_id IS NOT NULL AND finished_at_epoch_ms IS NULL")
+    abstract suspend fun closeUnfinishedExams(at: Long)
+
+    @Query("SELECT * FROM quiz_attempt WHERE id = :id")
+    abstract suspend fun attemptById(id: Long): QuizAttemptEntity?
+
+    @Query("SELECT * FROM quiz_answer WHERE attempt_id = :id")
+    abstract suspend fun answersOf(id: Long): List<QuizAnswerEntity>
+
+    @Query("SELECT * FROM quiz_attempt WHERE exam_id IS NOT NULL AND finished_at_epoch_ms IS NULL ORDER BY id DESC LIMIT 1")
+    abstract suspend fun unfinishedExam(): QuizAttemptEntity?
+
+    @Transaction
+    open suspend fun startAttempt(attempt: QuizAttemptEntity): Long {
+        if (attempt.examId != null) closeUnfinishedExams(attempt.startedAtEpochMs)
+        return insertAttempt(attempt)
+    }
 }

@@ -88,6 +88,13 @@ import com.jlptstudy.app.ui.about.AboutUiState
 import com.jlptstudy.app.ui.about.AboutViewModel
 import com.jlptstudy.app.ui.about.rememberMeaningSourceTexts
 import com.jlptstudy.app.ui.about.rememberProvenanceSheet
+import com.jlptstudy.app.data.QuizSessionLoader
+import com.jlptstudy.app.ui.practice.PracticeHomeRoute
+import com.jlptstudy.app.ui.practice.PracticeHomeScreen
+import com.jlptstudy.app.ui.practice.PracticeHomeUiState
+import com.jlptstudy.app.ui.practice.PracticeHomeViewModel
+import com.jlptstudy.app.ui.practice.QuizRoute
+import com.jlptstudy.app.ui.practice.QuizViewModel
 import com.jlptstudy.app.ui.settings.SettingsRoute
 import com.jlptstudy.app.ui.settings.SettingsScreen
 import com.jlptstudy.app.ui.settings.SettingsUiState
@@ -140,6 +147,7 @@ private enum class Tab(val route: Any, val type: KClass<*>, val label: Int, val 
     HOME(Home, Home::class, R.string.tab_home, R.drawable.ic_ms_home, R.drawable.ic_ms_home_fill),
     DICTIONARY(Dictionary, Dictionary::class, R.string.tab_dictionary, R.drawable.ic_ms_menu_book, R.drawable.ic_ms_menu_book_fill),
     GRAMMAR(Grammar, Grammar::class, R.string.tab_grammar, R.drawable.ic_ms_school, R.drawable.ic_ms_school_fill),
+    PRACTICE(Practice, Practice::class, R.string.tab_practice, R.drawable.ic_ms_edit_note, R.drawable.ic_ms_edit_note),
     SETTINGS(Settings(), Settings::class, R.string.tab_settings, R.drawable.ic_ms_settings, R.drawable.ic_ms_settings_fill),
 }
 
@@ -270,6 +278,35 @@ private fun AppShell(
                     GrammarListScreen(GrammarListUiState()) // 컨테이너 없이 그리는 시험·미리보기: 로딩 자리표시
                 }
             }
+            composable<Practice> {
+                val content = container?.quizContentRepository
+                val quiz = container?.quizRepository
+                val study = container?.studyRepository
+                if (container != null && content != null && quiz != null && study != null) {
+                    val vm: PracticeHomeViewModel = viewModel { PracticeHomeViewModel(content, quiz, study, container.clock) }
+                    PracticeHomeRoute(
+                        vm, onQuiz = { nav.navigate(Quiz(it)) }, onExamStart = { nav.navigate(ExamStart(it)) }, onNotice = { nav.navigate(About("N-11")) },
+                    )
+                } else {
+                    PracticeHomeScreen(PracticeHomeUiState()) // 컨테이너 없이 그리는 시험·미리보기: 로딩 자리표시
+                }
+            }
+            composable<Quiz> { entry ->
+                val content = container?.quizContentRepository
+                val quiz = container?.quizRepository
+                val study = container?.studyRepository
+                if (container != null && content != null && quiz != null && study != null) {
+                    val id = entry.toRoute<Quiz>().attemptId
+                    val vm: QuizViewModel = viewModel(key = "quiz-$id") { QuizViewModel(id, QuizSessionLoader(quiz, content), quiz, study, container.clock) }
+                    val onChip = rememberProvenanceSheet(rememberMeaningSourceTexts(container.attributionRepository)) { nav.navigate(About()) }
+                    QuizRoute(
+                        vm, onExit = { nav.popBackStack() }, onChipClick = onChip,
+                        onResult = { nav.navigate(QuizResult(it)) { popUpTo<Quiz> { inclusive = true } } },
+                    )
+                }
+            }
+            composable<QuizResult> { Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {} } // S15는 M19d
+            composable<ExamStart> { Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {} } // S14 시작 화면은 M19c
             composable<GrammarDetail> { entry ->
                 val grammar = container?.grammarRepository
                 val study = container?.studyRepository

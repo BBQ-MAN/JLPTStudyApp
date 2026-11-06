@@ -46,6 +46,14 @@ class ChunkingTest {
             override fun observeSettings(): Flow<UserSettingsEntity?> = emptyFlow()
             override suspend fun settingsRow(): UserSettingsEntity? = TODO()
             override suspend fun putSettings(settings: UserSettingsEntity) = TODO()
+            override suspend fun insertAttempt(attempt: com.jlptstudy.app.data.study.QuizAttemptEntity): Long = TODO()
+            override suspend fun insertAnswer(answer: com.jlptstudy.app.data.study.QuizAnswerEntity) = TODO()
+            override suspend fun updateProgress(id: Long, currentIndex: Int, elapsedMs: Long) = TODO()
+            override suspend fun finishAttempt(id: Long, at: Long) = TODO()
+            override suspend fun closeUnfinishedExams(at: Long) = TODO()
+            override suspend fun attemptById(id: Long): com.jlptstudy.app.data.study.QuizAttemptEntity? = TODO()
+            override suspend fun answersOf(id: Long): List<com.jlptstudy.app.data.study.QuizAnswerEntity> = TODO()
+            override suspend fun unfinishedExam(): com.jlptstudy.app.data.study.QuizAttemptEntity? = TODO()
         }
         RoomStudyRepository(dao).states(ids2000)
         assertEquals(2000, sizes.sum())
@@ -88,6 +96,12 @@ class ChunkingTest {
             override suspend fun countQuestion(): Int = TODO()
             override suspend fun countExamTemplate(): Int = TODO()
             override suspend fun countListening(): Int = TODO()
+            override suspend fun questionPool(level: Int) = TODO()
+            override suspend fun listeningPool(level: Int) = TODO()
+            override suspend fun questionsByIds(ids: List<String>) = TODO()
+            override suspend fun listeningByIds(ids: List<String>) = TODO()
+            override suspend fun examTemplateRow(level: Int) = TODO()
+            override suspend fun examTemplateLevels() = TODO()
         }
         RoomContentRepository(dao).cardContents(ids2000 + (1..1000).map { "kr:字$it" })
         for (name in listOf("vocab", "meanings", "retired", "kanji", "words")) {

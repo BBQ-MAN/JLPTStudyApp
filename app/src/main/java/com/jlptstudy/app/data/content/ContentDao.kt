@@ -11,6 +11,16 @@ data class BrowseVocabRow(val id: String, val written: String?, val reading: Str
 data class BrowseKanjiRow(val literal: String, val level: Int, @ColumnInfo(name = "korean_readings") val koreanReadings: String)
 data class KanjiWordRow(val kanji: String, val vocabId: String, val written: String?, val reading: String, val textKo: String?)
 
+// choices_json·answer_index는 contents()가 버릴 행을 pool()에서도 빼려고 함께 읽는다(RoomQuizContentRepository).
+data class QuizPoolRow(
+    val id: String, val section: String, val type: String,
+    @ColumnInfo(name = "choices_json") val choicesJson: String, @ColumnInfo(name = "answer_index") val answerIndex: Int,
+)
+data class ListeningPoolRow(
+    val id: String, val type: String,
+    @ColumnInfo(name = "choices_json") val choicesJson: String, @ColumnInfo(name = "answer_index") val answerIndex: Int,
+)
+
 data class GrammarTitleRow(val id: String, val title: String)
 
 data class ReviewCountRow(val status: String?, val kind: String?, val n: Int)
@@ -136,4 +146,22 @@ interface ContentDao {
 
     @Query("SELECT COUNT(*) FROM listening")
     suspend fun countListening(): Int
+
+    @Query("SELECT id, section, type, choices_json, answer_index FROM question WHERE level = :level AND id NOT IN (SELECT id FROM retired) ORDER BY sort_key, id")
+    suspend fun questionPool(level: Int): List<QuizPoolRow>
+
+    @Query("SELECT id, type, choices_json, answer_index FROM listening WHERE level = :level AND id NOT IN (SELECT id FROM retired) ORDER BY sort_key, id")
+    suspend fun listeningPool(level: Int): List<ListeningPoolRow>
+
+    @Query("SELECT * FROM question WHERE id IN (:ids)")
+    suspend fun questionsByIds(ids: List<String>): List<QuestionEntity>
+
+    @Query("SELECT * FROM listening WHERE id IN (:ids)")
+    suspend fun listeningByIds(ids: List<String>): List<ListeningEntity>
+
+    @Query("SELECT * FROM exam_template WHERE level = :level")
+    suspend fun examTemplateRow(level: Int): ExamTemplateEntity?
+
+    @Query("SELECT level FROM exam_template")
+    suspend fun examTemplateLevels(): List<Int>
 }
