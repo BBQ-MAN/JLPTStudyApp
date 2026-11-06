@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0024",
+  "section": "vocab",
+  "type": "context",
+  "stem": "{妹|いもうと}は　{犬|いぬ}が　＿＿ですから、{毎日|まいにち}　{犬|いぬ}と　{散歩|さんぽ}します。",
+  "choices": [
+    "{嫌|きら}い",
+    "{上手|じょうず}",
+    "{好|す}き",
+    "{下手|へた}"
+  ],
+  "answerIndex": 2,
+  "explanationKo": "개를 '좋아해서' 매일 산책한다는 문장입니다. 〜が好きです로 씁니다.",
+  "whyWrongKo": [
+    "嫌い(싫어함)라면 매일 개와 산책한다는 뒤 문장과 맞지 않습니다.",
+    "上手(잘함)는 기술·능력에 씁니다. 犬が上手라고 하지 않습니다.",
+    null,
+    "下手(서투름)도 기술·능력에 씁니다. 犬が下手라고 하지 않습니다."
+  ],
+  "targets": [
+    "jm:1277450",
+    "犬"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0010",
+  "section": "grammar",
+  "type": "grammar-form",
+  "stem": "{公園|こうえん}に　{子供|こども}が　{三人|さんにん}　＿＿。",
+  "choices": [
+    "います",
+    "あります",
+    "なります",
+    "します"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "사람(子供)이 어떤 곳에 있을 때는 〜がいます를 씁니다.",
+  "whyWrongKo": [
+    null,
+    "あります는 물건·식물에 씁니다. 사람·동물에는 います를 씁니다.",
+    "なります는 변화를 나타내며 명사 뒤에 に가 필요합니다. 있는 곳을 나타내는 公園に와도 맞지 않습니다.",
+    "します는 존재를 나타내지 않습니다."
+  ],
+  "targets": [
+    "gr-n5-0020",
+    "jm:1577980"
+  ]
+}

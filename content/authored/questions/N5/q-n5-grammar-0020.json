@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0020",
+  "section": "grammar",
+  "type": "text-grammar",
+  "stem": "{私|わたし}は　{去年|きょねん}　{日本|にほん}へ　{来|き}ました。{来|き}た　ときは、{日本語|にほんご}が　あまり　＿＿。でも、{今|いま}は　{毎日|まいにち}　{日本語|にほんご}で　{友達|ともだち}と　{話|はな}して　います。",
+  "choices": [
+    "わかりません",
+    "わかりませんでした",
+    "わかりました",
+    "わかります"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "'왔을 때'는 과거이고 あまり는 부정과 함께 쓰므로 과거 부정 わかりませんでした가 맞습니다.",
+  "whyWrongKo": [
+    "わかりません은 현재입니다. 来たとき(왔을 때)는 지난 일이므로 과거형을 씁니다.",
+    null,
+    "あまり는 부정과 함께 씁니다. わかりました는 긍정입니다.",
+    "わかります는 긍정이고 현재입니다. あまり·来たとき 둘 다와 맞지 않습니다."
+  ],
+  "targets": [
+    "gr-n5-0004",
+    "jm:1584930"
+  ]
+}

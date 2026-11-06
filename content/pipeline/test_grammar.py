@@ -299,6 +299,16 @@ class RepoTest(unittest.TestCase):
         self.assertEqual(sorted(p.name for p in Paths().schemas.glob("*.json")), ["1.json", "2.json"])
         self.assertEqual(read_json(Paths().schemas / "2.json")["database"]["version"], 2)
 
+    def test_committed_n5_grammar(self):
+        # M16: N5 문법 20개 이상, 직접 작성(sources·예문 출처 없음), LLM 작성(검수 상태는 review-apply로 바뀔 수 있음), 유사 검사 0건.
+        import pl_review as rv
+        recs, _ = gm.load_grammar(Paths(), "release", read_json(Paths().manifest), [5])
+        self.assertGreaterEqual(len(recs), 20)
+        bad = [r["id"] for r in recs if r["sources"] != [] or r["method"] == "human" or r["reviewStatus"] not in ("unreviewed", "sampled", "reviewed")
+               or any(k in e for e in r["examples"] for k in ("source", "ref", "author", "license"))]
+        self.assertEqual(bad, [])
+        self.assertEqual([l for l in rv.similarity_lines(Paths()) if " gr-" in l], [])
+
 
 if __name__ == "__main__":
     unittest.main()

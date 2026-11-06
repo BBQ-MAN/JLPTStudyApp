@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0006",
+  "section": "grammar",
+  "type": "grammar-form",
+  "stem": "{寝|ね}る＿＿、{歯|は}を　{磨|みが}きます。",
+  "choices": [
+    "あとで",
+    "たり",
+    "ても",
+    "まえに"
+  ],
+  "answerIndex": 3,
+  "explanationKo": "'자기 전에'는 사전형＋まえに로 씁니다. 寝るまえに歯を磨きます.",
+  "whyWrongKo": [
+    "あとで는 た형 뒤에 씁니다(寝たあとで). 사전형 寝る 뒤에는 붙지 않습니다.",
+    "たり는 た형으로 만듭니다(寝たり). 寝る에 붙지 않습니다.",
+    "ても는 て형으로 만듭니다(寝ても). 寝る에 붙지 않습니다.",
+    null
+  ],
+  "targets": [
+    "gr-n5-0018",
+    "jm:1523940"
+  ]
+}

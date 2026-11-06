@@ -1,0 +1,31 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0004",
+  "section": "grammar",
+  "type": "grammar-form",
+  "stem": "{先生|せんせい}「みなさん、{本|ほん}の　{十|じゅっ}ページを　＿＿。」",
+  "choices": [
+    "{見|み}て　います",
+    "{見|み}て　ください",
+    "{見|み}たいです",
+    "{見|み}ませんでした"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "선생님이 학생들(みなさん)에게 부탁·지시하는 말이므로 〜てください를 씁니다.",
+  "whyWrongKo": [
+    "見ています는 지금 보고 있는 상태를 말합니다. 선생님이 학생들에게 시키는 말이 되지 않습니다.",
+    null,
+    "見たいです는 말하는 사람 자신의 희망입니다. みなさん에게 하는 말과 맞지 않습니다.",
+    "見ませんでした는 과거의 부정입니다. みなさん이라고 부르며 하는 말과 맞지 않습니다."
+  ],
+  "targets": [
+    "gr-n5-0007"
+  ]
+}

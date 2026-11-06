@@ -158,11 +158,20 @@ class ExamFormatTest(unittest.TestCase):
         self.fails(lambda e: e["sections"][0]["parts"][0].update(type="nope"), "type")
         self.fails(lambda e: e["sections"][0]["parts"][0].update(type="short"), "type")  # section vocab에 reading 코드
         self.fails(lambda e: e["sections"][0]["parts"][0].update(count=0), "count")
+        self.fails(lambda e: e["sections"][0]["parts"][0].update(count=None), "count")
         for bad in (["a"], {"a": 1}):  # 손으로 쓴 파일의 잘못된 타입은 TypeError가 아니라 FAIL 줄
             self.fails(lambda e, b=bad: e["sections"][0]["parts"][0].update(section=b), "section invalid")
             self.fails(lambda e, b=bad: e["sections"][0]["parts"][0].update(type=b), "type")
         self.fails(lambda e: e.update(sections=[]), "sections")
         self.fails(lambda e: e.update(level="N4"), "level")
+
+    def test_count_may_be_absent(self):
+        # M21: jlpt.jp 안내에 문항 수가 없으면 채우지 않는다(uncertain)
+        e = exam()
+        e["sections"][0]["parts"][0].pop("count")
+        self.assertEqual(qs.exam_problems(e, "N5"), [])
+        self.assertEqual(qs.exam_rows([e]), [])  # 행 없음 → 앱 examTemplate null(모의고사 카드 없음)
+        self.assertEqual(len(qs.exam_rows([exam()])), 1)
 
 
 class LoadTest(TempRoot):
@@ -253,6 +262,23 @@ class RepoTest(unittest.TestCase):
         self.assertEqual(len(list((REPO / "content/authored/sample/exams").glob("*.json"))), 1)
         self.assertEqual(sorted(p.name for p in Paths().schemas.glob("*.json")), ["1.json", "2.json"])
         self.assertEqual(read_json(Paths().schemas / "2.json")["database"]["version"], 2)
+
+    def test_committed_n5_questions_and_exam(self):
+        # M21: N5 문항 60개 이상(형식·정답 위치 분포 통과), 직접 작성(검수 상태는 review-apply로 바뀔 수 있음), targets 있음, 유사 검사 0건, 시험 템플릿은 jlpt.jp 출처·청해 영역 포함.
+        import pl_review as rv
+        recs, exams, _ = qs.load_questions(Paths(), "release", read_json(Paths().manifest), [5])
+        self.assertGreaterEqual(len(recs), 60)
+        bad = [r["id"] for r in recs if r["sources"] != [] or r["method"] == "human" or r["reviewStatus"] not in ("unreviewed", "sampled", "reviewed") or not r["targets"]]
+        self.assertEqual(bad, [])
+        self.assertEqual([l for l in rv.similarity_lines(Paths()) if " q-" in l], [])
+        (e,) = exams
+        self.assertTrue(e["sourceUrl"].startswith("https://www.jlpt.jp/"))
+        self.assertEqual([s["minutes"] for s in e["sections"]], [20, 40, 30])
+        self.assertEqual({p["section"] for p in e["sections"][-1]["parts"]}, {"listening"})
+        # 릴리스 템플릿은 count가 모두 있어야 exam_template 행이 나간다(결정 A: 연습용 값, 공식 아님 표시)
+        self.assertTrue(qs.complete_exam(e))
+        self.assertIn("공식 값이 아님", e["countNote"])
+        self.assertEqual(len(qs.exam_rows([e])), 1)
 
 
 if __name__ == "__main__":

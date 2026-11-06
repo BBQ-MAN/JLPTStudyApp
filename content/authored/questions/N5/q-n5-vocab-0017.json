@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0017",
+  "section": "vocab",
+  "type": "context",
+  "stem": "{雨|あめ}が　{降|ふ}って　いますから、＿＿を　さして　{歩|ある}きます。",
+  "choices": [
+    "{靴|くつ}",
+    "めがね",
+    "{傘|かさ}",
+    "{財布|さいふ}"
+  ],
+  "answerIndex": 2,
+  "explanationKo": "비가 와서 '우산을 쓰고' 걷는다는 문장입니다. 우산은 傘をさす라고 합니다.",
+  "whyWrongKo": [
+    "靴는 さす와 함께 쓰지 않습니다. 신발은 はく(履く)를 씁니다.",
+    "めがね는 さす가 아니라 かける를 씁니다.",
+    null,
+    "財布는 さす와 함께 쓰지 않습니다."
+  ],
+  "targets": [
+    "傘",
+    "jm:1291330"
+  ]
+}

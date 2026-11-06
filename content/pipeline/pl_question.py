@@ -206,7 +206,8 @@ def exam_problems(rec, name):
                 out.append(bad(f"sections[{i}].parts[{j}] section invalid"))
             elif not isinstance(p.get("type"), str) or p["type"] not in TYPES[p["section"]]:
                 out.append(bad(f"type sections[{i}].parts[{j}] {p.get('type')!r} is not a {p['section']} code"))
-            if isinstance(p, dict) and (not isinstance(p.get("count"), int) or isinstance(p.get("count"), bool) or p["count"] < 1):
+            # count 없음 = 공식 안내에 문항 수가 없어 확인하지 못한 값(architecture 9.2.1 uncertain). 있으면 1 이상 정수
+            if isinstance(p, dict) and "count" in p and (not isinstance(p.get("count"), int) or isinstance(p.get("count"), bool) or p["count"] < 1):
                 out.append(bad(f"sections[{i}].parts[{j}] count invalid"))
     return out
 
@@ -252,9 +253,15 @@ def question_rows(recs):
             for r in sorted((r for r in recs if r["status"] != "retired"), key=lambda r: r["id"])]
 
 
+def complete_exam(e):
+    """parts[] 모두 count가 있어야 앱 ExamPart(count: Int)로 읽힌다(9.2.1)."""
+    return all("count" in p for s in e["sections"] for p in s["parts"])
+
+
 def exam_rows(exams):
+    """count가 빈 템플릿은 행을 쓰지 않는다 → 앱은 그 급수 모의고사 없음(examTemplate null)."""
     return [{"level": int(e["level"][1]), "template_json": jdump({"sections": e["sections"]}), "source_url": e["sourceUrl"],
-             "checked_at": e["checkedAt"], "source_id": "authored"} for e in sorted(exams, key=lambda e: e["level"], reverse=True)]
+             "checked_at": e["checkedAt"], "source_id": "authored"} for e in sorted(exams, key=lambda e: e["level"], reverse=True) if complete_exam(e)]
 
 
 def ko_texts(recs):

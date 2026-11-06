@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0007",
+  "section": "vocab",
+  "type": "kanji-reading",
+  "stem": "{兄|あに}は　[[外国]]の　{会社|かいしゃ}で　{働|はたら}いて　います。",
+  "target": "外国",
+  "choices": [
+    "がいこく",
+    "かいこく",
+    "がいごく",
+    "そとくに"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "外国는 '외국'이고 がいこく로 읽습니다.",
+  "whyWrongKo": [
+    null,
+    "外는 탁음 がい로 읽습니다.",
+    "国은 이 말에서 こく로 읽고 탁음이 되지 않습니다.",
+    "外国은 음으로 がいこく라고 읽습니다. 外(そと)와 国(くに)의 훈으로 읽지 않습니다."
+  ],
+  "targets": [
+    "jm:1203620",
+    "外",
+    "国"
+  ]
+}

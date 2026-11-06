@@ -1,0 +1,33 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0025",
+  "section": "vocab",
+  "type": "paraphrase",
+  "stem": "[[おととい]]、{友達|ともだち}に　{会|あ}いました。",
+  "target": "おととい",
+  "choices": [
+    "{昨日|きのう}　{友達|ともだち}に　{会|あ}いました。",
+    "{先週|せんしゅう}　{友達|ともだち}に　{会|あ}いました。",
+    "{二日|ふつか}{前|まえ}に　{友達|ともだち}に　{会|あ}いました。",
+    "{一昨年|おととし}　{友達|ともだち}に　{会|あ}いました。"
+  ],
+  "answerIndex": 2,
+  "explanationKo": "おととい는 '그저께', 곧 이틀 전입니다. 二日前(이틀 전)와 같은 뜻입니다.",
+  "whyWrongKo": [
+    "昨日(きのう)는 하루 전입니다. おととい는 이틀 전입니다.",
+    "先週(せんしゅう)는 지난주입니다.",
+    null,
+    "おととし(一昨年)는 재작년입니다. 날이 아니라 해를 말합니다."
+  ],
+  "targets": [
+    "jm:1576050",
+    "jm:1576060"
+  ]
+}

@@ -71,6 +71,9 @@ def add_questions(ds, paths, config, check_targets=True):
     for f in files:
         add_input(ds, paths, f)
     ds.questions, ds.exams = qs.question_rows(recs), qs.exam_rows(exams)
+    for e in exams:
+        if not qs.complete_exam(e):
+            print(f"exam: {e['level']} template not built (parts[].count missing, architecture 9.2.1 uncertain)")
     for rid, texts in qs.ko_texts(recs):
         ds.spans += au.jp_span_rows("authored", rid, texts)
 

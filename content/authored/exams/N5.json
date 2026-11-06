@@ -1,0 +1,99 @@
+{
+  "level": "N5",
+  "sourceUrl": "https://www.jlpt.jp/e/guideline/testsections.html",
+  "checkedAt": "2026-11-03",
+  "countNote": "parts[].count는 앱이 정한 연습용 문항 수이며 공식 값이 아님(jlpt.jp 안내에 유형별 문항 수가 없음, 2026-11-07 결정 A)",
+  "sections": [
+    {
+      "id": "vocab",
+      "titleKo": "언어지식(문자·어휘)",
+      "minutes": 20,
+      "parts": [
+        {
+          "section": "vocab",
+          "type": "kanji-reading",
+          "count": 7
+        },
+        {
+          "section": "vocab",
+          "type": "orthography",
+          "count": 5
+        },
+        {
+          "section": "vocab",
+          "type": "context",
+          "count": 6
+        },
+        {
+          "section": "vocab",
+          "type": "paraphrase",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "id": "grammar-reading",
+      "titleKo": "언어지식(문법)·독해",
+      "minutes": 40,
+      "parts": [
+        {
+          "section": "grammar",
+          "type": "grammar-form",
+          "count": 9
+        },
+        {
+          "section": "grammar",
+          "type": "sentence-order",
+          "count": 4
+        },
+        {
+          "section": "grammar",
+          "type": "text-grammar",
+          "count": 4
+        },
+        {
+          "section": "reading",
+          "type": "short",
+          "count": 3
+        },
+        {
+          "section": "reading",
+          "type": "mid",
+          "count": 2
+        },
+        {
+          "section": "reading",
+          "type": "info-search",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "listening",
+      "titleKo": "청해",
+      "minutes": 30,
+      "parts": [
+        {
+          "section": "listening",
+          "type": "task",
+          "count": 7
+        },
+        {
+          "section": "listening",
+          "type": "point",
+          "count": 6
+        },
+        {
+          "section": "listening",
+          "type": "utterance",
+          "count": 5
+        },
+        {
+          "section": "listening",
+          "type": "quick-response",
+          "count": 6
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0023",
+  "section": "vocab",
+  "type": "context",
+  "stem": "{今日|きょう}は　{仕事|しごと}が　{多|おお}くて、とても　＿＿です。",
+  "choices": [
+    "{忙|いそが}しい",
+    "{新|あたら}しい",
+    "{涼|すず}しい",
+    "やさしい"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "일이 많아서 아주 '바쁘다'는 문장입니다.",
+  "whyWrongKo": [
+    null,
+    "新しい(새롭다)는 일이 많다는 앞 내용과 이어지지 않습니다.",
+    "涼しい(시원하다)는 날씨·바람에 씁니다.",
+    "やさしい(쉽다)는 일이 많다는 앞 내용과 반대입니다."
+  ],
+  "targets": [
+    "jm:1519290",
+    "jm:1304970"
+  ]
+}
