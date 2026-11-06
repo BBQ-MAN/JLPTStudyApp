@@ -77,3 +77,11 @@ N5 어휘 목록(S-06 릴리스 빌드의 level=5 vocab)과 M16 N5 문법 범위
 ### 검사
 - `python3 -I content/pipeline/build.py authored` 종료 코드 0(FAIL·WARN 없음). 생긴 `_workspace/03_content-engineer_M26a_ko_spans_authored.tsv`는 지움.
 - `content/pipeline/check.sh` 종료 코드 0. `verify.sh` 종료 코드 0(로그 `_workspace/build/verify_20261107_085402.log`).
+
+### 재검수 보정 (2026-11-07, 2차)
+- q-n5-vocab-0004: 위 1차 수정은 틀렸다(だいにん은 JMdict 2860067에 大人 읽기로 있어 정답이 둘). 오답을 おおにん(JMdict 전체에 없는 읽기)으로 교체하고 whyWrongKo[2]에서 '요금표' 단정을 뺐다.
+- q-n5-vocab-0002: 오답 ずしょかん(JMdict ok 읽기) → とうしょかん(JMdict에 없음), 해설 "図는 と로 짧게".
+- q-n5-reading-0005: targets에 jm:1387210(先 さき) 추가.
+- kanji-reading 8문항 전수: 오답이 대상 한자어의 JMdict 읽기에 들어 있는 경우 0건.
+- 건너뜀: vocab-0022 오답 散歩(쉬움). 授業·先生 두 개가 헷갈리는 지점을 겨냥하고, 남은 후보(勉強·質問·話·宿題·作文 등)는 정답이 둘이 될 위험이 있어 그대로 둠.
+- build.py authored 0, check.sh 0, verify.sh 0(로그 `_workspace/build/verify_20261107_085730.log`).
