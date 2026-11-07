@@ -158,6 +158,28 @@ class RepoTest(unittest.TestCase):
         self.assertEqual(sorted(p.name for p in Paths().schemas.glob("*.json")), ["1.json", "2.json"])
         self.assertEqual(read_json(Paths().schemas / "2.json")["database"]["version"], 2)
 
+    def test_committed_n5_listening(self):
+        # M25: N5 대본 15개 이상, 직접 작성, 유사 검사 0건, 숫자·조수사·동형이음어가 있는 줄은 ttsText가 있고 ttsText는 그것을 가나로 풀었다.
+        import re
+        import pl_grammar as gm
+        import pl_review as rv
+        recs, _ = ls.load_listening(Paths(), "release", read_json(Paths().manifest), [5])
+        self.assertGreaterEqual(len(recs), 15)
+        bad = [r["id"] for r in recs if r["sources"] != [] or r["method"] == "human" or not r["targets"]
+               or r["reviewStatus"] not in ("unreviewed", "sampled", "reviewed")]
+        self.assertEqual(bad, [])
+        self.assertEqual([l for l in rv.similarity_lines(Paths()) if " ls-" in l], [])
+        risky = re.compile(r"[0-9０-９一二三四五六七八九十百千万半何]|今日|明日|昨日|家")
+        no_tts, unresolved = [], []
+        for r in recs:
+            for i, ln in enumerate(r["lines"]):
+                if risky.search(gm.RUBY.sub(r"\1", ln["text"])) and "ttsText" not in ln:
+                    no_tts.append(f"{r['id']}#{i}")
+                if risky.search(ln.get("ttsText", "")):
+                    unresolved.append(f"{r['id']}#{i}")
+        self.assertEqual(no_tts, [])
+        self.assertEqual(unresolved, [])
+
 
 if __name__ == "__main__":
     unittest.main()
