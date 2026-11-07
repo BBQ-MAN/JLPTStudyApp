@@ -490,10 +490,11 @@
       "Compose UI 테스트(ui-design 6.7.1): 화면이 열리면 애니메이션이 돌지 않고 완성 그림과 '획 순서대로 보기' 버튼이 보인다. 누르면 버튼이 '멈추기', 끝나면 '다시 보기'(가짜 시계로 획 수 × 400 ms + 간격 150 ms 진행). 애니메이션 삭제(animator duration scale 0)면 그리기 대신 획 번호가 붙은 완성 그림이 보인다. 획 번호 스위치 기본 끔",
       "Compose UI 테스트: 그림 노드 contentDescription이 '필순 그림, {n}획'이고 일본어가 없다. 그리기가 끝나면 liveRegion Polite 노드에 '필순 보기를 마쳤습니다'가 나타나고, 그리는 동안에는 알림 노드가 없다",
       "필순 출처 줄 문구가 attribution.json의 S-03 이름에서 오고 화면 코드에 'KanjiVG' 문자열이 없다(M7 grep 규칙 유지)",
-      "Roborazzi 스크린샷(ui-design 12절 이름, 각 _light·_dark): kanji_detail_strokes(완성 상태, 합성 픽스처), kanji_detail_strokes_light_font200, kanji_detail_loaded(필순 없음 → 절 숨김)",
+      "Roborazzi 스크린샷(ui-design 12절 이름, 각 _light·_dark): kanji_detail_strokes(완성 상태, 합성 픽스처), kanji_detail_strokes_numbers(획 번호 켬, 획 많은 픽스처로 겹침 확인), kanji_detail_strokes_reduced_motion, kanji_detail_strokes_font200, kanji_detail_strokes_numbers_font200, kanji_detail_loaded(필순 없음 → 절 숨김)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_c112f2ab-842 done. 보고된 medium(애니메이션 삭제 설정을 진입 때만 읽음)은 메인이 ON_RESUME 재확인으로 고침"
   },
   {
     "id": "M13",
@@ -542,7 +543,8 @@
       "Roborazzi 스크린샷(ui-design 12절 이름, 각 _light·_dark): grammar_list_loaded, grammar_list_empty, grammar_detail_loaded(예문 3개·비슷한 문법·'설명 검토 중' 칩), grammar_detail_retired, grammar_detail_loaded_light_font200(접속 표가 세로 카드로 바뀜)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_c112f2ab-842 done"
   },
   {
     "id": "M15",
@@ -614,7 +616,8 @@
       "Roborazzi 스크린샷(ui-design 12절 이름, 각 _light·_dark): review_front_grammar, review_back_grammar, settings_with_grammar(카드 종류 스위치 넷)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_c112f2ab-842 done"
   },
   {
     "id": "M18",
@@ -637,7 +640,8 @@
       "core/quiz/src/main 에 System.currentTimeMillis, Clock.system, Instant.now, Random() (인자 없는 생성자) 호출이 없다(grep)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": " / 2026-11-03 wf_a41e74f7-eec done(dev/app e9d6c47)"
   },
   {
     "id": "M19a",
@@ -814,8 +818,8 @@
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0",
       "실기기 확인(unverified — 옛 DEV-2, 개발 종료 후 일괄 체크리스트, architecture.md 11.5): 일본어 음성 있는 기기에서 재생, 일본어 음성이 없는 상태에서 MissingJapaneseData 설치 안내, 청해 화면을 나갔다 다시 들어와도 재생된다, 화자별 피치 차이가 들린다"
     ],
-    "status": "todo",
-    "note": "U-7 변경(2026-11-03): DEV-2를 마일스톤으로 두지 않는다. 실기기 항목은 awaiting-device로 남기고 개발 종료 후 일괄 확인"
+    "status": "awaiting-device",
+    "note": "U-7 변경(2026-11-03): DEV-2를 마일스톤으로 두지 않는다. 실기기 항목은 awaiting-device로 남기고 개발 종료 후 일괄 확인 / 2026-11-03 wf_a41e74f7-eec 통과, 실기기만 남음(dev/app e9d6c47)"
   },
   {
     "id": "M23",
@@ -930,7 +934,7 @@
     ],
     "ui": false,
     "content": true,
-    "scope": "D-03(N4 10% 표본, 잠정)과 U-4 A(에이전트 검수, reviewerKind agent)대로 T07 도구로 N4 표본을 뽑아 검수하고(review-sample --ratio 0.1 → review-sheet → review-apply --batch-sampled), 오류율이 5%를 넘으면 그 묶음을 다시 생성한 뒤 다시 검수한다. 이어서 config.json levels [5,4] release로 스냅샷에서 전체 빌드하고 content/ids/release/를 갱신한다(fetch 없음). 스키마는 v2 그대로.",
+    "scope": "D-03(N4 10% 표본, 잠정)과 U-4 A(에이전트 검수, reviewerKind agent)대로 T07 도구로 N4 표본을 뽑아 검수하고(review-sample --ratio 0.1 → review-sheet → review-apply --batch-sampled), 오류율이 5%를 넘으면 그 묶음을 다시 생성한 뒤 다시 검수한다. 이어서 config.json levels [5,4] release로 스냅샷에서 전체 빌드하고 content/ids/release/를 갱신한다(fetch 없음). 스키마는 v2 그대로. 추가(2026-11-03, M26a QA medium): check.py에 release 검사 — kind=release이고 level<=4인 vocab_meaning에 ko_review_status unreviewed가 있으면 FAIL(D-03 표본 검수 전 N4 유입 차단). 테스트 포함.",
     "acceptance": [
       "_workspace/review/ko-gloss_N4-<seed>.ids의 행 수가 ceil(N4 행 수 × 0.1) 이상(N4 576행이면 58 이상)이고, 검수 기록 _workspace/03_jlpt-content-author_M26b_review.md에 seed·표본 ID·고친 내용(전·후)·오류 수·오류율이 있으며 오류율이 5% 이하다",
       "content/ko-gloss/N4.jsonl에서 표본 행의 reviewStatus가 reviewed, 나머지가 sampled이고 reviewedAt이 YYYY-MM-DD, reviewerKind가 agent다. 사람이 표시하지 않은 행에 human이 없다(검사)",
@@ -938,6 +942,7 @@
       "content/ids/release/vocab.txt·kanji.txt의 이전 목록(git show HEAD:…) 대비 사라진 N5 ID가 0개다(comm으로 확인, check.sh ID 소실 검사 통과)",
       "content.db가 12 MiB(12,582,912 B) 이하",
       "content/raw 없이 python3 -I content/pipeline/build.py 전체 빌드와 check.sh 통과",
+      "check.sh 단위 테스트: kind=release DB에 level 4 vocab_meaning 행 하나가 ko_review_status unreviewed면 FAIL, sampled·reviewed면 통과",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
     "status": "done",
@@ -964,8 +969,8 @@
       "git diff --exit-code app/schemas 가 0",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo",
-    "note": "2026-11-03 T04 신설"
+    "status": "done",
+    "note": "2026-11-03 T04 신설 / 2026-11-07 dev/app e577d12"
   },
   {
     "id": "T10",
@@ -1043,8 +1048,8 @@
       "git diff --exit-code app/schemas 가 0",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo",
-    "note": "2026-11-03 설계 검증 신설(완료된 M5·M6 계약을 바꾸지 않으려고 별도 마일스톤). 2026-11-03 design-review 후속: T14 뒤로"
+    "status": "done",
+    "note": "2026-11-03 설계 검증 신설(완료된 M5·M6 계약을 바꾸지 않으려고 별도 마일스톤). 2026-11-03 design-review 후속: T14 뒤로 / 2026-11-07 dev/app e577d12"
   },
   {
     "id": "T14",
