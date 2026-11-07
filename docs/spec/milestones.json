@@ -470,7 +470,7 @@
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
     "status": "done",
-    "note": "2026-11-03 T04 신설. content: true는 검수 기록(reviewerKind)이 화면의 검수 표시에 바로 이어지기 때문 / 2026-11-03 wf_d782adba-963 done(수정 1라운드). 메인이 문법 시트 ko 열에 posKo·contrasts 번역을 더함(medium 보고분)"
+    "note": "2026-11-03 T04 신설. content: true는 검수 기록(reviewerKind)이 화면의 검수 표시에 바로 이어지기 때문 / 2026-11-07 dev/content 773a8f5"
   },
   {
     "id": "M12",
@@ -490,10 +490,11 @@
       "Compose UI 테스트(ui-design 6.7.1): 화면이 열리면 애니메이션이 돌지 않고 완성 그림과 '획 순서대로 보기' 버튼이 보인다. 누르면 버튼이 '멈추기', 끝나면 '다시 보기'(가짜 시계로 획 수 × 400 ms + 간격 150 ms 진행). 애니메이션 삭제(animator duration scale 0)면 그리기 대신 획 번호가 붙은 완성 그림이 보인다. 획 번호 스위치 기본 끔",
       "Compose UI 테스트: 그림 노드 contentDescription이 '필순 그림, {n}획'이고 일본어가 없다. 그리기가 끝나면 liveRegion Polite 노드에 '필순 보기를 마쳤습니다'가 나타나고, 그리는 동안에는 알림 노드가 없다",
       "필순 출처 줄 문구가 attribution.json의 S-03 이름에서 오고 화면 코드에 'KanjiVG' 문자열이 없다(M7 grep 규칙 유지)",
-      "Roborazzi 스크린샷(ui-design 12절 이름, 각 _light·_dark): kanji_detail_strokes(완성 상태, 합성 픽스처), kanji_detail_strokes_light_font200, kanji_detail_loaded(필순 없음 → 절 숨김)",
+      "Roborazzi 스크린샷(ui-design 12절 이름, 각 _light·_dark): kanji_detail_strokes(완성 상태, 합성 픽스처), kanji_detail_strokes_numbers(획 번호 켬, 획 많은 픽스처로 겹침 확인), kanji_detail_strokes_reduced_motion, kanji_detail_strokes_font200, kanji_detail_strokes_numbers_font200, kanji_detail_loaded(필순 없음 → 절 숨김)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_c112f2ab-842 done. 보고된 medium(애니메이션 삭제 설정을 진입 때만 읽음)은 메인이 ON_RESUME 재확인으로 고침"
   },
   {
     "id": "M13",
@@ -518,7 +519,8 @@
       "content/raw 없이 python3 -I content/pipeline/build.py 전체 빌드와 check.sh 통과(크기 예산 포함, content.db 크기를 보고서에 적음)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "2026-11-07 dev/content c5b0fa2, wf_f663800d-ee1"
   },
   {
     "id": "M14",
@@ -541,7 +543,8 @@
       "Roborazzi 스크린샷(ui-design 12절 이름, 각 _light·_dark): grammar_list_loaded, grammar_list_empty, grammar_detail_loaded(예문 3개·비슷한 문법·'설명 검토 중' 칩), grammar_detail_retired, grammar_detail_loaded_light_font200(접속 표가 세로 카드로 바뀜)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_c112f2ab-842 done"
   },
   {
     "id": "M15",
@@ -566,7 +569,7 @@
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
     "status": "done",
-    "note": "/ 2026-11-03 wf_8e058586-713 done"
+    "note": "2026-11-07 dev/content 9dc8c52"
   },
   {
     "id": "M16",
@@ -588,7 +591,8 @@
       "release 빌드 뒤 sqlite3로 센 SELECT count(*) FROM grammar WHERE level=5 가 20 이상이고 SELECT count(*) FROM grammar_example 이 그 값의 3배 이상",
       "보고서에 항목별 급수 판단 근거와 sources 빈 배열(외부 문장 없음) 확인"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "2026-11-07 dev/content 47354b4·0bf6138"
   },
   {
     "id": "M17",
@@ -612,7 +616,8 @@
       "Roborazzi 스크린샷(ui-design 12절 이름, 각 _light·_dark): review_front_grammar, review_back_grammar, settings_with_grammar(카드 종류 스위치 넷)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_c112f2ab-842 done"
   },
   {
     "id": "M18",
@@ -635,7 +640,8 @@
       "core/quiz/src/main 에 System.currentTimeMillis, Clock.system, Instant.now, Random() (인자 없는 생성자) 호출이 없다(grep)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": " / 2026-11-03 wf_a41e74f7-eec done(dev/app e9d6c47)"
   },
   {
     "id": "M19a",
@@ -661,8 +667,8 @@
       "git diff --exit-code app/schemas 가 0(ContentDatabase·StudyDatabase 스키마 JSON 변경 없음)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo",
-    "note": "2026-11-03 T04: M19를 a~d로 나눔(next-tasks 3절). 마이그레이션은 T06으로 분리"
+    "status": "done",
+    "note": "2026-11-03 T04: M19를 a~d로 나눔(next-tasks 3절). 마이그레이션은 T06으로 분리 / 2026-11-07 dev/app 680191b"
   },
   {
     "id": "M19b",
@@ -685,7 +691,8 @@
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0",
       "실기기 확인(unverified, ui-design 11.1 — 개발 종료 후 일괄 체크리스트, architecture.md 11.5): 한국어 TalkBack에서 지시문의 일본어 구간과 선택지의 일본어가 일본어 음성으로 낭독된다"
     ],
-    "status": "todo"
+    "status": "awaiting-device",
+    "note": "2026-11-07 dev/app 680191b — 실기기 TalkBack만"
   },
   {
     "id": "M19c",
@@ -713,7 +720,8 @@
       "Roborazzi 스크린샷(ui-design 12절 이름, 각 _light·_dark): mock_exam_intro(영역별 줄·청해 제외 줄·고지), mock_exam_intro_shortfall('시작' 비활성과 이유 문구, ui-design 12절), mock_exam_nav, mock_exam_confirm_exit, mock_exam_confirm_submit, mock_exam_intro_light_font200, mock_exam_nav_light_font200",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "2026-11-07 dev/app 7e5cab1"
   },
   {
     "id": "M19d",
@@ -735,7 +743,8 @@
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0",
       "실기기 확인(unverified — 개발 종료 후 일괄 체크리스트, architecture.md 11.5): 한국어 TalkBack에서 결과 화면의 영역별 점수와 해설의 일본어 구간이 바르게 낭독된다"
     ],
-    "status": "todo"
+    "status": "awaiting-device",
+    "note": "2026-11-07 dev/app 7e5cab1 — 실기기 TalkBack만"
   },
   {
     "id": "M20",
@@ -761,7 +770,7 @@
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
     "status": "done",
-    "note": "/ 2026-11-03 wf_8e058586-713 2라운드 뒤 medium 1건(exam parts 타입 TypeError) 남음 → 메인이 isinstance 검사·테스트로 고침, verify PASS"
+    "note": "2026-11-07 dev/content 9dc8c52"
   },
   {
     "id": "M21",
@@ -783,7 +792,8 @@
       "T07 유사 검사(architecture.md 6.8)의 WARN·FAIL이 0건",
       "python3 -I content/pipeline/build.py authored 와 check.sh 통과(정답 위치 분포 포함)"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "2026-11-07 dev/content 47354b4·0bf6138"
   },
   {
     "id": "M22",
@@ -808,8 +818,8 @@
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0",
       "실기기 확인(unverified — 옛 DEV-2, 개발 종료 후 일괄 체크리스트, architecture.md 11.5): 일본어 음성 있는 기기에서 재생, 일본어 음성이 없는 상태에서 MissingJapaneseData 설치 안내, 청해 화면을 나갔다 다시 들어와도 재생된다, 화자별 피치 차이가 들린다"
     ],
-    "status": "todo",
-    "note": "U-7 변경(2026-11-03): DEV-2를 마일스톤으로 두지 않는다. 실기기 항목은 awaiting-device로 남기고 개발 종료 후 일괄 확인"
+    "status": "awaiting-device",
+    "note": "U-7 변경(2026-11-03): DEV-2를 마일스톤으로 두지 않는다. 실기기 항목은 awaiting-device로 남기고 개발 종료 후 일괄 확인 / 2026-11-03 wf_a41e74f7-eec 통과, 실기기만 남음(dev/app e9d6c47)"
   },
   {
     "id": "M23",
@@ -841,7 +851,8 @@
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0",
       "실기기 확인(unverified — 개발 종료 후 일괄 체크리스트, architecture.md 11.5): TalkBack이 대본 일본어 구간을 일본어로 읽는다. TalkBack 켬 상태에서 재생 버튼 뒤 약 1초 늦게 음성이 시작해 '재생 중' 알림과 겹치지 않는다"
     ],
-    "status": "todo"
+    "status": "awaiting-device",
+    "note": "2026-11-07 dev/app d03b878 — 실기기 TalkBack·TTS만"
   },
   {
     "id": "M24",
@@ -867,7 +878,7 @@
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
     "status": "done",
-    "note": "/ 2026-11-03 wf_8e058586-713 done"
+    "note": "2026-11-07 dev/content 9dc8c52"
   },
   {
     "id": "M25",
@@ -887,8 +898,8 @@
       "python3 -I content/pipeline/build.py authored 와 check.sh 통과",
       "실기기 확인(unverified — 개발 종료 후 일괄 체크리스트, architecture.md 11.5): ttsText 읽기가 의도대로 들린다"
     ],
-    "status": "todo",
-    "note": "U-7 변경(2026-11-03): DEV-2 통과를 선행으로 두지 않는다. TTS가 실패하면 대본을 쓴 뒤 D-04를 다시 판단한다(대본은 사전 생성 음성에도 쓰인다)"
+    "status": "awaiting-device",
+    "note": "U-7 변경(2026-11-03): DEV-2 통과를 선행으로 두지 않는다. TTS가 실패하면 대본을 쓴 뒤 D-04를 다시 판단한다(대본은 사전 생성 음성에도 쓰인다) / 2026-11-07 dev/content d2a38da — 실기기 ttsText 낭독만"
   },
   {
     "id": "M26a",
@@ -910,7 +921,7 @@
       "보고서 _workspace/03_jlpt-content-author_M26a_impl.md에 입력 자료(en-gloss 파일과 JMdict 스냅샷 판)만 썼다는 진술과 생성 방법이 있다"
     ],
     "status": "done",
-    "note": "2026-11-03 T04: M26을 a·b로 나눔(next-tasks 3절) / 2026-11-03 wf_fe516c4c-423 done(수정 1라운드), N4 630줄 unreviewed. config levels [5,4]"
+    "note": "2026-11-03 T04: M26을 a·b로 나눔(next-tasks 3절) / 2026-11-07 dev/content 203d493"
   },
   {
     "id": "M26b",
@@ -934,7 +945,8 @@
       "check.sh 단위 테스트: kind=release DB에 level 4 vocab_meaning 행 하나가 ko_review_status unreviewed면 FAIL, sampled·reviewed면 통과",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "2026-11-07 dev/content c5b0fa2"
   },
   {
     "id": "T09",
@@ -957,8 +969,8 @@
       "git diff --exit-code app/schemas 가 0",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo",
-    "note": "2026-11-03 T04 신설"
+    "status": "done",
+    "note": "2026-11-03 T04 신설 / 2026-11-07 dev/app e577d12"
   },
   {
     "id": "T10",
@@ -976,8 +988,8 @@
       "학습 기록이 있는 ID가 retired가 되는 픽스처로 :app의 기존 SessionCards·ReviewViewModel retired 테스트가 새 에셋에서도 통과한다(대기열에서 빠지고 card_state·review_log 행은 남음)",
       "content/raw 없이 python3 -I content/pipeline/build.py 와 check.sh 통과, .claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo",
-    "note": "2026-11-03 T04 신설. 새 판 스냅샷을 커밋할지는 사용자 결정"
+    "status": "done",
+    "note": "2026-11-03 T04 신설. 새 판 스냅샷을 커밋할지는 사용자 결정 / 2026-11-07 dev/content 0f49dad(보고서만, 새 판 스냅샷은 커밋하지 않음)"
   },
   {
     "id": "G-S12",
@@ -1036,8 +1048,8 @@
       "git diff --exit-code app/schemas 가 0",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo",
-    "note": "2026-11-03 설계 검증 신설(완료된 M5·M6 계약을 바꾸지 않으려고 별도 마일스톤). 2026-11-03 design-review 후속: T14 뒤로"
+    "status": "done",
+    "note": "2026-11-03 설계 검증 신설(완료된 M5·M6 계약을 바꾸지 않으려고 별도 마일스톤). 2026-11-03 design-review 후속: T14 뒤로 / 2026-11-07 dev/app e577d12"
   },
   {
     "id": "T14",
@@ -1064,7 +1076,7 @@
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0",
       "실기기 확인(unverified — 개발 종료 후 일괄 체크리스트, architecture.md 11.5·ui-design 11.1 끝): 한국어 TalkBack에서 뒤집기·다음 카드·되돌리기 때 review_card의 Polite 알림이 한 번씩만 나오고('답 보기'가 사라진 뒤 뒷면이 낭독됨), 하루 새 카드 스테퍼의 값이 '{n}장'으로 한 번 읽힌다"
     ],
-    "status": "todo",
-    "note": "2026-11-03 design-review(wf_5d2fc6cd-7c3) 0번 지적으로 신설. T12·T09가 이것 뒤"
+    "status": "awaiting-device",
+    "note": "2026-11-03 design-review(wf_5d2fc6cd-7c3) 0번 지적으로 신설. T12·T09가 이것 뒤 / 2026-11-07 dev/app d03b878 — 실기기 TalkBack만"
   }
 ]
