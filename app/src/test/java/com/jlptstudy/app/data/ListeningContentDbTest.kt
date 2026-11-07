@@ -42,7 +42,9 @@ class ListeningContentDbTest {
         try {
             val repo = RoomQuizContentRepository(db.contentDao())
             JlptLevel.entries.forEach { repo.pool(it) } // 예외 없이
-            assertEquals(emptyMap<String, Any>(), repo.contents(listOf("ls-n5-0001")))
+            // 번들에 청해가 있으면(M25) 그 행이 읽히고, 없으면 빈 맵이다
+            val got = repo.contents(listOf("ls-n5-0001"))
+            if (db.contentDao().countListening() > 0) assertTrue(got.containsKey("ls-n5-0001")) else assertEquals(emptyMap<String, Any>(), got)
             assertEquals(db.contentDao().countListening() > 0, repo.hasListening())
             val home = PracticeHomeViewModel(repo, FakeQuiz(), MemStudy(), TickClock()).state.value
             if (!repo.hasListening()) assertTrue(home.types.none { it.section == Section.LISTENING })

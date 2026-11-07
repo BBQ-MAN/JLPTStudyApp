@@ -71,6 +71,8 @@ class StrokeRepositoryTest {
             val put = { json: String ->
                 db.openHelper.writableDatabase.execSQL("INSERT OR REPLACE INTO kanji_stroke(literal, paths_json, source_id) VALUES (?, ?, 'authored')", arrayOf(lit, json))
             }
+            // 번들 DB에 필순이 이미 들어 있으므로(M13) '행 없음' 경로를 만들려면 먼저 지운다
+            db.openHelper.writableDatabase.execSQL("DELETE FROM kanji_stroke WHERE literal = ?", arrayOf(lit))
             body(repo, put, lit)
         } finally { db.close() }
     }
