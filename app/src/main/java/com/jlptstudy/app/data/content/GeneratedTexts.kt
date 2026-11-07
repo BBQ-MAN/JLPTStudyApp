@@ -6,7 +6,7 @@ import com.jlptstudy.quiz.gen.GenType
 import com.jlptstudy.quiz.gen.QuizVocab
 
 /**
- * 자동 생성 문항의 해설·오답 이유 문구 한 곳(quizgen.md 6.2). 문구 확정은 ui-design 6.7.
+ * 자동 생성 문항의 해설·오답 이유 문구 한 곳(quizgen.md 6.2). 문구의 정본은 이 파일이다(ui-design.md에는 해설·오답 이유 문구가 없다).
  * 한국어 필드 규칙(architecture.md 4.4): `{`·`|`·`}`·`[[`·`]]`를 쓰지 않는다. 일본어는 표시 기호 없이 그대로 쓴다.
  * 학습 콘텐츠(뜻)는 인자로만 받는다 — 여기 문자열은 형식 문구뿐이다.
  */

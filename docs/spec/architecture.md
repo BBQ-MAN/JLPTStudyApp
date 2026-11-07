@@ -138,7 +138,7 @@ startOfStudyDay(d)  = LocalDate.ofEpochDay(d).atStartOfDay().plusMinutes(boundar
 | 2 | T05a(엔티티·스키마 JSON) → T05b(파이프라인·에셋) | `kanji_stroke`(9.4), `grammar`, `grammar_example`(9.1), `question`, `exam_template`(9.2), `listening`(9.3) — 열은 9절 표가 정본 |
 | 3 | QG1 | `jm_form`, `vocab_conflict` — 자동 생성 문제 오답 배제용. 열·파생 규칙의 정본은 `docs/spec/quizgen.md` 3절 |
 
-v4 이후는 정하지 않았다. 9절 표에 없는 열이 필요해지면 새 마일스톤에서 v3를 만들고 4.5 "버전을 올릴 때"를 따른다(콘텐츠 DB는 통째 교체라 마이그레이션이 없다).
+v3(QG1, `jm_form`·`vocab_conflict`)까지 정했다. v4 이후는 정하지 않았다. 9절·quizgen.md 3절 표에 없는 열이 필요해지면 새 마일스톤에서 v4를 만들고 4.5 "버전을 올릴 때"를 따른다(콘텐츠 DB는 통째 교체라 마이그레이션이 없다).
 
 **출처 열 묶음 P**(직접 작성 콘텐츠 행 공통 — `grammar`·`question`·`listening`): `source_id TEXT NOT NULL`, `ko_source TEXT NOT NULL`, `ko_method TEXT NOT NULL`, `ko_review_status TEXT NOT NULL`, `ko_reviewed_at TEXT NULL`, `ko_reviewer_kind TEXT NULL`, `needs_review INTEGER NOT NULL`. `ko_*`는 `vocab_meaning`과 같은 이름·허용 값이고 그 행의 한국어 텍스트(설명·해설·번역) 전체의 출처다. 작성 파일의 `method`·`reviewStatus`·`reviewedAt`·`reviewerKind`·`needsReview`가 그대로 들어가고 `ko_source`는 `authored`다.
 

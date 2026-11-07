@@ -1143,7 +1143,7 @@
       "app/build/reports/quizgen/coverage.tsv·skipped.tsv가 생기고, 보고서 _workspace/03_feature-engineer_QG3_impl.md에 급수·유형별 eligible·generated·건너뜀 이유별 수와 N5 표기 있는 어휘 수가 있다",
       "_workspace/quizgen_sample.md가 있고 N5·N4 각각 유형 4개 × 30문항(대상이 30 미만인 유형은 전부와 그 사실)이며, 문항마다 ID·지문·보기 4개·정답 표시·오답 이유 종류·출처 단어 ID·해설·검수 칸이 있다",
       "단위 테스트: RoomQuizContentRepository.contents가 q-…와 gq:… ID를 섞은 목록에서 둘 다 돌려주고, 형식이 깨진 gq: ID·retired 어휘는 빠진다. 생성 문항을 QuizSessionLoader.load로 읽으면 AttemptMeta(PRACTICE, 그 급수, VOCAB, 유형 코드), QuizContent.toQuestion().fixedOrder == true, Quiz.shuffle 뒤 answerIndex == ID의 slot",
-      "단위 테스트: N4 ①② 문항의 explanationKo·whyWrongKo에 sampled 뜻 문자열이 없고 provenance가 null이다. 고정 문항(question 행)의 provenance는 여전히 null이 아니다",
+      "단위 테스트: N4 ①② 문항의 explanationKo·whyWrongKo에 sampled 뜻 문자열이 없다(reviewed 뜻이 있는 단어는 뜻 줄과 provenance가 값, 그 밖에는 provenance가 null). 고정 문항(question 행)의 provenance는 여전히 null이 아니다",
       "기존 QuizViewModel·QuizResultViewModel·PracticeHomeViewModel 테스트가 통과하고 ./gradlew :app:testDebugUnitTest 테스트 수가 착수 전보다 줄지 않는다. git diff --exit-code app/schemas 가 0",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],

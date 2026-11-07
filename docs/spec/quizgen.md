@@ -377,7 +377,7 @@ class RoomQuizGenRepository(private val dao: ContentDao, private val texts: Gene
   - `provenance` = 해설이나 선택지·지문에 한국어 뜻을 보이면 정답 어휘 ord 0 뜻의 `MeaningUi`(모두 `reviewed`라 같은 종류의 칩), 보이지 않으면 null.
 
 ```kotlin
-// data/content/GeneratedTexts.kt — 문구 한 곳(QuizTypeLabels와 같은 방식의 Kotlin 상수). 문구 확정은 ui-design(6.7)
+// data/content/GeneratedTexts.kt — 문구 한 곳(QuizTypeLabels와 같은 방식의 Kotlin 상수). 문구의 정본은 이 코드(`GeneratedTexts.kt`)이고 ui-design.md에는 문구가 없다
 object GeneratedTexts {
     fun explanation(type: GenType, written: String?, reading: String, meaningKo: String?): String
     // ① "「{W}」는 「{R}」로 읽습니다."  ② "「{R}」는 「{W}」로 씁니다."  ③ "「{visible}」({R}): {meaning}"
