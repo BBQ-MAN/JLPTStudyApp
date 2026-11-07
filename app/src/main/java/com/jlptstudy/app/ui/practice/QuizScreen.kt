@@ -404,7 +404,7 @@ internal fun ExplanationCard(q: QuizQuestionUi, chosen: Int?, onChipClick: ((Mea
                 }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                ProvenanceChip(q.provenance, onChipClick)
+                q.provenance?.let { ProvenanceChip(it, onChipClick) }
                 if (q.needsReview) {
                     Text(
                         stringResource(R.string.quiz_review_chip),

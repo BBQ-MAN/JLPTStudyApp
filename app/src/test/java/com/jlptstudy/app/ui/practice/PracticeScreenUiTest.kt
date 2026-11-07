@@ -186,7 +186,7 @@ class PracticeScreenUiTest {
     @Test fun `FEEDBACK의 해설 카드에 출처 칩이 있다`() {
         val q = question()
         rule.setContent { JlptTheme { QuizScreen(QuizUiState(QuizStatus.FEEDBACK, total = 10, question = q, chosenIndex = 1)) } }
-        rule.onNodeWithText(ProvenanceLabel.of(q.provenance)).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(ProvenanceLabel.of(q.provenance!!)).performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("해설 검토 중").performScrollTo().assertIsDisplayed()
         rule.onNodeWithTag("quiz_next").assertIsDisplayed()
     }

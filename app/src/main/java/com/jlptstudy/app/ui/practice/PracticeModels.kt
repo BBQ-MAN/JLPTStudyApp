@@ -54,8 +54,10 @@ data class QuizQuestionUi(
     val choices: List<List<RubySegment>>, // 섞은 순서
     val answerIndex: Int, // 섞은 뒤 색인
     val explanationKo: String, val whyWrongKo: List<String?>, // 섞은 순서, 정답 자리 null
-    val targets: List<String>, val provenance: MeaningUi, val needsReview: Boolean,
+    val targets: List<String>, val provenance: MeaningUi?, // null = 이 문항에 AI가 쓴 한국어가 없음 → 칩을 그리지 않는다
+    val needsReview: Boolean,
     val lines: List<ListeningLineUi>? = null, // 청해만(대본). 계약은 passage 뒤지만 기존 위치 인자 호출을 지키려고 끝에 둔다
+    val generated: Boolean = false, // 규칙으로 만든 문항(QG4가 "자동 생성 연습 문제" 라벨을 그린다)
 )
 
 data class QuizUiState(

@@ -164,4 +164,26 @@ interface ContentDao {
 
     @Query("SELECT level FROM exam_template")
     suspend fun examTemplateLevels(): List<Int>
+
+    // quizgen.md 6.2: 자동 생성 연습 문제의 급수별 은행. 급수 하나라 바인드 변수 한도 문제가 없다.
+    @Query("SELECT * FROM vocab WHERE level = :level AND id LIKE 'jm:%' AND id NOT IN (SELECT id FROM retired) ORDER BY id")
+    suspend fun quizVocab(level: Int): List<VocabEntity>
+
+    @Query("SELECT m.* FROM vocab_meaning m JOIN vocab v ON v.id = m.vocab_id WHERE v.level = :level AND m.ord = 0")
+    suspend fun quizMeanings(level: Int): List<VocabMeaningEntity>
+
+    @Query("SELECT * FROM kanji WHERE level >= :level AND literal NOT IN (SELECT id FROM retired)")
+    suspend fun quizKanji(level: Int): List<KanjiEntity>
+
+    @Query(
+        "SELECT * FROM jm_form WHERE written IN (SELECT written FROM vocab WHERE level = :level AND written IS NOT NULL) " +
+            "OR reading IN (SELECT reading FROM vocab WHERE level = :level AND written IS NOT NULL)",
+    )
+    suspend fun quizForms(level: Int): List<JmFormEntity>
+
+    @Query("SELECT c.* FROM vocab_conflict c JOIN vocab v ON v.id = c.vocab_id WHERE v.level = :level")
+    suspend fun quizConflicts(level: Int): List<VocabConflictEntity>
+
+    @Query("SELECT level FROM vocab WHERE id = :id")
+    suspend fun vocabLevel(id: String): Int?
 }

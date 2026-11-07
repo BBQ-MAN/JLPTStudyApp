@@ -137,7 +137,7 @@ class ListeningScreenUiTest {
         rule.setContent {
             JlptTheme { ListeningScreen(ready.copy(status = ListeningStatus.FEEDBACK, chosenIndex = 0, question = q)) }
         }
-        rule.onNodeWithText(ProvenanceLabel.of(q.provenance), substring = true).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(ProvenanceLabel.of(q.provenance!!), substring = true).performScrollTo().assertIsDisplayed()
         rule.onNodeWithTag("listening_next").assertIsDisplayed()
     }
 

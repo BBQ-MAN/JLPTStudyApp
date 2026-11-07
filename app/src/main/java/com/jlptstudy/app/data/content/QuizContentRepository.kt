@@ -20,7 +20,10 @@ data class QuizContent(
     val stem: String, val passage: String?, val target: String?,
     val lines: List<ListeningLine>?,
     val choices: List<String>, val answerIndex: Int, val explanationKo: String, val whyWrongKo: List<String?>,
-    val targets: List<String>, val provenance: MeaningUi, val needsReview: Boolean,
+    /** null = 이 문항에 AI가 쓴 한국어가 없음(자동 생성 ①②에서 뜻을 안 보일 때). 고정 문항·청해는 늘 값. */
+    val targets: List<String>, val provenance: MeaningUi?, val needsReview: Boolean,
+    /** true: 규칙으로 만든 문항(`gq:` ID). 정답 자리를 생성기가 정했다(fixedOrder). */
+    val generated: Boolean = false,
 )
 
 interface QuizContentRepository {
@@ -33,7 +36,7 @@ interface QuizContentRepository {
     suspend fun hasListening(): Boolean = false
 }
 
-fun QuizContent.toQuestion() = QuizQuestion(id, section, type, choices, answerIndex)
+fun QuizContent.toQuestion() = QuizQuestion(id, section, type, choices, answerIndex, fixedOrder = generated)
 fun QuizContent.toPoolItem() = PoolItem(id, section, type)
 
 @Serializable private data class LineDto(val speaker: String, val text: String, val ttsText: String? = null)
@@ -77,7 +80,9 @@ fun ListeningEntity.toQuizContent(): QuizContent? = build(
     whyWrongKoJson, targetsJson, koSource, koMethod, koReviewStatus, koReviewedAt, koReviewerKind, needsReview,
 )
 
-class RoomQuizContentRepository(private val dao: ContentDao) : QuizContentRepository {
+class RoomQuizContentRepository(
+    private val dao: ContentDao, private val gen: QuizGenRepository = RoomQuizGenRepository(dao),
+) : QuizContentRepository {
     override suspend fun pool(level: JlptLevel): List<PoolItem> =
         dao.questionPool(level.n).filter { decodeChoices(it.choicesJson, it.answerIndex) != null }
             .mapNotNull { r -> orNull { PoolItem(r.id, Section.of(r.section), r.type) } } +
@@ -85,12 +90,15 @@ class RoomQuizContentRepository(private val dao: ContentDao) : QuizContentReposi
                 .map { PoolItem(it.id, Section.LISTENING, it.type) }
 
     override suspend fun contents(ids: List<String>): Map<String, QuizContent> {
-        val retired = chunkedQuery(ids) { dao.retiredAmong(it) }.toSet()
-        val live = ids.filter { it !in retired }
+        // gq: 문항은 저장하지 않고 ID로 다시 만든다(quizgen.md 6.1). 어휘가 retired면 은행에 없어 빠진다.
+        val (genIds, fixedIds) = ids.partition { it.startsWith("gq:") }
+        val generated = if (genIds.isEmpty()) emptyMap() else gen.contents(genIds)
+        val retired = chunkedQuery(fixedIds) { dao.retiredAmong(it) }.toSet()
+        val live = fixedIds.filter { it !in retired }
         // ID 접두사에 기대지 않고 두 테이블을 모두 읽는다(없는 ID는 어느 쪽에도 안 나온다).
         val rows = chunkedQuery(live) { dao.questionsByIds(it) }.mapNotNull { it.toQuizContent() } +
             chunkedQuery(live) { dao.listeningByIds(it) }.mapNotNull { it.toQuizContent() }
-        return rows.associateBy { it.id }
+        return rows.associateBy { it.id } + generated
     }
 
     override suspend fun examTemplate(level: JlptLevel): ExamTemplate? {
