@@ -147,7 +147,7 @@ class LoadTest(TempRoot):
         rc, _ = self.build(p)
         self.assertEqual(rc, 0)
         self.assertEqual(self.rows(p, "SELECT id, sort_key FROM grammar ORDER BY id"), [("gr-n5-0001", 0), ("gr-n5-0002", 10)])
-        self.assertEqual(self.rows(p, "PRAGMA user_version"), [(2,)])
+        self.assertEqual(self.rows(p, "PRAGMA user_version"), [(3,)])
         self.assertEqual(self.rows(p, "SELECT ord, source_id, source_ref, author, license FROM grammar_example WHERE grammar_id='gr-n5-0001' ORDER BY ord"),
                          [(0, "authored", None, None, None), (1, "authored", None, None, None), (2, "authored", None, None, None)])
         self.assertEqual(check.run_checks(p), [])
@@ -296,7 +296,7 @@ class RepoTest(unittest.TestCase):
         have = {f.stem for f in (REPO / "content/authored/sample/grammar").glob("*.json")}
         self.assertEqual(len(have), 2)
         self.assertEqual(ids, have)
-        self.assertEqual(sorted(p.name for p in Paths().schemas.glob("*.json")), ["1.json", "2.json"])
+        self.assertEqual(sorted(p.name for p in Paths().schemas.glob("*.json")), ["1.json", "2.json", "3.json"])
         self.assertEqual(read_json(Paths().schemas / "2.json")["database"]["version"], 2)
 
     def test_committed_n5_grammar(self):

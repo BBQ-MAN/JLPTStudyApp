@@ -114,7 +114,7 @@ class CheckFailuresTest(TempRoot):
 
     def test_schema_version_and_hash(self):
         self.sql("PRAGMA user_version = 1")
-        self.has("FAIL: schema user_version db=1 json=2")
+        self.has("FAIL: schema user_version db=1 json=3")
         self.sql("UPDATE room_master_table SET identity_hash = 'zzz'")
         self.assertTrue(any(l.startswith("FAIL: schema room_master_table identity hash zzz") for l in check.run_checks(self.p)))
         self.sql("ALTER TABLE vocab ADD COLUMN extra TEXT")

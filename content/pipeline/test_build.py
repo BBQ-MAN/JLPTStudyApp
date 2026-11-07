@@ -93,15 +93,15 @@ class SampleBuildTest(TempRoot):
 class SchemaTest(TempRoot):
     def test_picks_largest_schema_json(self):
         p = self.sample_root()
-        s = json.loads((p.schemas / "2.json").read_text())
-        s["database"]["version"] = 3
+        s = json.loads((p.schemas / "3.json").read_text())
+        s["database"]["version"] = 4
         s["database"]["identityHash"] = "abc123"
         s["database"]["entities"].append({"tableName": "extra", "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, PRIMARY KEY(`id`))",
                                           "fields": [], "primaryKey": {"autoGenerate": False, "columnNames": ["id"]}})
         s["database"]["setupQueries"][1] = "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'abc123')"
-        (p.schemas / "3.json").write_text(json.dumps(s))
+        (p.schemas / "4.json").write_text(json.dumps(s))
         self.assertEqual(run(p)[0], 0)
-        self.assertEqual(rows(p, "PRAGMA user_version"), [(3,)])
+        self.assertEqual(rows(p, "PRAGMA user_version"), [(4,)])
         self.assertEqual(rows(p, "SELECT identity_hash FROM room_master_table"), [("abc123",)])
         self.assertEqual(rows(p, "SELECT COUNT(*) FROM extra"), [(0,)])
         self.assertEqual(check.run_checks(p), [])
@@ -112,7 +112,7 @@ class SchemaTest(TempRoot):
         names = {r[0] for r in rows(p, "SELECT name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'")}
         self.assertEqual(names, {"content_meta", "vocab", "vocab_meaning", "kanji", "vocab_kanji", "retired", "room_master_table",
                                  "kanji_stroke", "grammar", "grammar_example", "question", "exam_template", "listening",
-                                 "index_vocab_level_sort_key", "index_kanji_level_sort_key", "index_vocab_kanji_kanji",
+                                 "jm_form", "vocab_conflict", "index_jm_form_reading", "index_vocab_level_sort_key", "index_kanji_level_sort_key", "index_vocab_kanji_kanji",
                                  "index_grammar_level_sort_key", "index_question_level_section_type_sort_key", "index_listening_level_type_sort_key"})
 
 

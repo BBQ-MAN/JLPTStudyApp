@@ -61,7 +61,7 @@ class StrokeReleaseTest(TempRoot):
         self.assertTrue(self.p.report("strokes_count_mismatch.tsv", "T").exists())
         self.assertEqual(con.execute("SELECT DISTINCT source_id FROM kanji_stroke").fetchall(), [("S-03",)])
         self.assertEqual(json.loads(con.execute("SELECT paths_json FROM kanji_stroke WHERE literal='水'").fetchone()[0])[:2], ["M1,1c1,2", "M1,1c2,2"])
-        self.assertEqual(con.execute("PRAGMA user_version").fetchone()[0], 2)
+        self.assertEqual(con.execute("PRAGMA user_version").fetchone()[0], 3)
         self.assertIn("S-03", {s["id"] for s in json.loads((self.p.assets / "attribution.json").read_text(encoding="utf-8"))["sources"]})
         self.assertEqual(check.run_checks(self.p), [])
         con.close()

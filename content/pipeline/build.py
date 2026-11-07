@@ -1,5 +1,6 @@
 """콘텐츠 파이프라인 진입점.
   build.py refresh-snapshot [--refresh <id>]...   fetch → parse → levels → snapshot (네트워크 필요)
+  build.py refresh-related                       S-01 related 스냅샷(동형·동음 항목 + xref)만 다시 만든다(content/raw 필요, quizgen.md 3.2)
   build.py                                       export-gloss-input → ko-gloss → authored → build → check (네트워크·content/raw 불필요)
   build.py <단계>                                  export-gloss-input | ko-gloss | authored | build | check
   build.py review-sample --target T --ratio R --seed S | review-sheet --target T --ids F
@@ -17,7 +18,7 @@ import pl_authored as au
 import pl_db as db
 import pl_review as rv
 from pl_common import Fail, Paths, load_config, load_manifest
-from pl_snapshot import refresh_snapshot
+from pl_snapshot import refresh_snapshot, write_related
 
 STAGES = ["export-gloss-input", "ko-gloss", "authored", "build", "check"]
 
@@ -120,6 +121,9 @@ def main(argv, paths=None, out=print, opener=None):
                 raise Fail("FAIL: usage --refresh needs a source id")
             refresh = [argv[i + 1] for i, a in enumerate(argv) if a == "--refresh"]
             refresh_snapshot(p, c, m, refresh=refresh, opener=opener, out=out)
+            return 0
+        if argv == ["refresh-related"]:
+            write_related(p, m, out=out)
             return 0
         if argv[:1] and argv[0] in ("review-sample", "review-sheet", "review-apply"):
             review_cmd(p, argv, out)

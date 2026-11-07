@@ -14,7 +14,7 @@ import pl_authored as au
 import pl_grammar as gm
 import pl_listening as ls
 import pl_question as qs
-from pl_common import Fail, Paths, latest_schema, load_config, load_manifest, read_json, read_jsonl, safe_version, sha256_file
+from pl_common import Fail, Paths, hira, latest_schema, load_config, load_manifest, read_json, read_jsonl, safe_version, sha256_file
 
 AUDIO = {".mp3", ".ogg", ".wav", ".m4a", ".aac", ".flac", ".opus", ".wma", ".mid"}
 ALLOWED_ASSETS = {"content.db", "content.db.sha256", "attribution.json"}
@@ -292,6 +292,60 @@ def check_snapshot(paths, meta, manifest):
             out.append(f"FAIL: snapshot {f.name} missing")
         elif sha256_file(f) != info.get("snapshot"):
             out.append(f"FAIL: snapshot {sid} hash differs from content/snapshot/{f.name}")
+        if info.get("related") is not None:  # quizgen.md 3.2: S-01 related 스냅샷
+            r = f.with_name(f.name.replace(".jsonl.gz", "-related.jsonl.gz"))
+            if not r.exists():
+                out.append(f"FAIL: snapshot {r.name} missing")
+            elif sha256_file(r) != info["related"]:
+                out.append(f"FAIL: snapshot {sid} related hash differs from content/snapshot/{r.name}")
+    return out
+
+
+def check_quizgen(con):
+    """quizgen.md 7.2: jm_form·vocab_conflict 표 무결성. 표가 0행이어도 `jm:` 어휘가 없으면(sample) 통과한다."""
+    out = []
+    vocab = con.execute("SELECT id, written, reading, level FROM vocab WHERE id LIKE 'jm:%' ORDER BY id").fetchall()
+    forms = con.execute("SELECT written, reading FROM jm_form").fetchall()
+    have = set(forms)
+    if vocab and not forms:
+        out.append("FAIL: quizgen jm_form is empty while jm: vocab rows exist")
+    for w, r in forms:
+        if not w or not r:
+            out.append(f"FAIL: quizgen jm_form row ({w!r}, {r!r}) has an empty column")
+        elif hira(r) != r:
+            out.append(f"FAIL: quizgen jm_form ({w}, {r}) reading has katakana")
+    out += [f"FAIL: quizgen jm_form ({w}, {hira(r)}) of {i} missing" for i, w, r, _ in vocab if w is not None and (w, hira(r)) not in have]
+    rows = {}
+    for vid, js in con.execute("SELECT vocab_id, conflict_ids FROM vocab_conflict"):
+        rows[vid] = js
+    if vocab and not rows:
+        out.append("FAIL: quizgen vocab_conflict is empty while jm: vocab rows exist")
+        return out
+    level = {i: lv_ for i, _, _, lv_ in vocab}
+    out += [f"FAIL: quizgen vocab_conflict {i} has no row" for i in level if i not in rows]
+    out += [f"FAIL: quizgen vocab_conflict {i} is not a jm: vocab id" for i in sorted(set(rows) - set(level))]
+    parsed = {}
+    for i, js in sorted(rows.items()):
+        try:
+            ids = json.loads(js)
+            ok = isinstance(ids, list) and all(isinstance(x, str) for x in ids)
+        except ValueError:
+            ok = False
+        if not ok:
+            out.append(f"FAIL: quizgen vocab_conflict {i} conflict_ids is not a JSON string array")
+            continue
+        parsed[i] = ids
+        if ids != sorted(set(ids)):
+            out.append(f"FAIL: quizgen vocab_conflict {i} conflict_ids not sorted or has duplicates")
+        if i in ids:
+            out.append(f"FAIL: quizgen vocab_conflict {i} lists itself")
+        for x in ids:
+            if x not in level:
+                out.append(f"FAIL: quizgen vocab_conflict {i} -> {x} is not a jm: vocab id")
+            elif i in level and level[x] != level[i]:
+                out.append(f"FAIL: quizgen vocab_conflict {i} -> {x} is in another level")
+    for i, ids in parsed.items():
+        out += [f"FAIL: quizgen vocab_conflict {i} -> {x} is not symmetric" for x in ids if x in parsed and i not in parsed[x]]
     return out
 
 
@@ -359,7 +413,7 @@ def run_checks(paths):
         kind = meta.get("kind", cfg["kind"])
         release = cfg["kind"] == "release" or kind == "release"
         out += check_kind(cfg, manifest, meta) + check_schema(paths, con) + check_sources(con, manifest)
-        out += check_ids(paths, con, kind) + check_refs(con) + check_meanings(con, manifest)
+        out += check_ids(paths, con, kind) + check_refs(con) + check_meanings(con, manifest) + check_quizgen(con)
         out += check_attribution(paths, manifest, db, cfg, release) + check_size(db, meta) + check_authored(paths, kind, manifest)
         if release:
             out += check_app_assets(manifest) + check_count(paths, con, meta, manifest) + check_review_gate(con)

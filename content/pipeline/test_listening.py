@@ -98,7 +98,7 @@ class LoadTest(TempRoot):
         self.assertEqual(self.build(p), 0)
         self.assertEqual(self.rows(p, "SELECT id, level, sort_key, type, source_id, ko_source FROM listening ORDER BY id"),
                          [("ls-n5-0001", 5, 1, "point", "authored", "authored"), ("ls-n5-0002", 5, 2, "quick-response", "authored", "authored")])
-        self.assertEqual(self.rows(p, "PRAGMA user_version"), [(2,)])
+        self.assertEqual(self.rows(p, "PRAGMA user_version"), [(3,)])
         self.assertEqual(check.run_checks(p), [])
         self.assertEqual((p.ids / "sample/listening.txt").read_text().split(), sorted(f.stem for f in (p.authored / "sample/listening").glob("*.json")))
 
@@ -155,7 +155,7 @@ class RepoTest(unittest.TestCase):
         n12 = read_json(REPO / "content/notices.ko.json")["notices"]["N-12"]  # D-04 A 문구(sources.md N-12.listening-audio)
         self.assertEqual(n12["title"], "청해 음성")
         self.assertTrue(n12["body"].startswith("청해 음성은 이 기기의 음성 합성(TTS) 엔진이"))
-        self.assertEqual(sorted(p.name for p in Paths().schemas.glob("*.json")), ["1.json", "2.json"])
+        self.assertEqual(sorted(p.name for p in Paths().schemas.glob("*.json")), ["1.json", "2.json", "3.json"])
         self.assertEqual(read_json(Paths().schemas / "2.json")["database"]["version"], 2)
 
     def test_committed_n5_listening(self):

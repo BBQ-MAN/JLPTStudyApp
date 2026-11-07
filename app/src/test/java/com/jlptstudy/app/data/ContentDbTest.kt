@@ -25,6 +25,18 @@ class ContentDbTest {
         }
     }
 
+    @Test fun `v3 배제 표 jm_form과 vocab_conflict에 행이 있다`() = runBlocking {
+        val db = ContentDatabase.open(context)
+        try {
+            val q = db.openHelper.readableDatabase
+            fun count(table: String) = q.query("SELECT COUNT(*) FROM $table").use { it.moveToFirst(); it.getInt(0) }
+            assertTrue(count("jm_form") > 0)
+            assertTrue(count("vocab_conflict") > 0)
+        } finally {
+            db.close()
+        }
+    }
+
     @Test fun `v2 새 여섯 테이블 count 조회가 실행되고 필순은 채워져 있다`() = runBlocking {
         val db = ContentDatabase.open(context)
         try {
@@ -33,7 +45,7 @@ class ContentDbTest {
             val others = listOf(d.countGrammar(), d.countGrammarExample(), d.countQuestion(), d.countExamTemplate(), d.countListening())
             assertTrue(others.all { it >= 0 })
             assertTrue(d.countKanjiStroke() > 0)
-            assertEquals(2, db.openHelper.readableDatabase.version)
+            assertEquals(3, db.openHelper.readableDatabase.version)
         } finally {
             db.close()
         }

@@ -193,7 +193,7 @@ class LoadTest(TempRoot):
         self.assertEqual(self.build(p), 0)
         self.assertEqual(self.rows(p, "SELECT id, sort_key, target FROM question ORDER BY id"),
                          [("q-n5-grammar-0001", 1, None), ("q-n5-grammar-0002", 2, None), ("q-n5-vocab-0001", 1, "山"), ("q-n5-vocab-0002", 2, None)])
-        self.assertEqual(self.rows(p, "PRAGMA user_version"), [(2,)])
+        self.assertEqual(self.rows(p, "PRAGMA user_version"), [(3,)])
         self.assertEqual(check.run_checks(p), [])
         self.assertEqual((p.ids / "sample/question.txt").read_text().split(), sorted(f.stem for f in (p.authored / "sample/questions").glob("*.json")))
 
@@ -260,7 +260,7 @@ class RepoTest(unittest.TestCase):
         self.assertEqual(len(have), 4)
         self.assertEqual(ids, have)
         self.assertEqual(len(list((REPO / "content/authored/sample/exams").glob("*.json"))), 1)
-        self.assertEqual(sorted(p.name for p in Paths().schemas.glob("*.json")), ["1.json", "2.json"])
+        self.assertEqual(sorted(p.name for p in Paths().schemas.glob("*.json")), ["1.json", "2.json", "3.json"])
         self.assertEqual(read_json(Paths().schemas / "2.json")["database"]["version"], 2)
 
     def test_committed_n5_questions_and_exam(self):
