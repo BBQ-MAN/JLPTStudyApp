@@ -106,7 +106,8 @@ class CheckFailuresTest(TempRoot):
         self.has("FAIL: attribution meaningSourceTexts missing key authored-llm-nomodel")
 
     def test_n11_n12_required_when_rows_exist(self):
-        self.sql("DROP TABLE grammar", "CREATE TABLE grammar (id TEXT)", "INSERT INTO grammar VALUES ('gr-n5-0001')", "DROP TABLE listening", "CREATE TABLE listening (id TEXT)", "INSERT INTO listening VALUES ('ls-n5-0001')")
+        self.attr(lambda a: a.update(notices=[n for n in a["notices"] if n["id"] not in ("N-11", "N-12")]))
+        self.sql("DROP TABLE grammar", "CREATE TABLE grammar (id TEXT)", "INSERT INTO grammar VALUES ('gr-n5-0001')", "DROP TABLE listening", "CREATE TABLE listening (id TEXT, targets_json TEXT, answer_index INT)", "INSERT INTO listening VALUES ('ls-n5-0001', '[]', 0)")
         out = check.run_checks(self.p)
         self.assertIn("FAIL: attribution N-11 missing while grammar or question rows exist", out)
         self.assertIn("FAIL: attribution N-12 missing while listening rows exist", out)
@@ -126,7 +127,8 @@ class CheckFailuresTest(TempRoot):
         self.assertTrue(any(l.startswith("FAIL: schema ") for l in check.run_checks(self.p)))
 
     def test_p_columns_when_rows_exist(self):
-        self.assertEqual(check.run_checks(self.p), [])  # 0행 테이블은 통과
+        self.sql("DELETE FROM grammar_example", "DELETE FROM grammar")  # 샘플 문법을 비운다
+        self.assertEqual([l for l in check.run_checks(self.p) if "ko-columns" in l], [])
         P = "'authored','authored','human','unreviewed',NULL,NULL,0"
         self.sql(f"INSERT INTO grammar VALUES ('gr-n5-0001',5,1,'t','m','e','[]','[]',{P})")
         self.assertFalse([l for l in check.run_checks(self.p) if "ko-columns" in l])

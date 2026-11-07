@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0001",
+  "section": "vocab",
+  "type": "kanji-reading",
+  "stem": "{毎朝|まいあさ}、つめたい　[[牛乳]]を　{飲|の}みます。",
+  "target": "牛乳",
+  "choices": [
+    "ぎゅにゅう",
+    "ぎゅうにく",
+    "ぎゅうにゅう",
+    "きゅうにゅう"
+  ],
+  "answerIndex": 2,
+  "explanationKo": "牛乳는 '우유'이고 ぎゅうにゅう로 읽습니다. 牛(ぎゅう)와 乳(にゅう) 모두 길게 읽습니다.",
+  "whyWrongKo": [
+    "ぎゅう의 장음 う가 빠졌습니다. 牛는 ぎゅう로 길게 읽습니다.",
+    "ぎゅうにく는 牛肉(소고기)의 읽기입니다. 乳는 にゅう로 읽습니다.",
+    null,
+    "첫소리는 탁음 ぎゅう입니다. きゅう로 읽지 않습니다."
+  ],
+  "targets": [
+    "jm:1231590",
+    "牛",
+    "乳"
+  ]
+}

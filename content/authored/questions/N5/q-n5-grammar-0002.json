@@ -1,0 +1,31 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0002",
+  "section": "grammar",
+  "type": "grammar-form",
+  "stem": "{今日|きょう}は　{雨|あめ}です＿＿、{公園|こうえん}へは　{行|い}きません。",
+  "choices": [
+    "から",
+    "が",
+    "より",
+    "まで"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "비가 오는 것이 공원에 가지 않는 이유이므로 이유의 から를 씁니다.",
+  "whyWrongKo": [
+    null,
+    "が는 반대되는 내용을 잇습니다. 비가 와서 가지 않는 것은 반대가 아니라 이유입니다.",
+    "より는 비교의 기준을 나타냅니다. です 뒤에서 문장을 잇지 않습니다.",
+    "まで는 범위의 끝을 나타냅니다. です 뒤에서 이유를 나타내지 않습니다."
+  ],
+  "targets": [
+    "gr-n5-0013"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0003",
+  "section": "grammar",
+  "type": "grammar-form",
+  "stem": "{今|いま}の　{部屋|へや}は　{狭|せま}いです＿＿、{駅|えき}に　{近|ちか}くて　{便利|べんり}です。",
+  "choices": [
+    "から",
+    "や",
+    "も",
+    "が"
+  ],
+  "answerIndex": 3,
+  "explanationKo": "'좁다'와 '편리하다'는 반대 방향의 평가이므로 역접의 が(~지만)를 씁니다.",
+  "whyWrongKo": [
+    "から는 이유입니다. 방이 좁아서 편리하다는 것은 말이 되지 않습니다.",
+    "や는 명사를 나열할 때 씁니다. です 뒤에 붙지 않습니다.",
+    "も는 です 뒤에 붙어 문장을 잇지 않습니다.",
+    null
+  ],
+  "targets": [
+    "gr-n5-0014",
+    "jm:1237680"
+  ]
+}

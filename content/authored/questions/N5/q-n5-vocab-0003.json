@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0003",
+  "section": "vocab",
+  "type": "kanji-reading",
+  "stem": "{弟|おとうと}の　{誕生日|たんじょうび}は　{六月|ろくがつ}[[九日]]です。",
+  "target": "九日",
+  "choices": [
+    "くにち",
+    "ここのつ",
+    "きゅうにち",
+    "ここのか"
+  ],
+  "answerIndex": 3,
+  "explanationKo": "날짜 九日(9일)은 ここのか로 읽습니다. 1일~10일은 ついたち·ふつか·みっか처럼 특별한 읽기를 씁니다.",
+  "whyWrongKo": [
+    "날짜 9일은 ここのか로 읽습니다. くにち라고 하지 않습니다.",
+    "ここのつ는 九つ(아홉 개)의 읽기입니다. 날짜가 아닙니다.",
+    "날짜 9일은 ここのか로 읽습니다. きゅうにち라고 하지 않습니다.",
+    null
+  ],
+  "targets": [
+    "jm:1243850",
+    "九",
+    "日"
+  ]
+}

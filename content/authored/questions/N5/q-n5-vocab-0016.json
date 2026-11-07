@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0016",
+  "section": "vocab",
+  "type": "context",
+  "stem": "{寒|さむ}いですから、{窓|まど}を　＿＿　ください。",
+  "choices": [
+    "{開|あ}けて",
+    "{消|け}して",
+    "{閉|し}めて",
+    "つけて"
+  ],
+  "answerIndex": 2,
+  "explanationKo": "추우니까 창문을 '닫아' 달라는 문장입니다. 窓を閉める(창문을 닫다)로 씁니다.",
+  "whyWrongKo": [
+    "開けて는 '열어'입니다. 추우면 창문을 닫습니다.",
+    "消して는 불·전기를 '꺼'라는 말이고 창문에는 쓰지 않습니다.",
+    null,
+    "つけて는 불·텔레비전을 '켜'라는 말이고 창문에는 쓰지 않습니다."
+  ],
+  "targets": [
+    "jm:1508590",
+    "窓"
+  ]
+}

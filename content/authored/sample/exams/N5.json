@@ -1,0 +1,41 @@
+{
+  "level": "N5",
+  "sourceUrl": "https://www.jlpt.jp/e/guideline/testsections.html",
+  "checkedAt": "2026-11-02",
+  "sections": [
+    {
+      "id": "vocab",
+      "titleKo": "언어지식(문자·어휘)",
+      "minutes": 20,
+      "parts": [
+        {
+          "section": "vocab",
+          "type": "kanji-reading",
+          "count": 1
+        },
+        {
+          "section": "vocab",
+          "type": "context",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "grammar-reading",
+      "titleKo": "언어지식(문법)·독해",
+      "minutes": 40,
+      "parts": [
+        {
+          "section": "grammar",
+          "type": "grammar-form",
+          "count": 1
+        },
+        {
+          "section": "grammar",
+          "type": "sentence-order",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}

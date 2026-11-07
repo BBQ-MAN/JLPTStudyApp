@@ -1,0 +1,64 @@
+id	ja	ko	source	reviewStatus	verdict	note	reviewer
+jm:1593570	ご存じ ごぞんじ	알고 계심, 아심(존경) / 아는 사이	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	fix	(an) acquaintance는 사람이므로 "아는 사이"(관계) -> "아는 사람, 지인"	agent
+jm:1421540	地理 ちり	지리	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1483070	彼 かれ	그 / 남자 친구	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1019420	アルバイト	아르바이트 / 아르바이트생	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1226630	客 きゃく	손님, 방문객 / (가게·공연 등의) 손님, 고객, 관객, 승객	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:2015610	もうすぐ	이제 곧, 머지않아	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1364360	まじめ	진지함, 성실함 / 정직함, 착실함	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1310640	止む やむ	그치다, 멈추다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1291500	砂 すな	모래	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1153890	安心 あんしん	안심	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1590770	代わり かわり	대신, 대리 / 대리인, 대신할 사람 / 대가, 보답 / (음식) 한 그릇 더	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1363090	申す もうす	말씀드리다, (~라고) 하다(言う의 겸양어) / 하다(する의 겸양어)	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1116840	プレゼント	선물	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1227370	久しぶり ひさしぶり	오래간만 / 오랜만입니다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1286400	国際 こくさい	국제 / 외교, 국제 교류	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1440670	店員 てんいん	점원	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1155060	以下 いか	(~) 이하 / (기준·수준) 이하, 그 아래 / 다음, 아래(에 적은 것)	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1346370	召し上がる めしあがる	드시다, 잡수시다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1259140	見える みえる	보이다 / (~처럼) 보이다 / 오시다(来る의 존경)	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1376310	星 ほし	별, 천체 / 별표, 별 모양 / 스타, 인기인 / 점, 얼룩 / 과녁의 중심 / 범인, 용의자 / 운수, 운세	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1246440	隅 すみ	구석, 모퉁이	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1589040	遅れる おくれる	늦다, 지각하다 / (진도·유행에) 뒤처지다 / (시계가) 늦게 가다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1308090	市 し	시(도시)	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1349480	承知 しょうち	앎, 알고 있음 / 승낙, 동의 / 용서	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1252090	計画 けいかく	계획	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1463770	日 ひ	날, 하루 / 해, 햇빛 / 낮 / 날짜, 기일 / (지난) 시절 / (~한) 경우	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1612770	お祝い おいわい	축하 / 축하 선물	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1010150	はっきり	분명히, 확실히, 똑똑히 / 분명하다, 확실해지다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1155090	以外 いがい	(~) 이외, 밖 / 범위 밖	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1546200	用 よう	볼일, 용무 / 쓰임, 용도 / (~)용 / 용변	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1546880	踊り おどり	춤 / 백중 춤(봉오도리)	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1304680	残念 ざんねん	유감스러움, 아쉬움	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1308690	市民 しみん	시민, 국민 / 시민, 주민 / 중산층	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1106010	ビル	빌딩	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1548550	落ちる おちる	떨어지다 / (해·달이) 지다 / (인기·품질·속도가) 떨어지다 / (~보다) 못하다 / (때가) 빠지다, 지워지다 / (시험에) 떨어지다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1065680	ジャム	잼	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1484930	非常に ひじょうに	매우, 대단히	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1546300	用事 ようじ	볼일, 용무	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1228650	急ぐ いそぐ	서두르다, 급히 하다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1219510	うれしい	기쁘다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1215260	間に合う まにあう	(시간에) 늦지 않다, 맞추다 / 쓸모가 있다, 충분하다, 그것으로 되다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1153930	安全 あんぜん	안전	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1497980	負ける まける	지다, 패하다 / (유혹·압력에) 굴하다, 못 이기다 / (~보다) 못하다 / (옻 등에) 오르다, 피부가 짓무르다 / (값을) 깎아 주다, 덤으로 주다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1447000	投げる なげる	던지다 / 포기하다, 내던지다 / (시선·그림자·의문을) 던지다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1555440	林 はやし	숲 / (~이) 늘어선 것	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1185290	下宿 げしゅく	하숙 / 하숙집	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1499460	部長 ぶちょう	부장 / (학교 동아리의) 부장	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:2772770	やはり	역시, 예상대로 / 결국, 역시 / (~도) 마찬가지로, 역시 / 여전히 / 그래도, 역시	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1467710	熱 ねつ	열 / (몸의) 열, 신열 / 열의, 열정	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1282260	講義 こうぎ	강의	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1218560	危険 きけん	위험 / 위험성	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1120010	ベル	벨, 종	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:2853889	けれど	그렇지만, 하지만	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1521400	僕 ぼく	나(남자가 씀) / (남자아이를 부를 때) 너	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1293780	最近 さいきん	최근, 요즘 / 가장 가까움	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1193610	火 ひ	불	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1004690	このあいだ	요전, 지난번, 최근	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1322920	社長 しゃちょう	사장	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1390360	戦争 せんそう	전쟁 / 싸움, 치열한 경쟁	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1367120	人形 にんぎょう	인형 / 꼭두각시	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1403040	騒ぐ さわぐ	떠들다, 시끄럽게 하다 / (나뭇잎 등이) 바스락거리다 / 들떠 놀다 / 소란을 피우다 / 허둥대다 / (마음이) 설레다, 술렁이다	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1596930	確か たしか	확실함, 분명함 / 믿을 만함, 정확함 / (내 기억이 맞다면) 아마, 분명	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent
+jm:1505120	文化 ぶんか	문화	jmdict-translated llm:claude-opus-5-5@2026-11-03	unreviewed	ok		agent

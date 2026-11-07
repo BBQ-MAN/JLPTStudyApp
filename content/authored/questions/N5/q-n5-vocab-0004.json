@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0004",
+  "section": "vocab",
+  "type": "kanji-reading",
+  "stem": "{弟|おとうと}は　もう　[[大人]]ですから、{一人|ひとり}で　{旅行|りょこう}に　{行|い}きます。",
+  "target": "大人",
+  "choices": [
+    "おとこ",
+    "おとな",
+    "おおにん",
+    "おおひと"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "大人은 '어른'이고 おとな로 읽습니다. 한자 하나하나의 읽기와 다른 특별한 읽기입니다.",
+  "whyWrongKo": [
+    "おとこ는 男(남자)의 읽기입니다.",
+    null,
+    "大人은 おおにん으로 읽지 않습니다. '어른'이라는 뜻일 때는 단어 전체를 おとな로 읽습니다.",
+    "大人은 おとな로 읽습니다. 大(おお)와 人(ひと)를 따로 읽지 않습니다."
+  ],
+  "targets": [
+    "jm:1414170",
+    "大",
+    "人"
+  ]
+}

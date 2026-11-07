@@ -1,0 +1,37 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-07",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "ls-n5-0014",
+  "type": "quick-response",
+  "lines": [
+    {
+      "speaker": "M",
+      "text": "このお{菓子|かし}、{一|ひと}ついかがですか。",
+      "ttsText": "このおかし、ひとついかがですか。"
+    }
+  ],
+  "choices": [
+    "はい、どうぞ。",
+    "ありがとうございます。いただきます。",
+    "はい、{一|ひと}つあります。",
+    "ごちそうさまでした。"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "お菓子、一ついかがですか는 '과자 하나 드시겠어요?'라는 권유입니다. 받을 때는 고맙다고 하고 いただきます(잘 먹겠습니다)라고 답합니다.",
+  "whyWrongKo": [
+    "どうぞ는 내가 무엇을 권할 때 쓰는 말이라, 권유를 받은 사람의 대답으로 맞지 않습니다.",
+    null,
+    "상대는 과자가 있는지 묻지 않았습니다. いかがですか는 '어떠세요?'라는 권유입니다.",
+    "ごちそうさまでした는 다 먹은 뒤에 하는 인사입니다."
+  ],
+  "targets": [
+    "jm:1001710",
+    "jm:2845606"
+  ]
+}

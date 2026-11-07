@@ -22,7 +22,7 @@ class ReleaseFlowTest(TempRoot):
     def snap_hashes(self):
         return {f.name: sha256_file(f) for f in sorted(self.p.snapshot.iterdir())}
 
-    def write_gloss(self, models=("model-b", "model-a"), drop=0, stale=False):
+    def write_gloss(self, models=("model-b", "model-a"), drop=0, stale=False, n4_status="sampled"):
         self.assertEqual(build.main(["export-gloss-input"], paths=self.p, out=self.log.append), 0)
         self.p.kogloss.mkdir(parents=True, exist_ok=True)
         n = 0
@@ -33,9 +33,10 @@ class ReleaseFlowTest(TempRoot):
                 if n <= drop:
                     continue
                 e = json.loads(line)
+                st = ("unreviewed", None, None) if level == 5 or n4_status == "unreviewed" else (n4_status, "2026-11-10", "agent")
                 out.append(jdump({"vocabId": e["vocabId"], "meanings": [f"뜻 {e['reading']}"], "koSource": "jmdict-translated",
                                   "method": f"llm:{models[n % len(models)]}@2026-11-10", "enHash": "stale" if stale else e["enHash"],
-                                  "reviewStatus": "unreviewed", "reviewedAt": None, "reviewerKind": None}) + "\n")
+                                  "reviewStatus": st[0], "reviewedAt": st[1], "reviewerKind": st[2]}) + "\n")
             (self.p.kogloss / f"N{level}.jsonl").write_text("".join(out), encoding="utf-8")
 
     def full_build(self, **kw):
@@ -47,7 +48,7 @@ class ReleaseFlowTest(TempRoot):
     def test_refresh_twice_same_hashes_then_build_without_raw(self):
         self.assertEqual(self.refresh(), 0, self.log)
         first = self.snap_hashes()
-        self.assertEqual(set(first), {"S-01-2026-11-01.jsonl.gz", "S-02-2026-305_2026-11-01.jsonl.gz", "levels-S-06-b062d4e_2025-08-26.tsv", "sources.json", "LICENSE.md"})
+        self.assertEqual(set(first), {"S-01-2026-11-01.jsonl.gz", "S-02-2026-305_2026-11-01.jsonl.gz", "S-03-r20260714.jsonl.gz", "levels-S-06-b062d4e_2025-08-26.tsv", "sources.json", "LICENSE.md"})
         shutil.rmtree(self.p.raw)
         self.assertEqual(self.refresh(), 0, self.log)  # raw를 지우면 다시 받는다
         self.assertEqual(self.snap_hashes(), first)
@@ -91,7 +92,7 @@ class ReleaseFlowTest(TempRoot):
             self.assertNotIn("々", lit)
             self.assertEqual(con.execute("SELECT value FROM content_meta WHERE key='levels'").fetchone(), ("5,4",))
             meta = json.loads(con.execute("SELECT value FROM content_meta WHERE key='sources'").fetchone()[0])
-            self.assertEqual(sorted(meta), ["S-01", "S-02", "S-06"])
+            self.assertEqual(sorted(meta), ["S-01", "S-02", "S-03", "S-06"])
             self.assertEqual(meta["S-01"]["files"], {"JMdict_e": self.man[0]["sha256"]})
         finally:
             con.close()
@@ -100,7 +101,7 @@ class ReleaseFlowTest(TempRoot):
         self.assertEqual(self.full_build(models=("model-b", "model-a")), 0, self.log)
         attr = read_json(self.p.assets / "attribution.json")
         by = {s["id"]: s for s in attr["sources"]}
-        self.assertEqual(set(by), {"S-01", "S-02", "S-06"})
+        self.assertEqual(set(by), {"S-01", "S-02", "S-03", "S-06"})
         for m in self.man:
             self.assertEqual(by[m["id"]]["links"], m["links"])
             self.assertEqual(by[m["id"]]["extraCredits"], m["extraCredits"])
@@ -197,6 +198,43 @@ class ReleaseFlowTest(TempRoot):
                or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(r["reviewedAt"]))]
         self.assertEqual(bad, [])
 
+    def test_committed_ko_gloss_n4(self):
+        # M26b(D-03 잠정, U-4 A): N4 뜻은 10% 표본을 에이전트가 검수(reviewed), 나머지는 sampled. 사람 표시 행은 없다.
+        from pl_common import Paths
+        import pl_db
+        n4 = pl_db.load_ko_gloss(Paths(), {"levels": [4]})
+        self.assertEqual(len(n4), 630)
+        self.assertFalse(set(n4) & set(pl_db.load_ko_gloss(Paths(), {"levels": [5]})))
+        bad = [v for v, r in n4.items() if (r["koSource"], r["reviewerKind"]) != ("jmdict-translated", "agent")
+               or r["reviewStatus"] not in ("reviewed", "sampled") or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(r["reviewedAt"]))
+               or not re.fullmatch(r"llm:[\w.-]+@\d{4}-\d{2}-\d{2}", r["method"]) or not 1 <= len(r["meanings"]) <= 7]
+        self.assertEqual(bad, [])
+        reviewed = {v for v, r in n4.items() if r["reviewStatus"] == "reviewed"}
+        self.assertGreaterEqual(len(reviewed), -(-len(n4) // 10))  # ceil(행 수 × 0.1)
+        ids = (Paths().root / "_workspace/review/ko-gloss_N4-20261107.ids").read_text(encoding="utf-8").split()
+        self.assertEqual(set(ids), reviewed)
+
+    def test_review_gate_blocks_unreviewed_n4_in_release(self):
+        self.assertEqual(self.full_build(n4_status="unreviewed"), 1, self.log)  # build가 끝에 check를 돌려 실패로 끝낸다
+        gate = [f for f in check.run_checks(self.p) if f.startswith("FAIL: review-gate")]
+        con = sqlite3.connect(self.p.assets / "content.db")
+        n4 = con.execute("SELECT count(*) FROM vocab_meaning m JOIN vocab v ON v.id = m.vocab_id WHERE v.level = 4").fetchone()[0]
+        n5_unrev = con.execute("SELECT count(*) FROM vocab_meaning m JOIN vocab v ON v.id = m.vocab_id WHERE v.level = 5 AND m.ko_review_status = 'unreviewed'").fetchone()[0]
+        con.close()
+        self.assertTrue(n4 > 0 and n5_unrev > 0)  # N5는 unreviewed여도 대상 아님
+        self.assertEqual(len(gate), n4)
+        self.assertTrue(all("level 4 is unreviewed" in f for f in gate), gate)
+        con = sqlite3.connect(self.p.assets / "content.db")
+        con.execute("UPDATE vocab_meaning SET ko_review_status = 'sampled', ko_reviewed_at = '2026-11-10', ko_reviewer_kind = 'agent' WHERE vocab_id IN (SELECT id FROM vocab WHERE level = 4)")
+        con.commit()
+        con.close()
+        self.assertFalse([f for f in check.run_checks(self.p) if f.startswith("FAIL: review-gate")])
+        con = sqlite3.connect(self.p.assets / "content.db")
+        con.execute("UPDATE vocab_meaning SET ko_review_status = 'reviewed' WHERE vocab_id IN (SELECT id FROM vocab WHERE level = 4)")
+        con.commit()
+        con.close()
+        self.assertFalse([f for f in check.run_checks(self.p) if f.startswith("FAIL: review-gate")])
+
     def test_release_checks_catch_empty_fields_and_app_assets(self):
         self.assertEqual(self.full_build(), 0, self.log)
         ap = self.p.assets / "attribution.json"
@@ -213,7 +251,7 @@ class ReleaseFlowTest(TempRoot):
         self.p.manifest.write_text(json.dumps(man))
         self.assertTrue(any(f.startswith("FAIL: app-asset S-11") for f in check.run_checks(self.p)))
         man[-1]["status"] = "confirmed"
-        man[2]["status"] = "unconfirmed"
+        next(m for m in man if m["id"] == "S-06")["status"] = "unconfirmed"
         self.p.manifest.write_text(json.dumps(man))
         out = check.run_checks(self.p)
         self.assertIn("FAIL: kind levelSource S-06 is not confirmed", out)

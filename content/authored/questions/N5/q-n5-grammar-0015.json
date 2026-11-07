@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0015",
+  "section": "grammar",
+  "type": "sentence-order",
+  "stem": "{机|つくえ}の　＿＿　＿★＿　＿＿　＿＿　あります。",
+  "choices": [
+    "{先生|せんせい}に",
+    "{上|うえ}に",
+    "{書|か}いた",
+    "{手紙|てがみ}が"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "바른 순서는 '上に 先生に 書いた 手紙が'입니다(책상 위에 선생님께 쓴 편지가 있습니다). ★ 자리(두 번째)에는 先生に가 들어갑니다.",
+  "whyWrongKo": [
+    null,
+    "上に는 첫 번째 칸에 들어갑니다(机の上に).",
+    "書いた는 세 번째 칸에 들어갑니다(先生に書いた手紙).",
+    "手紙が는 네 번째 칸에 들어갑니다(手紙があります)."
+  ],
+  "targets": [
+    "jm:1327720",
+    "gr-n5-0020"
+  ]
+}

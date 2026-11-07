@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0005",
+  "section": "vocab",
+  "type": "kanji-reading",
+  "stem": "{映画館|えいがかん}の　[[入口]]は　{二階|にかい}に　あります。",
+  "target": "入口",
+  "choices": [
+    "いれぐち",
+    "いりぐち",
+    "にゅうぐち",
+    "でぐち"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "入口는 '입구'이고 보통 いりぐち로 읽습니다. 入る(들어가다)의 いり에 口(くち)가 붙고, 口는 흔히 ぐち로 탁음이 됩니다(出口 でぐち).",
+  "whyWrongKo": [
+    "いれ는 入れる(넣다)에서 쓰는 읽기입니다. 入口는 入る(들어가다)의 いり를 씁니다.",
+    null,
+    "にゅう는 入学(にゅうがく)처럼 음으로 읽을 때의 읽기입니다. 入口는 いりぐち로 읽습니다.",
+    "でぐち는 出口(출구)의 읽기입니다."
+  ],
+  "targets": [
+    "jm:1582820",
+    "入",
+    "口"
+  ]
+}

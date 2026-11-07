@@ -1,0 +1,31 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0019",
+  "section": "grammar",
+  "type": "text-grammar",
+  "stem": "{駅|えき}の　{近|ちか}くに　{新|あたら}しい　パン{屋|や}が　できました。{昨日|きのう}　{姉|あね}＿＿　{行|い}きました。パンは　{安|やす}くて　おいしかったです。",
+  "choices": [
+    "に",
+    "を",
+    "で",
+    "と"
+  ],
+  "answerIndex": 3,
+  "explanationKo": "언니(누나)와 '함께' 갔다는 뜻이므로 동작을 같이 하는 사람에 붙는 と를 씁니다.",
+  "whyWrongKo": [
+    "に는 가는 곳에 붙습니다. 姉に行きました는 말이 되지 않습니다.",
+    "を는 行きます 앞에서 사람에게 붙지 않습니다.",
+    "で는 장소·수단에 붙습니다. 사람에게 붙어 '함께'의 뜻이 되지 않습니다.",
+    null
+  ],
+  "targets": [
+    "姉"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0013",
+  "section": "grammar",
+  "type": "sentence-order",
+  "stem": "あした　デパートへ　＿＿　＿＿　＿★＿　＿＿　{行|い}きます。",
+  "choices": [
+    "{母|はは}に",
+    "くつを",
+    "あげる",
+    "{買|か}いに"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "바른 순서는 '母に あげる くつを 買いに'입니다(어머니께 드릴 신발을 사러 갑니다). ★ 자리(세 번째)에는 くつを가 들어갑니다.",
+  "whyWrongKo": [
+    "母に는 첫 번째 칸에 들어갑니다(母にあげる).",
+    null,
+    "あげる는 두 번째 칸에 들어갑니다(母にあげるくつ).",
+    "買いに는 네 번째 칸에 들어갑니다(買いに行きます)."
+  ],
+  "targets": [
+    "gr-n5-0016",
+    "jm:1352320"
+  ]
+}

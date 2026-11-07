@@ -1,5 +1,5 @@
 {
-  "contentVersion": "v977bab6e1c77",
+  "contentVersion": "vfcb49796cb02",
   "kind": "release",
   "dbLicense": {
     "name": "CC BY-SA 4.0",
@@ -49,6 +49,18 @@
       ]
     },
     {
+      "id": "S-03",
+      "name": "KanjiVG",
+      "version": "r20260714",
+      "attribution": "KanjiVG © 2009-2026 Ulrich Apel, CC BY-SA 3.0 (https://kanjivg.tagaini.net/)",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "homepage": "https://kanjivg.tagaini.net/",
+      "modifications": "SVG 획 경로·획 순서를 앱 형식으로 변환",
+      "links": [],
+      "extraCredits": []
+    },
+    {
       "id": "S-06",
       "name": "yomitan-jlpt-vocab (stephenmk)",
       "version": "b062d4e (2025-08-26)",
@@ -72,23 +84,45 @@
           "url": "http://web.archive.org/web/20251114165345/http://www.tanos.co.uk/jlpt/sharing/"
         }
       ]
+    },
+    {
+      "id": "authored",
+      "name": "이 앱 작성 콘텐츠",
+      "version": "vfcb49796cb02",
+      "attribution": "이 앱이 직접 작성한 콘텐츠",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "homepage": null,
+      "modifications": "해당 없음(이 앱에서 직접 작성)",
+      "links": [],
+      "extraCredits": []
     }
   ],
   "notices": [
     {
       "id": "N-09",
       "title": "JLPT 공식 자료가 아닙니다",
-      "body": "이 앱의 JLPT 급수 분류는 공식 자료가 아니라 커뮤니티 목록 「yomitan-jlpt-vocab (stephenmk)」에 근거한 추정입니다. 한자의 급수는 그 한자가 쓰인 단어 중 가장 쉬운 급수로 정했습니다(화면 표시 'N5 단어에 쓰인 한자'). JLPT 주최 측은 2010년 개정 이후 어휘·한자·문법 목록을 공개하지 않습니다. 이 앱은 JLPT 주최 측과 관련이 없습니다."
+      "body": "문법 항목의 급수는 공개된 목록이 아니라 이 앱 작성자가 판단해 정한 것입니다(화면 표시 '비공식'). 이 앱의 JLPT 급수 분류는 공식 자료가 아니라 커뮤니티 목록 「yomitan-jlpt-vocab (stephenmk)」에 근거한 추정입니다. 한자의 급수는 그 한자가 쓰인 단어 중 가장 쉬운 급수로 정했습니다(화면 표시 'N5 단어에 쓰인 한자'). JLPT 주최 측은 2010년 개정 이후 어휘·한자·문법 목록을 공개하지 않습니다. 이 앱은 JLPT 주최 측과 관련이 없습니다."
     },
     {
       "id": "N-10",
       "title": "한국어 뜻을 만든 방법",
-      "body": "한국어 뜻은 JMdict(EDRDG)의 영어 뜻을 바탕으로 한국어로 번역·편집했습니다. 번역에는 AI(claude-opus-5-5)를 썼습니다. N5 뜻은 뜻을 만든 것과 같은 AI(claude-opus-5-5)가 전수 검수했고, 사람 검수는 하지 않았습니다. 뜻마다 만든 방법과 검수 상태를 표시합니다."
+      "body": "한국어 뜻은 JMdict(EDRDG)의 영어 뜻을 바탕으로 한국어로 번역·편집했습니다. 번역에는 AI(claude-opus-5-5)를 썼습니다. 일부 뜻은 이 앱이 직접 작성했습니다. 작성에는 AI(claude-opus-5-5)를 썼습니다. N5 뜻은 뜻을 만든 것과 같은 AI(claude-opus-5-5)가 전수 검수했고, 사람 검수는 하지 않았습니다. 뜻마다 만든 방법과 검수 상태를 표시합니다."
+    },
+    {
+      "id": "N-11",
+      "title": "문제와 설명은 직접 만들었습니다",
+      "body": "문제·문법 설명·해설은 이 앱이 직접 작성했으며 실제 JLPT 시험 문항이 아닙니다. 모의고사의 문항 수·시간·배점은 실제 시험과 다를 수 있고, 결과는 원점수이며 합격 여부를 예측하지 않습니다."
+    },
+    {
+      "id": "N-12",
+      "title": "청해 음성",
+      "body": "청해 음성은 이 기기의 음성 합성(TTS) 엔진이 대본을 읽은 것입니다. 기기와 엔진에 따라 발음·억양이 다를 수 있고, 실제 시험 음성이 아닙니다."
     }
   ],
   "firstNotice": {
     "title": "한국어 뜻 안내",
-    "body": "한국어 뜻은 JMdict(EDRDG)의 영어 뜻을 바탕으로 한국어로 번역·편집했습니다. 번역에는 AI(claude-opus-5-5)를 썼습니다. 뜻마다 만든 방법과 검수 상태를 표시합니다."
+    "body": "한국어 뜻은 JMdict(EDRDG)의 영어 뜻을 바탕으로 한국어로 번역·편집했습니다. 번역에는 AI(claude-opus-5-5)를 썼습니다. 일부 뜻은 이 앱이 직접 작성했습니다. 작성에는 AI(claude-opus-5-5)를 썼습니다. 뜻마다 만든 방법과 검수 상태를 표시합니다."
   },
   "meaningSourceTexts": {
     "translated-llm": "JMdict(EDRDG)의 영어 뜻을 바탕으로 AI({model})가 한국어로 번역했습니다.",

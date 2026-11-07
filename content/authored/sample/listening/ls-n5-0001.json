@@ -1,0 +1,28 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": true,
+  "sources": [],
+  "method": "llm:claude-sonnet-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "ls-n5-0001",
+  "type": "point",
+  "lines": [
+    {"speaker": "F", "text": "{明日|あした}は{何時|なんじ}に{会|あ}いますか。"},
+    {"speaker": "M", "text": "{九時|くじ}に{駅|えき}で{会|あ}いましょう。", "ttsText": "くじにえきであいましょう。"},
+    {"speaker": "N", "text": "{二人|ふたり}は{明日|あした}、{何時|なんじ}に{会|あ}いますか。"}
+  ],
+  "question": "{二人|ふたり}は{何時|なんじ}に{会|あ}いますか。",
+  "choices": ["{八時|はちじ}", "{九時|くじ}", "{十時|じゅうじ}", "{十一時|じゅういちじ}"],
+  "answerIndex": 1,
+  "explanationKo": "남자가 9시에 역에서 만나자고 말합니다.",
+  "whyWrongKo": [
+    "8시는 대화에 나오지 않습니다.",
+    null,
+    "10시는 대화에 나오지 않습니다.",
+    "11시는 대화에 나오지 않습니다."
+  ],
+  "targets": []
+}

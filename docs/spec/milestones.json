@@ -469,8 +469,8 @@
       "python3 -I -m unittest discover -s content/pipeline 통과, 테스트 수가 T01 기준선 80 이상",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo",
-    "note": "2026-11-03 T04 신설. content: true는 검수 기록(reviewerKind)이 화면의 검수 표시에 바로 이어지기 때문"
+    "status": "done",
+    "note": "2026-11-03 T04 신설. content: true는 검수 기록(reviewerKind)이 화면의 검수 표시에 바로 이어지기 때문 / 2026-11-03 wf_d782adba-963 done(수정 1라운드). 메인이 문법 시트 ko 열에 posKo·contrasts 번역을 더함(medium 보고분)"
   },
   {
     "id": "M12",
@@ -567,7 +567,8 @@
       "check.sh 통과, 샘플 문법 ID가 content/ids/sample/grammar.txt에 있다(release 빌드에서는 content/ids/release/grammar.txt)",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_8e058586-713 done"
   },
   {
     "id": "M16",
@@ -763,7 +764,8 @@
       "check.sh 통과, 샘플 문항 ID가 content/ids/sample/question.txt에 있다",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_8e058586-713 2라운드 뒤 medium 1건(exam parts 타입 TypeError) 남음 → 메인이 isinstance 검사·테스트로 고침, verify PASS"
   },
   {
     "id": "M21",
@@ -868,7 +870,8 @@
       "check.sh 통과, 샘플 대본 ID가 content/ids/sample/listening.txt에 있다",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
-    "status": "todo"
+    "status": "done",
+    "note": "/ 2026-11-03 wf_8e058586-713 done"
   },
   {
     "id": "M25",
@@ -910,8 +913,8 @@
       "python3 -I content/pipeline/build.py ko-gloss --check 통과",
       "보고서 _workspace/03_jlpt-content-author_M26a_impl.md에 입력 자료(en-gloss 파일과 JMdict 스냅샷 판)만 썼다는 진술과 생성 방법이 있다"
     ],
-    "status": "todo",
-    "note": "2026-11-03 T04: M26을 a·b로 나눔(next-tasks 3절)"
+    "status": "done",
+    "note": "2026-11-03 T04: M26을 a·b로 나눔(next-tasks 3절) / 2026-11-03 wf_fe516c4c-423 done(수정 1라운드), N4 630줄 unreviewed. config levels [5,4]"
   },
   {
     "id": "M26b",
@@ -924,7 +927,7 @@
     ],
     "ui": false,
     "content": true,
-    "scope": "D-03(N4 10% 표본, 잠정)과 U-4 A(에이전트 검수, reviewerKind agent)대로 T07 도구로 N4 표본을 뽑아 검수하고(review-sample --ratio 0.1 → review-sheet → review-apply --batch-sampled), 오류율이 5%를 넘으면 그 묶음을 다시 생성한 뒤 다시 검수한다. 이어서 config.json levels [5,4] release로 스냅샷에서 전체 빌드하고 content/ids/release/를 갱신한다(fetch 없음). 스키마는 v2 그대로.",
+    "scope": "D-03(N4 10% 표본, 잠정)과 U-4 A(에이전트 검수, reviewerKind agent)대로 T07 도구로 N4 표본을 뽑아 검수하고(review-sample --ratio 0.1 → review-sheet → review-apply --batch-sampled), 오류율이 5%를 넘으면 그 묶음을 다시 생성한 뒤 다시 검수한다. 이어서 config.json levels [5,4] release로 스냅샷에서 전체 빌드하고 content/ids/release/를 갱신한다(fetch 없음). 스키마는 v2 그대로. 추가(2026-11-03, M26a QA medium): check.py에 release 검사 — kind=release이고 level<=4인 vocab_meaning에 ko_review_status unreviewed가 있으면 FAIL(D-03 표본 검수 전 N4 유입 차단). 테스트 포함.",
     "acceptance": [
       "_workspace/review/ko-gloss_N4-<seed>.ids의 행 수가 ceil(N4 행 수 × 0.1) 이상(N4 576행이면 58 이상)이고, 검수 기록 _workspace/03_jlpt-content-author_M26b_review.md에 seed·표본 ID·고친 내용(전·후)·오류 수·오류율이 있으며 오류율이 5% 이하다",
       "content/ko-gloss/N4.jsonl에서 표본 행의 reviewStatus가 reviewed, 나머지가 sampled이고 reviewedAt이 YYYY-MM-DD, reviewerKind가 agent다. 사람이 표시하지 않은 행에 human이 없다(검사)",
@@ -932,6 +935,7 @@
       "content/ids/release/vocab.txt·kanji.txt의 이전 목록(git show HEAD:…) 대비 사라진 N5 ID가 0개다(comm으로 확인, check.sh ID 소실 검사 통과)",
       "content.db가 12 MiB(12,582,912 B) 이하",
       "content/raw 없이 python3 -I content/pipeline/build.py 전체 빌드와 check.sh 통과",
+      "check.sh 단위 테스트: kind=release DB에 level 4 vocab_meaning 행 하나가 ko_review_status unreviewed면 FAIL, sampled·reviewed면 통과",
       ".claude/skills/android-build-verify/scripts/verify.sh 종료 코드 0"
     ],
     "status": "todo"

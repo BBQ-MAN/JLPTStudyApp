@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0011",
+  "section": "vocab",
+  "type": "orthography",
+  "stem": "{兄|あに}は　{大学|だいがく}で　[[えいご]]を　{勉強|べんきょう}して　います。",
+  "target": "えいご",
+  "choices": [
+    "英話",
+    "映語",
+    "美語",
+    "英語"
+  ],
+  "answerIndex": 3,
+  "explanationKo": "えいご(영어)는 英語로 씁니다. 日本語처럼 언어 이름에는 語를 씁니다.",
+  "whyWrongKo": [
+    "話는 '말씀 화'(はなし)입니다. 언어 이름에는 語(말씀 어)를 씁니다.",
+    "映는 映画의 映입니다. 소리는 えい로 같지만 英語에는 英을 씁니다.",
+    "美는 '아름다울 미'로 えい로 읽지 않습니다.",
+    null
+  ],
+  "targets": [
+    "jm:1174420",
+    "英",
+    "語"
+  ]
+}

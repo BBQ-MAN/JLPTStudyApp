@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0018",
+  "section": "vocab",
+  "type": "context",
+  "stem": "{頭|あたま}が　{痛|いた}かったですから、{会社|かいしゃ}を　＿＿。",
+  "choices": [
+    "{休|やす}みました",
+    "{働|はたら}きました",
+    "{勤|つと}めました",
+    "{始|はじ}めました"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "머리가 아파서 회사를 '쉬었다'는 문장입니다. 会社を休む(회사를 쉬다)로 씁니다.",
+  "whyWrongKo": [
+    null,
+    "働く는 会社で働く처럼 で와 함께 씁니다. 머리가 아팠다는 이유와도 맞지 않습니다.",
+    "勤める는 会社に勤める처럼 に와 함께 씁니다. 머리가 아팠다는 이유와도 맞지 않습니다.",
+    "会社を始めました는 '회사를 차렸다'는 뜻이 되어 머리가 아팠다는 이유와 맞지 않습니다."
+  ],
+  "targets": [
+    "jm:1227560",
+    "jm:1432680"
+  ]
+}

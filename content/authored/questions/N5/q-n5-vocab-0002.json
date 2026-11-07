@@ -1,0 +1,35 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0002",
+  "section": "vocab",
+  "type": "kanji-reading",
+  "stem": "{土曜日|どようび}に　{駅|えき}の　{近|ちか}くの　[[図書館]]で　{本|ほん}を　{読|よ}みました。",
+  "target": "図書館",
+  "choices": [
+    "としょかん",
+    "としょうかん",
+    "とうしょかん",
+    "としょがん"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "図書館은 '도서관'이고 としょかん으로 읽습니다.",
+  "whyWrongKo": [
+    null,
+    "しょ는 짧게 읽습니다. しょう로 늘이지 않습니다.",
+    "図는 여기서 と로 짧게 읽습니다. とう로 늘이지 않습니다.",
+    "館은 かん으로 읽습니다. 映画館(えいがかん)과 같습니다."
+  ],
+  "targets": [
+    "jm:1370420",
+    "図",
+    "書",
+    "館"
+  ]
+}

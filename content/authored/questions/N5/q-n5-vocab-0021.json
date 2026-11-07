@@ -1,0 +1,31 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0021",
+  "section": "vocab",
+  "type": "context",
+  "stem": "{机|つくえ}の　{上|うえ}に　{鉛筆|えんぴつ}が　{三|さん}＿＿　あります。",
+  "choices": [
+    "まい",
+    "ぼん",
+    "さつ",
+    "びき"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "연필처럼 가늘고 긴 것은 本으로 셉니다. 三本은 さんぼん으로 읽습니다.",
+  "whyWrongKo": [
+    "まい(枚)는 종이·셔츠처럼 얇고 평평한 것을 셉니다.",
+    null,
+    "さつ(冊)는 책·공책을 셉니다.",
+    "びき(匹)는 작은 동물을 셉니다(三匹 さんびき)."
+  ],
+  "targets": [
+    "jm:1178590"
+  ]
+}

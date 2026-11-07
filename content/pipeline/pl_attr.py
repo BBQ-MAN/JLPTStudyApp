@@ -85,8 +85,13 @@ def build_attribution(manifest, facts, tpl):
     review = tpl["reviewPolicy"]
     sentences = meaning_sentences(facts, tpl, models)
     n = tpl["notices"]
+    n09 = fill(n["N-09"]["body"], {"levelListName": list_name})
+    if facts["counts"].get("grammar"):  # 6.6: 문법 급수 문장은 grammar 행이 있을 때만 본문 앞에
+        if not n["N-09"].get("grammarPrefix"):
+            raise Fail("FAIL: attribution notices.N-09.grammarPrefix missing while grammar rows exist")
+        n09 = n["N-09"]["grammarPrefix"] + " " + n09
     notices = [
-        {"id": "N-09", "title": n["N-09"]["title"], "body": fill(n["N-09"]["body"], {"levelListName": list_name})},
+        {"id": "N-09", "title": n["N-09"]["title"], "body": n09},
         {"id": "N-10", "title": n["N-10"]["title"], "body": sentences + " " + fill(n["N-10"]["tail"], {"reviewPolicy": review})},
     ]
     if facts["counts"].get("grammar") or facts["counts"].get("question"):

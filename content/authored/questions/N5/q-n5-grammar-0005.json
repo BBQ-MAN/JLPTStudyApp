@@ -1,0 +1,31 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0005",
+  "section": "grammar",
+  "type": "grammar-form",
+  "stem": "「{東京|とうきょう}へ　{行|い}く　とき、バスと　{電車|でんしゃ}と　どちらが　{安|やす}いですか。」「バス＿＿　{電車|でんしゃ}の　ほうが　{安|やす}いです。」",
+  "choices": [
+    "から",
+    "より",
+    "まで",
+    "で"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "비교의 기준은 より로 나타냅니다. 'AよりBのほうが〜'는 'A보다 B가 더 ~'입니다.",
+  "whyWrongKo": [
+    "から를 쓰면 '버스부터'가 되어 비교가 되지 않습니다.",
+    null,
+    "まで를 쓰면 '버스까지'가 되어 비교가 되지 않습니다.",
+    "で는 수단(バスで)을 나타냅니다. 뒤의 〜のほうが와 함께 비교하지 않습니다."
+  ],
+  "targets": [
+    "gr-n5-0021"
+  ]
+}

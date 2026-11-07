@@ -1,0 +1,36 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-07",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "ls-n5-0016",
+  "type": "quick-response",
+  "lines": [
+    {
+      "speaker": "M",
+      "text": "ここから{駅|えき}まで、{歩|ある}いてどのぐらいかかりますか。"
+    }
+  ],
+  "choices": [
+    "{十分|じゅっぷん}ぐらいです。",
+    "{十時|じゅうじ}ぐらいです。",
+    "{駅|えき}の{前|まえ}です。",
+    "バスで{行|い}きました。"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "歩いてどのぐらいかかりますか는 걸어서 얼마나 걸리는지, 곧 시간의 길이를 묻습니다. '10분쯤입니다'가 알맞습니다.",
+  "whyWrongKo": [
+    null,
+    "十時ぐらい는 '10시쯤'이라는 시각이라 걸리는 시간의 길이가 아닙니다.",
+    "駅の前です는 장소를 말하는 대답입니다.",
+    "バスで行きました는 지난 일의 교통수단을 말할 뿐이라, 걸어서 걸리는 시간을 묻는 말에 맞지 않습니다."
+  ],
+  "targets": [
+    "jm:1514320",
+    "jm:1207590"
+  ]
+}

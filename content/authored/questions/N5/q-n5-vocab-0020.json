@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0020",
+  "section": "vocab",
+  "type": "context",
+  "stem": "{郵便局|ゆうびんきょく}で　{手紙|てがみ}に　はる　＿＿を　{買|か}いました。",
+  "choices": [
+    "{切符|きっぷ}",
+    "{切手|きって}",
+    "{封筒|ふうとう}",
+    "はがき"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "편지에 붙이는 것은 우표(切手)입니다. 切手와 切符는 모양이 비슷하니 주의하세요.",
+  "whyWrongKo": [
+    "切符는 전철·버스를 탈 때 사는 표입니다. 편지에 붙이지 않습니다.",
+    null,
+    "封筒는 편지를 넣는 봉투입니다. 편지에 붙이는 것이 아닙니다.",
+    "はがき는 엽서입니다. 편지에 붙이는 것이 아닙니다."
+  ],
+  "targets": [
+    "jm:1385070",
+    "jm:1427900"
+  ]
+}

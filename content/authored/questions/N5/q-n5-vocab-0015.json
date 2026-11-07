@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0015",
+  "section": "vocab",
+  "type": "orthography",
+  "stem": "{寝|ね}る　まえに　{部屋|へや}の　[[でんき]]を　{消|け}しました。",
+  "target": "でんき",
+  "choices": [
+    "電気",
+    "雷気",
+    "電汽",
+    "店気"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "でんき(전기·전등)는 電気로 씁니다.",
+  "whyWrongKo": [
+    null,
+    "雷는 '우레 뢰'(かみなり)입니다. 電과 아래 부분이 다릅니다.",
+    "汽는 '김 기'(汽車의 汽)입니다. でんき에는 気(기운 기)를 씁니다.",
+    "店은 '가게 점'(みせ·てん)입니다. でん으로 읽지 않습니다."
+  ],
+  "targets": [
+    "jm:1443000",
+    "電",
+    "気"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": true,
+  "sources": [],
+  "method": "llm:claude-sonnet-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0002",
+  "section": "vocab",
+  "type": "context",
+  "stem": "{私|わたし}は＿＿を{読|よ}みます。",
+  "choices": [
+    "{本|ほん}",
+    "{水|みず}",
+    "{山|やま}",
+    "{火|ひ}"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "'읽다'와 함께 쓸 수 있는 말은 책(本)입니다.",
+  "whyWrongKo": [
+    null,
+    "물은 '마시다'와 함께 씁니다.",
+    "산은 '읽다'와 함께 쓰지 않습니다.",
+    "불은 '읽다'와 함께 쓰지 않습니다."
+  ],
+  "targets": [
+    "av-sample-0007"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0013",
+  "section": "vocab",
+  "type": "orthography",
+  "stem": "{来週|らいしゅう}の　[[どようび]]に　{会|あ}いましょう。",
+  "target": "どようび",
+  "choices": [
+    "上曜日",
+    "土曜日",
+    "士曜日",
+    "土用日"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "どようび(토요일)는 土曜日로 씁니다. 土는 아래 가로획이 더 깁니다.",
+  "whyWrongKo": [
+    "上은 '위 상'(うえ)입니다. 土와 모양이 비슷합니다.",
+    null,
+    "士는 위 가로획이 더 긴 '선비 사'로 土와 다른 글자입니다.",
+    "요일의 よう는 曜(빛날 요)를 씁니다. 用은 '쓸 용'입니다."
+  ],
+  "targets": [
+    "jm:1445590",
+    "土",
+    "曜"
+  ]
+}

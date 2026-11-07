@@ -1,0 +1,182 @@
+{
+ "M16": [
+  {
+   "title": "(low, 유지 보수성) test_committed_n5_grammar가 검수 전 상태를 영구 조건으로 고정해, 검수 반영(T07 review-apply) 뒤 check.sh가 실패한다",
+   "severity": "low",
+   "file": "/Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/content/content/pipeline/test_grammar.py:307",
+   "evidence": "생산자(테스트) 쪽: `bad = [r[\"id\"] for r in recs if r[\"sources\"] != [] or r[\"method\"] == \"human\" or r[\"reviewStatus\"] != \"unreviewed\" ...]` 다음에 `self.assertEqual(bad, [])`. 소비자(검수 도구) 쪽: architecture.md 6.8 `review-apply`는 `verdict`가 있는 행을 `reviewStatus = reviewed`로, `--batch-sampled`면 나머지를 `sampled`로 고친다. 그래서 다음 콘텐츠 리뷰나 D-03 검수가 이 24개 중 하나라도 고치면 RepoTest가 실패하고, check.sh와 verify.sh도 함께 실패한다. 이때 콘텐츠에는 문제가 없고 테스트만 걸린다.",
+   "fix": "`r[\"reviewStatus\"] != \"unreviewed\"` 대신 허용 값 집합(`not in {\"unreviewed\",\"sampled\",\"reviewed\"}`)으로 검사하거나 이 조건을 뺀다. 허용 값 검사는 authored 단계가 이미 한다(architecture.md 339행). sources·예문 출처 키·human 금지·유사 검사 0건 조건은 그대로 둔다."
+  },
+  {
+   "title": "제목에 급수를 넘는 한자 꼬리표(理由·逆接·目的)가 루비 없이 붙어 있음",
+   "severity": "low",
+   "file": "content/authored/grammar/N5/gr-n5-0013.json:11, gr-n5-0014.json:11, gr-n5-0016.json:11 (gr-n5-0013, gr-n5-0014, gr-n5-0016)",
+   "evidence": "title이 \"〜から（理由）\", \"〜が（逆接）\", \"〜に行きます（目的）\"이다. architecture.md 9.1 표에서 title은 '일본어(루비 없음)'이므로 카드 앞면과 S10 목록에 읽기 없이 그대로 나온다. 逆接(ぎゃくせつ)은 N5 학습자의 범위를 크게 넘는다. jlpt-content-authoring 2절은 낮은 급수에서 히라가나 표기를 우선하라고 한다. 같은 구분은 이미 meaningKo에 '(이유)'·'(역접)'·'(이동의 목적)'으로 들어 있다. 0016의 행(行)은 N5 한자이지만 0018 〜まえに는 히라가나로 써서 제목 표기도 서로 다르다.",
+   "fix": "title에서 괄호 꼬리표를 빼고(〜から, 〜が, 〜に行きます / 〜にいきます) 구분은 meaningKo에 맡긴다. 배포 전이므로 ID는 그대로 써도 된다."
+  },
+  {
+   "title": "예문이 N4 문형(なくて, 이유의 て형)을 씀",
+   "severity": "low",
+   "file": "content/authored/grammar/N5/gr-n5-0004.json:32 (gr-n5-0004 examples[1])",
+   "evidence": "\"{今朝|けさ}は{時間|じかん}がなくて、{朝|あさ}ごはんを[[{食|た}べませんでした]]。\" ない의 て형 なくて로 이유를 잇는 형태는 보통 N4에서 배운다. 2절은 '해당 급수와 그 아래 급수의 어휘·문법만'이라고 한다. 대상 문형이 성립하는 데는 지장이 없다.",
+   "fix": "N5 접속으로 바꾼다. 예: \"{今朝|けさ}は{時間|じかん}がありませんでしたから、{朝|あさ}ごはんを[[{食|た}べませんでした]]。\" 또는 이유 절을 따로 떼어 두 문장으로 쓴다."
+  },
+  {
+   "title": "동사 비교(辞書形＋より／ほうが)는 N5 범위가 아님",
+   "severity": "low",
+   "file": "content/authored/grammar/N5/gr-n5-0021.json:22 (gr-n5-0021 connections[1], examples[3])",
+   "evidence": "connections에 \"辞書形＋より・辞書形＋ほうが\"(待つより歩くほうが)가 있고, 예문 \"バスを待つより、歩くほうが早いですよ\"가 있다. N5에서 보통 다루는 비교는 명사 비교(AよりBのほうが, どちらが)다. 동사의 사전형으로 비교하는 쓰임은 N4 쪽 자료에 주로 나온다. 보고서의 급수 근거 표는 0021을 '명사 비교 기본 문형'이라고만 적어 이 확장을 설명하지 않는다.",
+   "fix": "동사 행과 그 예문을 빼고 명사 예문으로 바꾸거나, 보고서 근거에 동사 비교를 넣은 이유를 적는다."
+  },
+  {
+   "title": "접속 표 posKo에 품사가 아닌 값(부정·과거)이 들어감",
+   "severity": "low",
+   "file": "content/authored/grammar/N5/gr-n5-0012.json:21,26 (gr-n5-0012 connections[1..2])",
+   "evidence": "posKo가 \"부정\", \"과거\"이고 form은 \"ほしくないです\", \"名詞＋がほしかったです\"이다. ui-design 6.9 접속 표의 첫 열은 품사(ko)다. 다른 항목은 '동사(부정)', '명사(과거)'처럼 품사를 앞에 두는데 이 항목만 다르다. 행 1의 form에도 名詞＋が가 빠져 있어 행 0·2와 모양이 다르다.",
+   "fix": "posKo를 '명사(부정)'·'명사(과거)'로 바꾸고, 행 1 form을 '名詞＋はほしくないです' 같은 접속형으로 맞춘다."
+  },
+  {
+   "title": "대상 구간 [[…]] 범위가 항목 안에서 들쭉날쭉함",
+   "severity": "low",
+   "file": "content/authored/grammar/N5/gr-n5-0016.json:32 (gr-n5-0016 examples[1])",
+   "evidence": "같은 항목의 다른 예문은 [[{買|か}いに{行|い}きました]]처럼 이동 동사까지 표시하는데, 이 예문만 [[{食|た}べに]]{家|いえ}へ{帰|かえ}ります로 이동 동사를 뺐다. 이 항목의 문형 '〜に＋이동 동사' 가운데 뒷부분이 카드 앞면 밑줄에서 빠진다.",
+   "fix": "[[{食|た}べに]]…[[{帰|かえ}ります]]처럼 두 구간으로 나눠 표시하거나, 다른 예문처럼 범위를 맞춘다."
+  },
+  {
+   "title": "meaningKo가 명사만 말하는데 본문·접속 표는 な형용사도 다룸",
+   "severity": "low",
+   "file": "content/authored/grammar/N5/gr-n5-0002.json:12 (gr-n5-0002)",
+   "evidence": "meaningKo는 \"~이/가 아닙니다 (명사 부정, 정중체)\"이지만, connections에 'な형용사 語幹＋ではありません', examples[2]에 '静かではありません(조용하지 않습니다)'가 있다. S10 목록의 한 줄 뜻과 상세 내용의 범위가 다르다.",
+   "fix": "meaningKo를 '~이/가 아닙니다, ~하지 않습니다 (명사·な형용사 부정, 정중체)'처럼 넓힌다."
+  },
+  {
+   "title": "예문 번역에 원문에 없는 뜻이 더해짐",
+   "severity": "low",
+   "file": "content/authored/grammar/N5/gr-n5-0015.json:23 (gr-n5-0015 examples[0])",
+   "evidence": "ja \"明日は辞書を忘れないでください。\"를 ko \"내일은 사전을 잊지 말고 가져오세요.\"로 옮겼다. '가져오세요'는 원문에 없는 말이다. 이 항목의 핵심 대응 '~하지 말아 주세요'가 번역에서 보이지 않는다.",
+   "fix": "\"내일은 사전을 잊지 마세요.\" 또는 \"…잊지 말아 주세요.\"로 바꾼다."
+  },
+  {
+   "title": "0001·0002 예문 다양성 낮음(兄は医者です가 되풀이됨)",
+   "severity": "low",
+   "file": "content/authored/grammar/N5/gr-n5-0001.json:28, gr-n5-0002.json:59,63 (gr-n5-0001, gr-n5-0002 contrasts)",
+   "evidence": "0001 examples[0] '兄は医者です', 0001 connections[0] '父は医者です', 0002 contrasts pair '兄は医者ではありません / 兄は医者です'가 같은 장면과 같은 낱말이다. 4절은 예문마다 서로 다른 장면을 보이라고 한다.",
+   "fix": "0001 접속 예나 0002 비교 쌍 가운데 하나를 다른 명사·장면(예: 학생, 회사원)으로 바꾼다."
+  },
+  {
+   "title": "회귀 테스트가 예문 출처 키 가운데 source만 검사함",
+   "severity": "low",
+   "file": "content/pipeline/test_grammar.py:307-308 (RepoTest.test_committed_n5_grammar)",
+   "evidence": "`any(\"source\" in e for e in r[\"examples\"])`만 본다. 보고서는 '예문에 source·ref·author·license 키 없음'을 확인했다고 적었다. ref·author·license만 있는 예문은 이 테스트를 통과한다.",
+   "fix": "`any(k in e for k in (\"source\", \"ref\", \"author\", \"license\"))`로 넓힌다."
+  },
+  {
+   "title": "검토 범위와 표본(전수 검토, 독창성 웹 검색은 표본 2문장)",
+   "severity": "low",
+   "file": "content/authored/grammar/N5/ (gr-n5-0001~0024)",
+   "evidence": "24개 항목 전체를 검토했다(예문 85개, 접속 표 전부, 비교 쌍 11개, explanationKo 전부). 문법 설명 오류, 정답 복수 문제, 한국어 필드의 한자·루비·[[…]]는 찾지 못했다. 모든 항목이 sources []이고 method는 llm:claude-opus-5-5@2026-11-03, reviewStatus는 unreviewed다. `build.py authored`는 종료 코드 0이고 WARN: similar·FAIL이 없다. /tmp/m16/wt 릴리스 DB에서 grammar level=5가 24, grammar_example이 85(72 이상)임을 직접 확인했다. 독창성은 비교적 긴 예문 2개('バスを待つより、歩くほうが早いですよ', '子どもたちが帰って、家の中が静かになりました')를 따옴표로 웹 검색했고 일치하는 원문은 없었다. 나머지 짧은 예문은 범용 문형이라 검색하지 않았다. check.sh는 돌리지 않았다(구현 보고의 통과 기록에 기댐). authored 단계를 돌려 생긴 _workspace/03_content-engineer_M26a_ko_spans_authored.tsv는 지워서 원래 상태로 돌렸다.",
+   "fix": "조치는 필요 없다. 사람 검수(D-03) 때 0008(けっこんしました 뉘앙스)과 0011(윗사람에게 〜たいですか) 서술을 확인하는 것을 권한다. 이 검토에서는 두 서술 모두 맞다고 보았다."
+  }
+ ],
+ "M21_reviews": [
+  {
+   "title": "[Q10] N5 모의고사 템플릿에 count가 없는데 파이프라인이 exam_template 행을 내보낸다. 앱 계약(count: Int)과 맞지 않고, 구현 요약이 적은 영향(카드 숨김)도 명세와 다르다",
+   "severity": "medium",
+   "file": "content/pipeline/pl_question.py:209-210 / content/authored/exams/N5.json (parts[] 14개 모두 count 없음) / docs/spec/architecture.md:995, 9.2.6",
+   "evidence": "생산자 쪽: pl_question.py:210이 `\"count\" in p and (...)`로 바뀌어 count가 없는 part도 통과시킨다. 릴리스 빌드(/tmp/m21qa_rel2)에서 `SELECT level,source_url,checked_at,source_id FROM exam_template` 결과는 `5|https://www.jlpt.jp/e/guideline/testsections.html|2026-11-03|authored` 한 행이고, template_json(783바이트)에는 count가 없다. 소비자 계약 쪽: architecture.md:995 `data class ExamPart(val section: Section, val type: String, val count: Int)`, 9.2.6 `suspend fun examTemplate(level: JlptLevel): ExamTemplate? // 행 없으면 null, template_json이 깨졌으면 예외`, `examLevels(): Set<JlptLevel>`, `FAILED = 불러오기 실패(examTemplate·pool 예외 — template_json 깨짐 등 ...)`, `total = sections[].count 합`. 9.2.6대로 구현하면 examLevels가 행만 보고 5를 돌려주므로 S12에 N5 모의고사 카드가 보인다. 그러나 ExamStart를 열면 count 파싱이 예외를 내 FAILED가 되고, '다시 시도'를 눌러도 계속 실패한다. 구현 요약(_workspace/03_jlpt-content-author_M21_impl.md, uncertain 절)은 '9.0 규칙에 따라 ... S12 모의고사 카드 숨김'이라고 적었다. 하지만 9.0의 '파싱 실패 행은 없는 것으로'와 9.2.6의 '예외 → FAILED'가 서로 다르고, 카드를 숨긴다는 규칙은 어디에도 없다. 지금 worktree에는 ExamTemplate을 읽는 앱 코드가 없으므로(M18·M19c 전) 실제 오작동은 M19c부터 생긴다. jlpt.jp testsections 페이지를 직접 받아 확인했다. 그 페이지에는 유형별 ○/―만 있고 문항 수는 없으므로 count를 비운 판단 자체는 9.2.1과 맞다.",
+   "fix": "사용자가 A/B/C를 결정할 때까지 둘 중 하나로 연결을 맞춘다. (1) 파이프라인: part 중 하나라도 count가 없으면 그 급수의 exam_template 행을 쓰지 않는다. 대신 WARN 또는 보고 줄을 남겨 앱에서 '모의고사 없음'(ExamCardUi null)으로 확정되게 한다. (2) architecture.md 9.2.5·9.2.6에 count가 없을 때의 규칙을 적는다. 예: `count: Int?`로 두고 examLevels가 count가 비어 있는 템플릿을 뺀다. 아울러 구현 요약 uncertain 절의 '영향' 문장을 실제 명세 동작(카드는 보이고 ExamStart가 FAILED)으로 고쳐 사용자에게 정확한 정보로 결정을 받는다."
+  },
+  {
+   "title": "test_question.py에서 새 테스트를 끼워 넣은 자리 때문에 기존 FAIL 검사가 엉뚱한 테스트로 옮겨졌다",
+   "severity": "low",
+   "file": "content/pipeline/test_question.py:162-171",
+   "evidence": "원래 test_fields 안에 있던 `for bad in ([\"a\"], {\"a\": 1}): ... section invalid / type`, `self.fails(lambda e: e.update(sections=[]), \"sections\")`, `self.fails(lambda e: e.update(level=\"N4\"), \"level\")` 앞에 `def test_count_may_be_absent(self):`가 들어갔다. 그래서 이 줄들이 이제 test_count_may_be_absent 본문에 속한다. fails()가 매번 exam()을 새로 만들기 때문에 검사는 여전히 돌고 결과도 맞다. 다만 sections·level·잘못된 타입 검사가 실패하면 'count가 없어도 된다'는 테스트 이름으로 보고되어 원인을 찾기 어렵다.",
+   "fix": "test_count_may_be_absent 블록(주석과 세 줄)을 `self.fails(lambda e: e.update(level=\"N4\"), \"level\")` 다음으로 옮긴다. 그러면 기존 검사가 test_fields로 돌아간다."
+  },
+  {
+   "title": "q-n5-vocab-0005 入口 읽기: 정답 후보가 셋(いりぐち·いりくち·はいりぐち)",
+   "severity": "high",
+   "file": "/Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/content/content/authored/questions/N5/q-n5-vocab-0005.json (id q-n5-vocab-0005, choices[0], choices[2], whyWrongKo[0], whyWrongKo[2])",
+   "evidence": "문항의 targets가 가리키는 JMdict 1582820(content/raw/S-01/JMdict_e.gz)에는 入口 읽기가 넷 있다. いりぐち, いりくち(re_restr 入り口·入口), はいりぐち, はいりくち이고, 어느 것에도 re_inf(ok/rk 등) 표시가 없다. 그래서 오답 0 'いりくち'와 오답 2 'はいりぐち'도 사전에 실린 읽기다. whyWrongKo[2]의 '入口는 いりぐち로 읽습니다. 入る(はいる)와 읽기가 다릅니다'와 whyWrongKo[0]의 'ぐち로 탁음이 됩니다'는 사전 내용과 어긋난다. 같은 jm 항목을 S15 '관련 단어'로 열면 학습자는 '틀린' 답이 읽기로 실린 화면을 보게 된다.",
+   "fix": "오답에서 いりくち·はいりぐち를 빼고 JMdict 어느 항목에도 없는 형태로 바꾼다(예: いれぐち, にゅうこう, いりこう). 아니면 문항을 retired로 돌리고 대상 단어를 출구(でぐち) 같은 다른 단어로 바꿔 새 ID로 쓴다. 정답 위치(1)는 유지해 분포가 그대로 가게 한다."
+  },
+  {
+   "title": "q-n5-grammar-0008 暖か＿＿なりました: 'に'도 문법상 맞음(정답 둘)",
+   "severity": "high",
+   "file": "/Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/content/content/authored/questions/N5/q-n5-grammar-0008.json (id q-n5-grammar-0008, choices[0] 'に', whyWrongKo[0])",
+   "evidence": "stem은 '春に　なって、暖か＿＿　なりました。'이다. JMdict 2081300에 暖か(あたたか)가 adj-na(형용동사)로 따로 실려 있어 '暖かになりました'(暖かな日, 暖かになる)도 문법에 맞는 문장이다. whyWrongKo[0]은 '暖かい는 い형용사입니다'라며 に를 틀렸다고 하는데, 빈칸 앞의 어간 '暖か'는 な형용사 暖か와도 같은 글자라 이 설명은 사실이 아니다.",
+   "fix": "な형용사 형태가 없는 い형용사로 바꾼다. 예: '夏に　なって、暑＿＿　なりました。', '冬に　なって、寒＿＿　なりました。'. 아니면 빈칸을 활용 어미 전체로 넓힌다(暖か[くなりました] 대 暖かい[になりました] 같은 4지). 큰 수정이므로 새 ID로 쓰고 옛 ID는 retired로 둔다(3절). 배포 전이면 이 ID를 바로 고쳐도 된다."
+  },
+  {
+   "title": "q-n5-vocab-0004 大人: 'だいにん'을 존재하지 않는 읽기처럼 설명",
+   "severity": "medium",
+   "file": "/Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/content/content/authored/questions/N5/q-n5-vocab-0004.json (id q-n5-vocab-0004, whyWrongKo[2])",
+   "evidence": "whyWrongKo[2]는 '大人은 한 단어 전체를 おとな로 읽는 특별한 읽기입니다. 한자 하나하나의 음으로 읽지 않습니다'라고 한다. 그런데 JMdict 2860067에 大人 だいにん 'adult'(요금표·입장료 표에서 쓰는 읽기)가 따로 있다. stem '弟は　もう　大人ですから'에서는 おとな만 자연스러우므로 정답은 하나로 남지만, 설명은 틀린 사실을 단정한다. 같은 마일스톤의 q-n5-reading-0010 요금표(大人 四百円)가 바로 だいにん을 쓰는 장면이다.",
+   "fix": "whyWrongKo[2]를 이렇게 고친다: 'だいにん은 요금표 등에서 쓰는 읽기이고, 「もう大人ですから」처럼 사람을 말할 때는 おとな로 읽습니다.' 아니면 오답을 사전에 없는 형태(예: たいにん)로 바꾼다."
+  },
+  {
+   "title": "q-n5-vocab-0022 오답 셋이 모두 '日本語の＿＿'과 같은 이유로 바로 탈락해 변별력이 낮음",
+   "severity": "medium",
+   "file": "/Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/content/content/authored/questions/N5/q-n5-vocab-0022.json (id q-n5-vocab-0022, choices 0·1·2)",
+   "evidence": "오답 旅行·洗濯·散歩는 whyWrongKo 셋 모두 '日本語와 함께 쓰지 않습니다'로 같은 이유다. 셋 다 '日本語の'에 붙지 않아 정답 練習 말고는 연어가 성립하는 후보가 없다. 학습자가 실제로 헷갈리는 지점(5절 '오답 설계')을 겨냥하지 못한다.",
+   "fix": "'日本語の＿＿をする'에 형태로는 붙지만 문맥과 안 맞는 명사로 바꾼다. 예: 宿題(숙제)는 '매일 밤'과 맞아 오히려 정답 후보가 되므로 피한다. 試験·授業·先生처럼 '〜をして います'와 결합이 어색한 것으로 바꾸거나, 연습/勉強/質問/話 같은 가까운 후보로 다시 짠다. 바꾼 뒤 정답이 둘이 되지 않는지 확인한다."
+  },
+  {
+   "title": "q-n5-vocab-0021 조수사 오답 'ひき'가 さん 뒤 연탁형(びき)이 아니어서 정답 'ぼん'과 형태가 맞지 않음",
+   "severity": "low",
+   "file": "/Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/content/content/authored/questions/N5/q-n5-vocab-0021.json (id q-n5-vocab-0021, choices[3])",
+   "evidence": "stem은 '鉛筆が　三＿＿　あります'이고 정답은 연탁형 'ぼん'(さんぼん)이다. 오답은 'まい', 'さつ', 'ひき'인데 三 뒤라면 'びき'(さんびき)가 맞는 형태다. 형태만 보고 'ひき'를 지울 수 있어, 같은 품사·형태로 맞추라는 오답 규칙(5절)에 조금 어긋난다.",
+   "fix": "choices[3]을 'びき'로 바꾸고 whyWrongKo[3]에 'びき(匹)는 작은 동물을 셉니다(三匹 さんびき)'라고 적는다."
+  },
+  {
+   "title": "q-n5-vocab-0002 図書館: 오답 'ずしょかん'은 JMdict에 옛 읽기(ok)로 실려 있음",
+   "severity": "low",
+   "file": "/Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/content/content/authored/questions/N5/q-n5-vocab-0002.json (id q-n5-vocab-0002, whyWrongKo[2])",
+   "evidence": "JMdict 1370420의 읽기는 としょかん, ずしょかん(re_inf &ok; 옛 읽기)이다. 현대어 문항으로 정답은 하나지만, whyWrongKo[2]의 '図書館에서는 と로 읽습니다'는 단정이고, 관련 단어 화면에 ずしょかん이 함께 보일 수 있다.",
+   "fix": "whyWrongKo[2]에 'ずしょかん은 지금은 쓰지 않는 옛 읽기입니다'를 덧붙이거나, 오답을 사전에 없는 형태로 바꾼다."
+  },
+  {
+   "title": "より 비교 문항 두 개가 같은 오답 구성(から·まで)으로 겹침",
+   "severity": "low",
+   "file": "/Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/content/content/authored/questions/N5/q-n5-grammar-0005.json, q-n5-grammar-0021.json (id q-n5-grammar-0005, q-n5-grammar-0021)",
+   "evidence": "두 문항 모두 정답이 より이고 오답에 から·まで가 같이 들어 있다(0005는 で, 0021은 ほど가 다를 뿐). 문법 21문항 가운데 같은 형식 판단을 두 번 묻는 셈이라 다양성(8절 low)이 떨어진다.",
+   "fix": "0021(글의 문법)의 빈칸을 다른 접속(예: 그 글의 흐름에 맞는 접속사, 또는 〜の ほうが 부분)으로 옮기거나, 아직 문항에 없는 N5 문법(gr-n5-0015 〜ないでください, gr-n5-0022 〜でしょう, gr-n5-0023 〜も)을 대상으로 바꾼다."
+  },
+  {
+   "title": "작은 자연스러움 문제: 右の手で / 메모 서명 '母'와 본문 'お母さんは'",
+   "severity": "low",
+   "file": "/Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/content/content/authored/questions/N5/q-n5-vocab-0012.json (id q-n5-vocab-0012), q-n5-reading-0005.json (id q-n5-reading-0005)",
+   "evidence": "vocab-0012 stem '右の　[[て]]で　字を　書きます'는 보통 '右手で'라고 하므로 조금 어색하다. reading-0005 메모는 본문에서 'お母さんは　今日　七時ごろ　帰ります'라고 자기를 부르면서 서명은 '母'라 자기 지칭이 섞여 있다.",
+   "fix": "vocab-0012는 '[[て]]を　洗って　ください' 같은 다른 장면으로 바꾸거나 그대로 둔다. reading-0005는 서명을 '母より' 또는 'お母さんより'로 바꿔 본문 지칭과 맞춘다."
+  },
+  {
+   "title": "모의고사 템플릿 문항 수(count) 미기재: 사용자 결정 대기(검증 결과 템플릿 값은 jlpt.jp와 일치)",
+   "severity": "low",
+   "file": "/Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/content/content/authored/exams/N5.json",
+   "evidence": "2026-11-03에 https://www.jlpt.jp/e/guideline/testsections.html 을 열어 대조했다. 시간 20/40/30분과 N5 칸이 ○인 유형(vocab 4, grammar 3, reading short·mid·info-search, listening task·point·utterance·quick-response)이 템플릿과 같다. 이 페이지에는 유형별 문항 수가 없다('Each test item type contains multiple questions'). 그래서 count를 비우고 uncertain으로 보고한 것은 9.2.1 규칙에 맞다. 다만 구현 요약대로 앱의 ExamPart(count: Int)가 이 템플릿을 읽지 못해 N5 모의고사 카드가 숨겨진다.",
+   "fix": "콘텐츠 쪽에서 고칠 것은 없다. 구현 요약의 A/B/C 결정을 사용자에게 올린 상태를 유지하고, 결정 뒤 템플릿이나 앱 규칙을 맞춘다."
+  }
+ ],
+ "M21_verdicts_confirmed": [
+  {
+   "idx": 0,
+   "reason": "지적이 맞다(confirmed). 현재 파일 content/authored/questions/N5/q-n5-vocab-0005.json을 직접 읽었다. 보기는 [\"いりくち\",\"いりぐち\",\"はいりぐち\",\"でぐち\"]이고 정답 위치(answerIndex)는 1이며 targets에 jm:1582820이 들어 있다. content/raw/S-01/JMdict_e.gz에서 ent_seq 1582820을 직접 풀어 보았다. 이 항목의 읽기는 넷이다.\n- いりぐち: re_restr 入り口·入口, 빈도 표시(re_pri) ichi1 있음\n- いりくち: re_restr 入り口·入口\n- はいりぐち: re_restr 없음. 그래서 入口를 포함한 모든 표기에 적용된다.\n- はいりくち: re_restr 없음\n네 읽기 모두 re_inf(ok/rk 등) 표시가 없다. 따라서 오답 0(いりくち)과 오답 2(はいりぐち)도 사전에 실린 유효한 入口 읽기다. 한 문항에 맞다고 할 수 있는 답이 셋이다. 오답 해설도 사전과 어긋난다. whyWrongKo[0]은 \"口가 뒤에 붙으면 ぐち로 탁음이 됩니다\"라고 단정하는데, いりくち가 사전에 있으므로 틀린 말이다. whyWrongKo[2]는 \"入口는 いりぐち로 읽습니다. 入る(はいる)와 읽기가 다릅니다\"라고 하는데, はいりぐち가 사전에 있으므로 이것도 틀렸다. 이는 콘텐츠 오류이자 정답 유일성 위반이다. 고칠 방향은 지적의 fix대로다. 오답을 JMdict 어느 항목에도 없는 형태(예: いれぐち, にゅうこう)로 바꾸고, 정답 위치 1은 유지한다. 앱의 S15 화면 렌더링 경로(같은 jm 항목에서 읽기를 모두 보여 주는지)는 직접 확인하지 않았다. 그래도 문항 자체의 판정은 바뀌지 않는다."
+  },
+  {
+   "idx": 1,
+   "reason": "현재 q-n5-vocab-0004.json의 whyWrongKo[2]는 \"大人은 한 단어 전체를 おとな로 읽는 특별한 읽기입니다. 한자 하나하나의 음으로 읽지 않습니다.\"라고 적혀 있다. 그런데 메인 체크아웃의 원본 사전 content/raw/S-01/JMdict_e.gz에 ent_seq 2860067로 大人 / だいにん, gloss \"adult\", s_inf \"used when indicating admission fees, passenger fares, etc.\"가 실려 있다(小人·中人 상호 참조 포함). 그러니 '음으로 읽지 않는다'고 단정한 설명은 사실과 다르다. 이것은 콘텐츠 오류다. 정답은 stem '弟は もう 大人ですから'의 맥락상 おとな 하나로 남으므로 채점은 문제없다. 같은 마일스톤의 q-n5-reading-0010은 요금표 '大人 四百円'에 {大人|おとな} 후리가나를 달아 두었다. 그래서 그 문항이 実際로 だいにん을 쓴다는 리뷰 근거는 일부 부정확하다. 다만 이 부분은 핵심 주장(설명이 틀린 사실을 단정함)에 영향을 주지 않는다. 고칠 방법은 두 가지다. whyWrongKo[2]를 'だいにん은 요금표 등에서 쓰는 읽기이고, 사람을 말할 때는 おとな'라는 취지로 바꾸거나, 오답을 사전에 없는 형태로 교체한다."
+  },
+  {
+   "idx": 2,
+   "reason": "지적이 맞습니다. 파일을 현재 상태로 다시 읽었는데 고쳐지지 않았습니다. stem은 '{春|はる}に　なって、{暖|あたた}か＿＿　なりました。'이고 choices는 [に,で,く,な], answerIndex는 2(く)입니다. whyWrongKo[0]은 \"に는 명사·な형용사에 붙습니다(静かになりました). 暖かい는 い형용사입니다.\"라고 씁니다.\n\n번들된 원본 content/raw/S-01/JMdict_e.gz에서 두 항목을 확인했습니다.\n- ent_seq 1586420(暖かい/温かい): adj-i\n- ent_seq 2081300(暖か/温か, あたたか): pos가 &adj-na;이고 xref는 暖かい・1\n\n따라서 빈칸 앞 '暖か'는 な형용사 暖か의 어간으로도 읽힙니다. 그러면 '暖かになりました'도 문법에 맞는 문장이 되어, 4지 중 정답이 둘(く, に)이 됩니다. whyWrongKo[0]이 に를 틀렸다고 보는 근거('暖かい는 い형용사')도 이 사실을 빠뜨려 설명이 틀립니다.\n\n이 ID를 참조하는 곳은 이 파일 하나뿐입니다. content/authored/questions/는 아직 git에 추적되지 않아(배포 전) 같은 ID로 바로 고쳐도 됩니다. 고치는 방법은 な형용사 형태가 없는 い형용사(暑い·寒い 등)로 바꾸는 것입니다. 바꿀 때 targets의 jm:1586420도 해당 단어로 바꿔야 합니다.\n\n한계: 大辞林 같은 국어사전은 직접 대조하지 않았고 JMdict만으로 판단했습니다. '暖かになる'는 '暖かくなる'보다 덜 쓰이지만 문법 오류는 아니라는 점은 변하지 않습니다."
+  },
+  {
+   "idx": 3,
+   "reason": "현재 파일을 읽어 보니 지적의 사실 근거가 모두 맞다. 선택지는 旅行·洗濯·散歩·練習(정답 3)이고, whyWrongKo 셋은 모두 '日本語(の)와 함께 쓰지 않는다'는 같은 이유다. 旅行 하나만 '日本語の旅行라고 하지 않습니다'로 말만 다르다. 세 오답은 '日本語の＿＿'에 붙는 순간 어색해져서 앞 문맥(大学に入りたいですから、毎晩)은 판단에 쓰이지 않는다.\n\njlpt-content-authoring 5절 64행은 오답이 학습자가 실제로 헷갈리는 지점을 겨냥하라고 하고, 8절은 '오답이 너무 쉬워 변별력이 없음'을 medium으로 둔다. 이 문항은 두 기준에 걸린다. 같은 묶음의 0020(切符/切手/封筒/はがき)이나 0018(休む/働く/勤める)이 헷갈리는 점을 노리는 것과 비교해도 약하다.\n\n반박할 거리도 있다. 오답이 모두 N5 수준의 같은 품사(する명사)라서 문항이 성립은 하고, 뜻을 아는지는 가려낸다. 정답이 둘이거나 없는 결함도 없다. 그래서 severity는 high가 아니라 medium이 맞다.\n\n수정할 때 주의할 점이 있다. fix 안에 든 勉強는 '日本語の勉強をしています'로 완전히 자연스러워 정답이 둘이 된다. 그러니 勉強는 오답으로 쓰면 안 된다. 質問·話도 '日本語の質問/話をする'가 성립할 수 있어 같은 위험이 있다. 바꾼 뒤에는 정답이 하나인지 반드시 다시 확인해야 한다. 파일: /Users/bbqman/HermesAgents/ETC/JLPTStudyApp-wt/content/content/authored/questions/N5/q-n5-vocab-0022.json"
+  },
+  {
+   "idx": 4,
+   "reason": "확인함. 생산자 쪽: worktree의 content/pipeline/pl_question.py:209-210은 count가 있을 때만 검사하므로(`\"count\" in p and (...)`) count가 없는 part도 통과한다. content/authored/exams/N5.json의 parts 14개에는 모두 count가 없다. 릴리스 DB /tmp/m21qa_rel2/app/src/main/assets/content/content.db에는 exam_template 행이 하나(`5|https://www.jlpt.jp/e/guideline/testsections.html|2026-11-03|authored`) 있고, template_json은 783바이트이며 'count' 문자열이 없다(instr=0). 소비자 계약 쪽: architecture.md:995는 `ExamPart(..., val count: Int)`로 정의하고, 9.2.1 예시도 count를 넣는다. 9.2.6은 `examTemplate(): ExamTemplate? // 행 없으면 null, template_json이 깨졌으면 예외`이고, ExamStart의 FAILED는 'examTemplate·pool 예외 — template_json 깨짐 등'이다. 따라서 명세대로 구현하면 N5 템플릿을 파싱할 때 반드시 예외가 나고, '다시 시도'를 눌러도 계속 실패한다. 구현 요약 _workspace/03_jlpt-content-author_M21_impl.md:20에는 '9.0 규칙에 따라 ... S12 모의고사 카드 숨김'이라고 적혀 있다. 그러나 9.0의 '파싱 실패 행은 없는 것으로'는 9.2.6이 examTemplate에 대해 정한 예외 규칙과 맞지 않는다. ui-design.md:836과 architecture.md:1099가 카드를 숨기는 조건도 'exam_template 없음(null)'뿐이다. 그래서 사용자가 결정할 때 근거로 받는 영향 설명이 명세와 다르다. S12에서 정확히 무슨 일이 일어나는지는 명세만으로 정해지지 않는다. ExamCardUi.questionCount를 만들려면 examTemplate을 불러야 하는데, PracticeHomeStatus에는 FAILED가 없다. 카드가 보일지, 예외가 날지 확정할 수 없다는 뜻이다. 다만 어느 쪽이든 파이프라인이 내보내는 행이 소비자 스키마를 어기는 것은 사실이다. 지금 worktree 앱 코드에서 exam_template을 다루는 것은 ContentDao.countExamTemplate 하나뿐이고, ExamTemplate 파싱은 아직 없다. 그래서 실제 오작동은 M19c부터 생긴다. 그래도 명세 계약이 어긋나 있고 구현 요약의 영향 설명이 틀렸다는 지적은 유효하다. count를 비워 둔 판단 자체는 9.2.1과 맞다. jlpt.jp 페이지는 직접 다시 받아 확인하지 않았다."
+  }
+ ]
+}

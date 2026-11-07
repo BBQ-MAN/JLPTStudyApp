@@ -15,6 +15,12 @@
 - 변경 내용: 필드 일부만 추림, 앱 DB 형식으로 변환
 - 추가 크레딧: 한국어 음: Charles Muller 제공(KANJIDIC2 경유)
 
+## S-03 KanjiVG (r20260714)
+
+- 저작자 표시: KanjiVG © 2009-2026 Ulrich Apel, CC BY-SA 3.0 (https://kanjivg.tagaini.net/)
+- 라이선스: CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0/>
+- 변경 내용: SVG 획 경로·획 순서를 앱 형식으로 변환
+
 ## S-06 yomitan-jlpt-vocab (stephenmk) (b062d4e (2025-08-26))
 
 - 저작자 표시: JLPT 급수 태그: yomitan-jlpt-vocab by stephenmk (CC BY-SA 4.0) — 공식 목록 아님
