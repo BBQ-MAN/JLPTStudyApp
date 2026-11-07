@@ -41,8 +41,8 @@
 | S09 | 출처와 라이선스 | S08 "출처와 라이선스"(한 번 이동), S02 상단 메뉴 "정보"(두 번 이동), 7절 오류 화면의 "출처 보기" | MVP |
 | S10 | 문법 목록 | 내비게이션 "문법" | 2순위 |
 | S11 | 문법 상세 | S10, S11 "비슷한 문법", S03 문법 카드 뒷면 "자세히", S15 해설의 "관련 단어·문법 보기" | 2순위 |
-| S12 | 연습 홈(유형별 연습·모의고사·청해) | 내비게이션 "연습" | 3·4순위 |
-| S13 | 문제 풀이(연습) | S12 유형 선택 | 3순위 |
+| S12 | 연습 홈(유형별 연습·모의고사·자동 생성 연습·청해) | 내비게이션 "연습" | 3·4순위 |
+| S13 | 문제 풀이(연습) | S12 유형 선택(고정 문항 유형·자동 생성 연습 유형) | 3순위 |
 | S14 | 모의고사 진행 | S12 "모의고사" | 3순위 |
 | S15 | 결과·해설 | S13·S14·S16 종료 | 3순위 |
 | S16 | 청해 문제 | S12 "청해" | 4순위 |
@@ -434,6 +434,7 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 | 한국어 뜻 | 없음. 단, 뜻 안에 일본어가 들어 있으면(예: "[ja]〜さん[/ja]보다 정중한 호칭") 4.4 규칙으로 찾은 구간 | `JpSpans.annotate(text)` |
 | 문제 지시문 | "밑줄 친 [ja]{대상}[/ja]의 읽기로 알맞은 것을 고르세요." | `AnnotatedString` |
 | 문제 지문·선택지 | 전부 | `JpText` |
+| 자동 생성 "뜻 고르기"의 선택지, "단어 고르기"의 지문(한국어 뜻 — 6.10 "자동 생성 연습") | 없음. 뜻 안에 일본어가 들어 있으면 4.4 규칙으로 찾은 구간 | `JpSpans.annotate(text)`(`ko-KR` 바탕). `JpText`·`RubyText`를 거치지 않는다 |
 | 문법 제목·접속 표의 형태 열 | 전부 | `JpText` |
 | 문법 설명 본문·해설·오답 이유 | 4.4 규칙으로 찾은 구간 | `JpSpans.annotate(text)` |
 | 예문 / 번역 | 예문 전부 / 번역 없음 | 두 `Text` |
@@ -559,6 +560,7 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 - 선택(모의고사, 아직 채점 전): 배경 primaryContainer, 안쪽 테두리 2 dp primary, 번호 표식 채움, 선택지 오른쪽 끝 check 아이콘. 포커스 링(3.1.5)과 구분된다.
 - 네 선택지는 `Modifier.selectableGroup()` 안의 `selectable(role = Role.RadioButton)`이다(TalkBack이 "4개 중 2번째", "선택됨"을 읽는다). 11.1.
 - 선택지 사이 8 dp.
+- **한국어 선택지**(자동 생성 "뜻 고르기", `QuizTypeLabels.koreanChoices(type)`가 true, 6.10): 선택지 글만 다르다 — 스타일 bodyLarge(16 / 26, `ko-KR`)이고 `JpSpans.annotate`로 그린다(뜻 안 일본어 구간만 `ja-JP`, 크기는 그대로 3.2.2). 후리가나 없음. 높이·번호 표식·선택·피드백·간격은 위와 같다. 낭독 문구는 11.1.
 
 ### 5.5 정답·오답 피드백(D6)
 
@@ -572,6 +574,7 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 | 나머지 | 변화 없음 | 없음 | 없음 |
 
 - 그 아래 해설 카드(surfaceContainerLow): 정답 근거, 오답별 이유, 관련 단어·문법 링크, 카드 맨 아래 `ProvenanceChip`(5.7, 해설 작성 방법). 칩 입력은 문항 행(청해는 청해 행)의 `ko_*` 열로 만든 `MeaningUi`(architecture.md 9.2·9.3, grammar 9.1과 같은 열 묶음). 행의 `needs_review = 1`이면 칩 옆에 "해설 검토 중" 칩(6.9 "설명 검토 중"과 같은 모양). 본문 안 일본어는 4.4. 이 카드는 S13 피드백, S15 틀린 문항 해설, S16 청해 해설에서 같은 모양이다.
+- **자동 생성 문항**(`QuizQuestionUi.generated`, 6.10 "자동 생성 연습")의 해설 카드: 같은 모양이고 두 가지만 다르다. (1) `ProvenanceChip`은 `provenance != null`일 때만 그린다 — 해설에 AI가 쓴 한국어 뜻이 없는 문항(한자 읽기·표기, 또는 뜻 없이 만든 해설)은 칩 줄이 없다(빈 줄도 남기지 않는다). 있으면 정답 단어의 첫 뜻(`reviewed`) 기준 칩 하나다. (2) 해설 본문은 앱이 규칙으로 만든 문구라 "해설 검토 중" 칩이 없다(`needsReview = false`). 칩 줄 위에 "관련 단어 보기" 행(6.10 S13)이 온다.
 - 상태 글자("정답", "오답 · 내가 고른 답")는 그 선택지 노드의 낭독 문구에 합친다(선택지 글 뒤, 한국어). S15 해설에서 다시 볼 때도 같다.
 - TalkBack: 선택 직후 피드백 노드(선택지 아래 글자 줄) 하나에 `liveRegion = Polite`를 걸고, 문구는 4.3의 `AnnotatedString` 방법으로: "정답입니다" 또는 "오답입니다. 정답은 {번호}번, [ja]{정답}[/ja]". `announceForAccessibility`(String)를 쓰지 않는다.
 
@@ -828,28 +831,48 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 
 **유형 이름과 지시문:** 유형 이름은 `jlpt-content-authoring` 5절 그대로(아래 표). DB 값은 architecture.md 9.2.2 유형 코드(`kanji-reading` 등)이고, 화면 이름표는 `ui/practice/QuizTypeLabels.kt` 한 곳이 코드 → 이 문서의 이름으로 바꾼다. 독해와 청해에 같은 코드·이름 `integrated`(통합 이해)가 있으므로 이름표는 (`section`, `type`) 쌍으로 찾는다.
 
+#### 자동 생성 연습(규칙으로 만든 문항, `docs/spec/quizgen.md` 6.3·6.5)
+
+단어 데이터에서 규칙으로 만든 문항(`gq:` ID, `QuizQuestionUi.generated = true`)을 직접 작성한 고정 문항과 **같은 화면**(S13·S15)으로 푼다. 화면 틀·채점·해설 카드·피드백 색은 바꾸지 않고, 아래 네 가지만 다르다. 용어는 quizgen.md를 따른다.
+
+- **유형 4개**: 한자 읽기(`kanji-reading`)·표기(`orthography`)·뜻 고르기(`meaning-ja-ko`)·단어 고르기(`meaning-ko-ja`). 이름은 `QuizTypeLabels`의 `Section.VOCAB` 표에 두 개를 더해 한 곳에서 정한다(뜻 고르기·단어 고르기). 한자 읽기·표기는 고정 문항 유형과 **같은 이름·같은 지시문**이다(`QuizTypeLabels`가 (`section`, `type`)로 찾는다) — 구분은 이름이 아니라 아래 세 표시로 한다.
+- **고정 문항과 구분하는 표시 세 곳**(색·아이콘이 아니라 글자): (1) S12 영역 머리 "자동 생성 연습", (2) S13·S15 해설 보기의 라벨 "자동 생성 연습 문제", (3) S15 결과 제목의 접두 "자동 생성 · ". 직접 작성한 문항으로 오해하지 않게 하는 것이 목적이다(D11).
+- **한국어 로캘**: 뜻 고르기의 선택지와 단어 고르기의 지문은 한국어 뜻이다. `JpText`·`RubyText`가 아니라 `JpSpans.annotate`로 그려 한국어는 `ko-KR`, 뜻 안 일본어 구간만 `ja-JP`다(4.2·5.4). 뜻 고르기의 지문(일본어)과 단어 고르기의 선택지(일본어)는 기존대로 `JpText`·`RubyText`.
+- **학습 기록과 연결하지 않는다**: 생성 문항을 풀어도 복습 카드·FSRS 상태를 바꾸지 않는다(quizgen.md 6.6). 해설의 "관련 단어 보기"(S06)까지만 잇는다. "틀린 단어를 카드로 복습" 같은 버튼은 두지 않는다. 네트워크 없이 DB 조회와 계산만으로 동작하므로 오프라인 표시가 따로 없다.
+
 #### S12 연습 홈
 
-- 상단 바 제목 "연습". 그 아래 급수 선택 칩 줄(**하나만 고름**, `FilterChip` 단일 선택, `selectableGroup` + `Role.RadioButton`, 문항이 번들된 급수만. 기본 = 학습 급수 중 가장 쉬운 급수(N5 쪽), 학습 급수에 문항이 없으면 문항이 있는 가장 쉬운 급수). 선택은 화면 상태로만 두고 저장하지 않는다. 문제 세트와 모의고사가 급수마다 다르므로 하나만 고른다.
+- 상단 바 제목 "연습". 그 아래 급수 선택 칩 줄(**하나만 고름**, `FilterChip` 단일 선택, `selectableGroup` + `Role.RadioButton`, 고정 문항이 번들된 급수 ∪ 자동 생성 유형이 하나라도 `enabled`인 급수(`PracticeHomeUiState.levels`) — N4는 고정 문항이 없어도 칩이 생긴다. 기본 = 학습 급수 중 가장 쉬운 급수(N5 쪽), 학습 급수에 문항이 없으면 문항이 있는 가장 쉬운 급수). 선택은 화면 상태로만 두고 저장하지 않는다. 문제 세트와 모의고사가 급수마다 다르므로 하나만 고른다.
 - 위에서부터:
   1. **이어서 풀기 카드**(미완료 모의고사 시도가 있을 때만, 급수 칩과 무관하게 맨 위): primaryContainer 면, 모양 large, 안쪽 16 dp. "N4 모의고사 · {k}/{전체} 문항 답함 · 경과 {mm:ss}"(titleMedium onPrimaryContainer, `tnum`), 주 버튼 "이어서 풀기"(채운 버튼 primary, 48 dp 이상), 보조 텍스트 버튼 "포기하기"(확인 대화상자, 7절).
   2. **모의고사 카드**(surfaceContainerLow, `PracticeHomeUiState.exam: ExamCardUi?`가 null이면 — 그 급수 `exam_template` 없음 — 카드째 숨긴다): "N5 모의고사"(titleMedium), "{questionCount}문항 · 기준 시간 {limitMs ÷ 60,000}분"(bodyMedium, `tnum`. 둘 다 청해 영역을 뺀 값 — AR-U11 A), 그 아래 bodySmall onSurfaceVariant "청해 영역은 포함하지 않습니다.", 버튼 "시작"(48 dp) → S14 시작 화면. `hasShortfall`이면(문항이 템플릿을 채우지 못함) 버튼 비활성 + 이유 "문항이 모자라 아직 볼 수 없습니다"(bodySmall). 이미 미완료 모의고사가 있으면 "시작"은 대화상자를 띄운다(`confirmReplace`, 7절).
   3. **유형별 연습**: 영역 묶음 머리 "문자·어휘" / "문법" / "독해" / "청해"(titleSmall onSurfaceVariant, `heading()`). 행(최소 64 dp, 행 전체 클릭): 유형 이름(titleMedium) + "{n}문항"(bodySmall onSurfaceVariant, `tnum`, 그 급수·유형의 번들 문항 수). 문항이 0인 유형은 행째, 유형이 모두 없는 영역은 머리째 숨긴다. 청해 영역 행은 S16, 나머지는 S13으로 간다. 청해 영역은 청해 콘텐츠가 번들에 있을 때만 생긴다.
-  4. 공통 고지 한 줄(위). 문자열 리소스이고 `attribution.json`을 읽지 못해도 늘 보인다(`PracticeHomeUiState`에 고지 필드 없음, architecture.md 9.2.6 — 13.3 #1 해소).
-- 연습 세트: 누른 유형의 문항에서 **최대 `PRACTICE_SIZE = 10`문항**(UI-U08 A, `ui/practice/PracticeConfig.kt`)을 시드로 섞어 고른다(parts 하나짜리 템플릿으로 `Quiz.buildSet`, 시드는 `quiz_attempt.seed`, 연습·청해 시도는 `exam_id = NULL` — architecture.md 9.2.5). 적으면 전부. 행의 "{n}문항"은 `PracticeTypeUi.count`. 시도를 `QuizRepository.startAttempt`로 만든 뒤 `Quiz(attemptId)`(청해는 `Listening(attemptId)`)로 이동한다.
-- 글꼴 200%: 카드 안 글자 줄바꿈, 이어서 풀기 카드의 두 버튼은 세로로 쌓는다(측정).
-- TalkBack: 급수 칩 "N5, 선택됨"(M3 기본 + `Role.RadioButton`), 유형 행 "{유형}, {n}문항", 이어서 풀기 카드는 제목 노드 + 버튼 두 개, 비활성 "시작"은 이유 문구와 합쳐 "모의고사 시작, 사용할 수 없음, 문항이 모자라 아직 볼 수 없습니다".
+  4. **자동 생성 연습**(`PracticeHomeUiState.generated`가 비어 있지 않을 때만. 비면 — 읽기 실패·생성 표가 없는 DB — 머리·설명·행 전부 숨긴다. 맨 위 "이어서 풀기" 카드는 영향 없음): 3번 영역들 아래, 위 간격 24 dp(xl, 절 사이).
+     - 머리 "자동 생성 연습"(titleSmall onSurfaceVariant, `heading()` — 3번 영역 머리와 같은 모양). 바로 아래 설명 bodySmall onSurfaceVariant "단어 데이터에서 규칙으로 만든 연습 문제입니다. 실제 시험 문제와 형식이 다릅니다."(머리와 4 dp, 줄바꿈 허용, 장식 아이콘 없음).
+     - 행 4개(`GenType` 선언 순서: 한자 읽기·표기·뜻 고르기·단어 고르기, 설명과 8 dp, 행 사이 간격은 3번 유형 행과 같다). 행 = 최소 64 dp, 행 전체 클릭, 배경 없음(화면 `surface` 위), 안쪽 좌우 16 dp 위아래 8 dp. 왼쪽에 `Column`: 유형 이름(titleMedium) + "단어 {targets}개"(bodySmall onSurfaceVariant, `tnum`, 고른 급수에서 이 유형으로 만들 수 있는 단어 수 `GeneratedTypeUi.targets`). 행은 항상 4개이고 `targets = 0`이어도 "단어 0개"로 보인다.
+     - **활성**(`enabled`, `targets >= GEN_MIN_TARGETS` = 10): 유형 이름 onSurface. 누르면 `PracticeHomeViewModel.startGenerated(type)` → 시도 하나를 만든 뒤 `Quiz(attemptId)`(S13). 한 세션 최대 `PRACTICE_SIZE`문항(UI-U08 A) — 생성이 안 되는 단어가 있으면 그보다 짧을 수 있다.
+     - **비활성**(`targets < 10`): 행을 누를 수 없다(`enabled = false`). 유형 이름 색 onSurfaceVariant, "단어 {n}개" 아래 줄에 이유 bodySmall onSurfaceVariant: 한자 읽기·표기 → "대상 단어가 부족합니다", 뜻 고르기·단어 고르기 → "검수된 뜻이 부족해 만들 수 없습니다". 글자색은 M3 비활성 투명도(38%)를 쓰지 않는다(이유 문구가 읽혀야 하므로 대비 3.1.4 onSurfaceVariant / surface가 그대로). 비활성임은 이유 문구(글자)로 전하고 색만으로 전하지 않는다.
+     - 시작 중 연타: `startGenerated`가 잠금을 잡는 동안(고정 유형 행의 `startPractice`와 같다) 모든 유형 행의 입력을 무시하고 시도는 한 개만 만든다. 시각 표시는 따로 두지 않는다(실패와 같은 규칙, 7절 "시작 실패"). 첫 생성 때 은행 만들기가 오래 걸려 화면이 멈춘 것처럼 보이면 QG4 구현 중 측정해 300 ms를 넘을 때 눌린 행에 원형 진행 표시를 더하는 것을 android-architect에 요청한다(`starting` 필드가 UI 상태에 없으므로 이 문서가 지금 정하지 않는다).
+     - 설명 줄은 이 화면 제목이 아니라 머리 아래 안내이므로 "공통 고지"를 대신하지 않는다(5번이 따로 있다).
+  5. 공통 고지 한 줄(위). 문자열 리소스이고 `attribution.json`을 읽지 못해도 늘 보인다(`PracticeHomeUiState`에 고지 필드 없음, architecture.md 9.2.6 — 13.3 #1 해소).
+- 연습 세트(고정 문항 유형 행): 누른 유형의 문항에서 **최대 `PRACTICE_SIZE = 10`문항**(UI-U08 A, `ui/practice/PracticeConfig.kt`)을 시드로 섞어 고른다(parts 하나짜리 템플릿으로 `Quiz.buildSet`, 시드는 `quiz_attempt.seed`, 연습·청해 시도는 `exam_id = NULL` — architecture.md 9.2.5). 적으면 전부. 행의 "{n}문항"은 `PracticeTypeUi.count`. 시도를 `QuizRepository.startAttempt`로 만든 뒤 `Quiz(attemptId)`(청해는 `Listening(attemptId)`)로 이동한다. 자동 생성 행은 문항을 고르지 않고 `QuizGenRepository.newSession`이 만든 ID 목록(`gq:…`)으로 `startAttempt(null, seed, ids, …)`를 부른다(quizgen.md 6.3). 목록이 비면 `startFailed`(7절).
+- 글꼴 200%: 카드 안 글자 줄바꿈, 이어서 풀기 카드의 두 버튼은 세로로 쌓는다(측정). 자동 생성 영역: 설명 줄은 줄바꿈, 행은 높이가 늘어나(최소 64 dp) "단어 {n}개"와 비활성 이유가 각자 줄을 바꾼다. 잘리거나 말줄임 없음. 스크린샷 `practice_home_generated_light_font200`(12절).
+- TalkBack: 급수 칩 "N5, 선택됨"(M3 기본 + `Role.RadioButton`), 유형 행 "{유형}, {n}문항", 자동 생성 머리는 제목(`heading()`) 다음에 설명 줄, 자동 생성 행 "{유형}, 자동 생성, 단어 {n}개" / 비활성 "{유형}, 자동 생성, 단어 {n}개, 사용할 수 없음, {이유}"(한국어만, `clickable(enabled)`을 앞에 두고 `clearAndSetSemantics { contentDescription }` — 4.3 5번), 이어서 풀기 카드는 제목 노드 + 버튼 두 개, 비활성 "시작"은 이유 문구와 합쳐 "모의고사 시작, 사용할 수 없음, 문항이 모자라 아직 볼 수 없습니다".
 
 #### S13 문제 풀이(연습)
 
-- 전체 화면(내비게이션 바 없음). 상단 바: close "연습 끝내기"(확인 없이 S12, 아래 이탈), 오른쪽 후리가나 토글(유형 규칙상 숨기는 유형이면 없음, 5.2).
+- 전체 화면(내비게이션 바 없음). 상단 바: close "연습 끝내기"(확인 없이 S12, 아래 이탈), 오른쪽 후리가나 토글(유형 규칙상 숨기는 유형이면 없음, 5.2 — 자동 생성 한자 읽기·표기는 숨기고, 뜻 고르기·단어 고르기는 보인다).
 - 그 아래 `SessionProgress` 문제 판(5.6): "{현재}/{전체}"(titleMedium, `tnum`) + 진행 막대. 오른쪽에 유형 이름(labelMedium onSurfaceVariant).
-- 본문(세로 스크롤 하나): 지시문 → 지문 → 선택지 4개 → (답한 뒤) 피드백 줄 + 해설 카드.
-  - 지시문: bodyLarge, `ko-KR` + `[ja]{대상}[/ja]` 구간(아래 표). 문항이 바뀌면 이 노드로 접근성 포커스.
+- 본문(세로 스크롤 하나): (자동 생성 문항이면 맨 앞에 라벨 칩) → 지시문 → 지문 → 선택지 4개 → (답한 뒤) 피드백 줄 + 해설 카드.
+  - **자동 생성 라벨**(`QuizQuestionUi.generated == true`일 때만, 고정 문항에는 없다): 진행 판 바로 아래, 본문 스크롤 영역의 **맨 위**(스크롤하면 함께 올라간다. 고정 영역에 두지 않는다 — 낮은 높이에서 공간을 먹는다). 글자 "자동 생성 연습 문제"(labelMedium onSurfaceVariant), 테두리 1 dp `outline`(3.1.4 outline / surface 4.23:1), 모양 small(8 dp), 안쪽 좌우 12 dp·위아래 4 dp, 높이 최소 24 dp(글자를 담으므로 최소값), 장식 아이콘 없음, 글자 줄바꿈 허용. **누를 수 없다**: `AssistChip`·`SuggestionChip`을 쓰지 않고 `Box` + `Text`로 그려 버튼·`Role`·물결 효과가 없다(출처 칩 5.7과 달리 동작이 없다). 아래 지시문과 12 dp 간격(md). S15 해설 보기도 같은 자리·모양으로 그린다.
+  - 지시문: bodyLarge, `ko-KR` + `[ja]{대상}[/ja]` 구간(아래 표). 문항이 바뀌면 본문의 **첫 노드**로 접근성 포커스: 고정 문항은 이 지시문 노드, 자동 생성 문항은 위 라벨 노드(그 다음 쓸기가 지시문 — 라벨을 지시문 노드와 합치지 않고 순서만 앞에 둔다. 라벨이 문항마다 한 번 낭독된다, 11.1).
   - 지문 `stem`: jpBodyLarge(+ 후리가나 `body_furigana`, 한자 읽기·표기는 언제나 끔 5.2), 대상 부분 `[[…]]`은 밑줄 2 dp + 굵기 500(색만으로 표시하지 않음). `passage`가 있으면 그 위에 지문 카드(surfaceContainerLow, 모양 medium, 안쪽 16 dp, jpBodyLarge + 후리가나).
+  - **단어 고르기의 지문**(`koreanStem(type)`이 true, 자동 생성 `meaning-ko-ja`): 지문이 한국어 뜻이다. titleLarge(22 / 28)로 `JpSpans.annotate`(`ko-KR`, 뜻 안 일본어 구간 `ja-JP`)로 그린다. 후리가나·밑줄(`[[…]]`)·`passage` 카드 없음. 지시문 아래 12 dp. **뜻 고르기의 지문**(자동 생성 `meaning-ja-ko`)은 일본어 단어 하나(`[[…]]` 전체가 대상이라 밑줄 2 dp)이고 기존대로 jpBodyLarge + 후리가나(`body_furigana`를 따름, 5.2 `fromHeadword` 결과).
   - 긴 지문: `passage` 카드 높이가 본문 영역 높이의 50%를 넘으면(측정) 지문과 문제를 나눈 탭 "지문" / "문제"(`TabRow`, `Role.Tab`)로 바꾼다. 처음 탭은 "지문". 문제 탭에 지시문·`stem`·선택지. 답한 뒤에도 두 탭은 유지된다.
-  - 선택지 4개: 5.4 `ChoiceButton`. 연습에서는 **한 번 고르면 바꿀 수 없다**: 고르는 즉시 채점·저장하고 5.5 피드백을 보이며 선택지 네 개를 `selectable(enabled = false)`로 둔다. 색은 M3 비활성 투명도(38%)를 쓰지 않고 5.5 표의 색을 그대로 그린다(`ChoiceButton`은 직접 만든 컴포넌트라 색을 직접 정한다 — 피드백 대비 3.1.4 유지).
+  - 선택지 4개: 5.4 `ChoiceButton`. 연습에서는 **한 번 고르면 바꿀 수 없다**: 고르는 즉시 채점·저장하고 5.5 피드백을 보이며 선택지 네 개를 `selectable(enabled = false)`로 둔다. 색은 M3 비활성 투명도(38%)를 쓰지 않고 5.5 표의 색을 그대로 그린다(`ChoiceButton`은 직접 만든 컴포넌트라 색을 직접 정한다 — 피드백 대비 3.1.4 유지). 뜻 고르기의 선택지는 한국어 뜻이라 5.4 "한국어 선택지" 모양이다. 자동 생성 문항은 정답 자리가 문항 ID에 고정되어 있어 선택지 순서가 섞이지 않는다(`fixedOrder`, quizgen.md 6.1) — 화면은 받은 순서 그대로 1~4번에 놓는다.
   - 해설 카드: 5.5(정답 근거 `explanation_ko`, 오답별 이유 `why_wrong_ko_json`에서 **고른 오답의 이유를 맨 위**, 나머지 오답 이유는 그 아래, 관련 단어·문법 링크 `targets_json`, `ProvenanceChip` + "해설 검토 중").
+  - **관련 단어 보기**(자동 생성 문항): `targets = [vocabId]`(단어 하나)이므로 해설 카드 안, 해설 본문 아래·칩 줄 위에 행 하나 "관련 단어 보기"(labelLarge primary, 행 전체 클릭, 최소 높이 48 dp, 오른쪽 chevron_right 장식 16 dp)를 둔다. 누르면 `VocabDetail(vocabId)` = S06(`TargetLink(VOCAB)`, 기존 해결 경로). S06에서 뒤로 오면 같은 문항의 피드백 상태 그대로다(ViewModel 상태, 이어서 풀기 위치가 바뀌지 않는다). 콘텐츠에서 빠진(`retired`) 단어라 해결되지 않으면 행째 숨긴다. 문구는 대상이 단어뿐일 때 "관련 단어 보기", 문법만이면 "관련 문법 보기", 섞여 있으면 기존 "관련 단어·문법 보기"(고정 문항 `targets_json` 규칙은 그대로). 낭독 11.1.
+  - 자동 생성 문항의 `ProvenanceChip`은 5.5의 두 규칙(`provenance == null`이면 칩 줄 없음, "해설 검토 중" 없음)을 따른다. 답하기 전에는 칩을 그리지 않는다(칩은 해설 카드 맨 아래이고 카드는 답한 뒤에만 나온다 — 선택지의 한국어 뜻은 모두 `reviewed`, quizgen.md 7.1 I4).
 - 하단 고정(내비게이션 바 인셋 위 16 dp): 답하기 전에는 없음(선택지를 누르는 것이 답이다). 답한 뒤 "다음"(폭 전체 56 dp, primary), 마지막 문항이면 "결과 보기". 답한 직후 300 ms 동안 "다음" 입력 무시(3.6 `InputGuardMs`와 같은 값 — 선택지를 두 번 눌러 다음으로 넘어가는 것을 막는다).
 - 저장: 답(`quiz_answer`)은 고를 때마다 저장한다. 저장이 끝나기 전에는 피드백을 보이지 않는다(보통 즉시). 300 ms를 넘으면 선택지 아래 얇은 `LinearProgressIndicator`. 실패는 7절.
 - **지시문**(앱이 쓴 한국어 문구, 시험지 문구를 옮기지 않는다). `{대상}`은 문항의 `target`(architecture.md 9.2, 일본어 문자열, 루비 없음)으로 채운다. `targets`(관련 어휘·문법 ID, S15 "관련 단어·문법 보기")와 다른 필드다. `{대상}`이 있는 유형(한자 읽기·표기·유의 표현·용법)은 `target`이 반드시 있다(architecture.md 9.2 검사):
@@ -862,11 +885,14 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 | | 문맥 규정 | "빈칸에 들어갈 말로 알맞은 것을 고르세요." |
 | | 유의 표현 | "밑줄 친 말 [ja]{대상}[/ja] — 뜻이 가장 가까운 것을 고르세요." |
 | | 용법 | "[ja]{대상}[/ja] — 이 말이 바르게 쓰인 문장을 고르세요." |
+| | 뜻 고르기(자동 생성 `meaning-ja-ko`) | "밑줄 친 [ja]{대상}[/ja]의 뜻으로 알맞은 것을 고르세요." |
+| | 단어 고르기(자동 생성 `meaning-ko-ja`) | "이 뜻을 가진 일본어를 고르세요." |
 | 문법 | 문법 형식 판단 | "빈칸에 들어갈 알맞은 표현을 고르세요." |
 | | 문장 배열 | "네 조각을 바른 순서로 놓았을 때 굵은 테두리 칸에 들어갈 것을 고르세요." |
 | | 글의 문법 | "글의 흐름에 맞게 빈칸에 들어갈 것을 고르세요." |
 | 독해 | 단문·중문·장문·통합 이해·주장 이해·정보 검색 | "글을 읽고 질문에 알맞은 답을 고르세요." |
 
+  - 자동 생성 한자 읽기·표기는 이 표의 같은 이름 행의 지시문을 그대로 쓴다. 단어 고르기는 `{대상}`이 없다(`target = null`, 지시문에 일본어 구간 없음).
   - 일본어 대상 바로 뒤에 받침에 따라 바뀌는 조사(이/가, 과/와, 을/를)를 붙이지 않는다. "의"만 쓰거나 대시로 끊는다.
   - 빈칸 표시: 지문의 빈칸은 `（　）` 글자가 아니라 앱이 그리는 칸(최소 폭 48 dp, 높이 = 줄 높이, 테두리 1 dp `outline`, 지문 카드 안이면 `outline` / surfaceContainerLow — 3.1.6). 지문 문자열 안 빈칸은 `＿＿`, 문장 배열의 ★ 칸은 `＿★＿`(전각 밑줄, architecture.md 9.2.2)이고 `ui/practice/QuizStem.kt` `split`이 글자 구간과 칸으로 나눈다. 화면에는 `＿` 글자를 그대로 보이지 않는다.
   - **문장 배열**: 지문에 빈칸 넷, 그중 하나(`★` 자리)만 테두리 **2 dp onSurface** + 칸 바로 아래 labelSmall "이 칸"(색만으로 표시하지 않음). 아래 선택지 4개(5.4, 조각 넷). 채점은 다른 유형과 같은 4지선다(`choices` 4개, `answerIndex`, architecture.md 9.2). 조각을 끌거나 순서대로 놓는 조작은 두지 않는다.
@@ -897,7 +923,7 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 
 - 들어오는 길: S13 마지막 "결과 보기", S14 제출, S16 마지막 "결과 보기". 상단 바 close "닫기"(→ S12, 확인 없음) + 제목 "결과".
 - 위에서부터:
-  1. 제목 줄: `mode` `EXAM` "N5 모의고사 결과" / `PRACTICE` "N5 {유형} 연습 결과" / `LISTENING` "N5 청해 {유형} 결과"(headlineSmall, 유형 이름은 `QuizTypeLabels`로 `type`에서).
+  1. 제목 줄: `mode` `EXAM` "N5 모의고사 결과" / `PRACTICE` "N5 {유형} 연습 결과" / `LISTENING` "N5 청해 {유형} 결과"(headlineSmall, 유형 이름은 `QuizTypeLabels`로 `type`에서). **자동 생성 시도**(`items`의 문항이 `question.generated == true` — 한 시도의 문항은 모두 같다. 고정 유형과 코드가 같은 `kanji-reading`·`orthography`가 있어 `type`만으로는 구분할 수 없다)는 접두 "자동 생성 · "를 붙여 "자동 생성 · N5 {유형} 연습 결과"(줄바꿈 허용). `status = EMPTY`(남은 문항 0)면 접두 없이 "N5 {유형} 연습 결과".
   2. 합계: "{score.correct}/{score.total}"(displaySmall 36 sp, `tnum`) + 오른쪽 "({비율}%)"(titleLarge `tnum`). 모의고사면 아래 bodyMedium "답하지 않은 문항 {score.unanswered}개"(0이면 줄째 숨김). `status = EMPTY`(남은 문항 0)면 합계 대신 "채점할 문항이 없습니다".
      - **비율 반올림 규칙**(합계·영역 줄 공통, `SectionScore`·`ExamSectionScore`는 `correct`·`total`만 준다): 비율 = `correct × 100 ÷ total`을 **정수로 반올림(0.5 올림)**하되, 정답이 전체보다 적으면 최대 99, 정답이 1개 이상이면 최소 1로 둔다("100%"는 전부 맞았을 때만, "0%"는 하나도 못 맞혔을 때만). `total = 0`인 줄은 만들지 않는다. 함수 하나 `ui/practice/Percent.kt` `fun percent(correct: Int, total: Int): Int`. 단위 테스트 기대값: 0/25 → 0, 18/25 → 72, 1/3 → 33, 2/3 → 67, 1/8 → 13(12.5 올림), 199/200 → 99, 1/300 → 1, 25/25 → 100.
   3. 영역별 원점수: `EXAM`은 `score.examSections`(템플릿 영역, 이름 `titleKo`, 템플릿 순서), `PRACTICE`·`LISTENING`은 `score.sections`가 2개 이상일 때만(이름은 `Section` 표시 이름 문자·어휘 / 문법 / 독해 / 청해, 연습은 한 유형이라 보통 줄이 없다). 줄마다 "{영역} {correct}/{total} ({비율}%)"(bodyLarge `tnum`) + 아래 진행 막대(높이 8 dp, primary / secondaryContainer 트랙, 모양 full). 막대는 보조 단서다(글자가 값을 전한다). 모의고사면 영역 줄 아래 bodySmall onSurfaceVariant "청해 영역은 포함하지 않았습니다."(AR-U11 A).
@@ -906,10 +932,10 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
   6. 공통 고지 카드(위, "합격 여부를 예측하지 않습니다" 포함).
   7. **합격 여부·척도 점수·합격선·등급·"합격 가능" 같은 표현을 어디에도 보이지 않는다.** `:core:quiz` `Score`에 그런 필드가 없다(architecture.md 9.2).
   8. 문항 목록(`items: List<QuizReviewItemUi>`, 필터는 화면이 적용): 절 머리 "문항별 결과"와 필터 칩 두 개 "틀린 문항"(`ResultFilter.WRONG`, 기본, 틀림 + 답하지 않음) / "전체"(`ALL`)(`FilterChip` 단일 선택). 행(최소 64 dp, 행 전체 클릭 → 해설 보기): 왼쪽 상태 아이콘(check_circle correct / cancel error / 답하지 않음은 아이콘 없음) + "{번호}. {유형 이름}"(titleMedium) + 아래 "정답 {m}번 · 내 답 {k}번" / "정답 {m}번 · 답하지 않음"(bodyMedium `tnum`) + `scriptShown`이면 끝에 " · 대본으로 풂". 상태는 아이콘과 글자 둘 다로 전한다(D6). 틀린 문항이 없으면 목록 자리에 "틀린 문항이 없습니다"(bodyMedium) + "전체" 칩으로 볼 수 있다.
-- **해설 보기**(`reviewIndex != null`, 같은 `QuizResult` 라우트 안 상태 — 하위 라우트 아님, architecture.md 9.2.6. 시스템 뒤로 = `reviewIndex = null`로 목록, 같은 스크롤 위치): 지시문·지문·선택지를 S13과 같은 배치로 다시 보인다. 선택지에는 5.5 표의 상태(정답 / 오답 · 내가 고른 답, 답하지 않음이면 정답만 표시 + 선택지 아래 "답하지 않음")를 그대로 그리고, 아래 해설 카드(5.5)와 "관련 단어·문법 보기"(`targets_json`의 각 ID → S06·S07·S11, 콘텐츠에 없는 ID는 빼고, 모두 없으면 줄째 숨김). 하단 "이전 문항" · "다음 문항"(현재 필터 안에서, 56 dp). 청해 문항이면 `PlaybackControl`(5.8)과 대본(펼친 채)도 보인다.
+- **해설 보기**(`reviewIndex != null`, 같은 `QuizResult` 라우트 안 상태 — 하위 라우트 아님, architecture.md 9.2.6. 시스템 뒤로 = `reviewIndex = null`로 목록, 같은 스크롤 위치): (자동 생성 문항이면 맨 위에 6.10 S13의 라벨 "자동 생성 연습 문제") 지시문·지문·선택지를 S13과 같은 배치로 다시 보인다. 선택지에는 5.5 표의 상태(정답 / 오답 · 내가 고른 답, 답하지 않음이면 정답만 표시 + 선택지 아래 "답하지 않음")를 그대로 그리고, 아래 해설 카드(5.5)와 "관련 단어·문법 보기"(`targets_json`의 각 ID → S06·S07·S11, 콘텐츠에 없는 ID는 빼고, 모두 없으면 줄째 숨김). 자동 생성 문항은 이 줄이 S13과 같은 "관련 단어 보기"(→ S06 `VocabDetail(vocabId)`, 위치·모양은 S13 해설 카드 안)이고, S06에서 뒤로 오면 같은 `reviewIndex`·스크롤 위치다. 하단 "이전 문항" · "다음 문항"(현재 필터 안에서, 56 dp). 청해 문항이면 `PlaybackControl`(5.8)과 대본(펼친 채)도 보인다.
 - 하단 고정(목록 화면): "연습으로"(채운 버튼, S12). "다시 풀기"는 두지 않는다(S12에서 같은 유형을 다시 고르면 된다).
 - 글꼴 200%: 합계 줄의 비율은 다음 줄로, 행은 높이가 늘어난다. 스크린샷 `quiz_result_font200`.
-- TalkBack: 합계 노드 "정답 {정답}개, 전체 {전체}개, {비율}퍼센트"(한 노드), 영역 줄 "{영역}, {정답}/{전체}, {비율}퍼센트"(막대는 숨김 — 같은 값). 결과 화면이 열리면 제목 줄로 포커스. 행 노드 "{번호}번, {유형}, 정답/오답/답하지 않음, 정답 {m}번, 내 답 {k}번" + 대본으로 풂.
+- TalkBack: 합계 노드 "정답 {정답}개, 전체 {전체}개, {비율}퍼센트"(한 노드), 영역 줄 "{영역}, {정답}/{전체}, {비율}퍼센트"(막대는 숨김 — 같은 값). 결과 화면이 열리면 제목 줄로 포커스(자동 생성 시도의 제목 낭독은 "자동 생성, N5 {유형} 연습 결과" — 가운뎃점을 읽지 않게 접두를 쉼표로 읽는다). 행 노드 "{번호}번, {유형}, 정답/오답/답하지 않음, 정답 {m}번, 내 답 {k}번" + 대본으로 풂.
 
 ### 6.11 S16 청해(청해 묶음)
 
@@ -1000,14 +1026,19 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 | S07 | 필순 데이터 깨짐 | 저장소가 `strokes = null`로 준다(행 없음·JSON 깨짐·경로 해석 실패, architecture.md 9.4) | 필순 절을 숨긴다(데이터 없음과 같음) | - |
 | S12 | 로딩(`PracticeHomeStatus.LOADING`) | 공통 로딩 규칙 | 목록 자리표시 행 5개 | 없음 |
 | S12 | 정상(`LOADED`) | 6.10 S12 | | 유형 행, "시작" |
+| S12 | 자동 생성 영역(`generated`가 비지 않음) | 읽기 성공, 고른 급수의 `GeneratedTypeUi` 4개 | 6.10 S12 4번: 머리 "자동 생성 연습" + 설명 줄 + 유형 행 4개(이름·"단어 {n}개") | 활성 행 → `startGenerated`, 시도 만든 뒤 S13 |
+| S12 | 자동 생성 행 비활성 | `enabled == false`(`targets < 10`) | 이름 onSurfaceVariant + "단어 {n}개" + 이유("대상 단어가 부족합니다"(한자 읽기·표기) / "검수된 뜻이 부족해 만들 수 없습니다"(뜻 고르기·단어 고르기)) | 없음(눌러도 반응 없음) |
+| S12 | 자동 생성 영역 없음 | `generated`가 빔(읽기 실패 · 생성 표가 없는 DB) | 머리·설명·행 모두 숨김. 나머지 화면은 그대로(오류 표시 없음 — 생성 연습은 덤 기능) | - |
 | S12 | 진행 중인 모의고사 있음 | `resume != null`(`unfinishedExam()`, `exam_id` 있고 `finished_at_epoch_ms` NULL) | 맨 위 카드 "N4 모의고사 · {answered}/{total} 문항 답함 · 경과 {mm:ss}" | "이어서 풀기", 보조 "포기하기" → `confirmAbandon` 대화상자 "모의고사를 포기할까요?" / "이 모의고사는 결과 없이 끝납니다. 고른 답은 기록에 남습니다." — "포기하기"(`QuizRepository.finish`, 행은 지우지 않는다), "취소"(기본 포커스) |
 | S12 | 새 모의고사 시작 시 미완료 시도 있음(`confirmReplace`) | "시작"을 눌렀는데 미완료 모의고사가 있음(급수 무관, 늘 0~1개 — AR-U14 A) | 대화상자 제목 "풀던 모의고사가 있습니다" / 본문 "{급수} 모의고사 · {answered}/{total} 문항 답함 · 경과 {mm:ss}. 새로 시작하면 풀던 모의고사는 결과 없이 끝납니다(고른 답은 기록에 남습니다)." | "이어서 풀기"(기본 포커스, 풀던 시도로), "새로 시작"(`ExamStart(level)` 시작 화면으로. 여기서는 `finish`·`startAttempt`를 부르지 않는다 — 시작 화면의 "시작"이 `startAttempt`를 한 번 부르고 저장소가 같은 트랜잭션에서 이전 시도를 닫는다, architecture.md 9.2.6), "취소" |
 | S12 | 모의고사 볼 수 없음 | `exam == null`(템플릿 없음) / `exam.hasShortfall`(문항이 템플릿을 못 채움) | 카드 숨김 / "시작" 비활성 + "문항이 모자라 아직 볼 수 없습니다" | 없음 |
-| S12 | 문항 없음(`EMPTY`) | 고른 급수에 문항·청해가 모두 0(유형 행이 하나도 없음) | "이 급수의 문제가 아직 없습니다" / "다른 급수를 골라 보세요." | 급수 칩(화면 위에 그대로), 주 버튼 없음 |
+| S12 | 문항 없음(`EMPTY`) | 고른 급수에 문항·청해가 모두 0이고 자동 생성 `enabled` 행도 없음(`types.isEmpty() && generated.none { it.enabled }`, 유형 행이 하나도 없음. 이때 비활성 자동 생성 행은 보이지 않는다 — 그런 급수는 급수 칩에도 나오지 않는다) | "이 급수의 문제가 아직 없습니다" / "다른 급수를 골라 보세요." | 급수 칩(화면 위에 그대로), 주 버튼 없음 |
 | S12 | 문항이 번들에 전혀 없음 | 모든 급수 0 | 탭 자체를 숨긴다(1.2, 구현 전 목적지와 같음) | - |
-| S12 | 시작 실패(`startFailed`) | `startAttempt`·`buildSet` 예외 | 스낵바 "문제를 시작하지 못했습니다" | 스낵바 "다시 시도" |
+| S12 | 시작 실패(`startFailed`) | `startAttempt`·`buildSet` 예외, 자동 생성은 `newSession`이 빈 목록이거나 예외 | 스낵바 "문제를 시작하지 못했습니다" | 스낵바 "다시 시도" |
 | S13·S16 | 로딩(`QuizStatus.LOADING` / `ListeningStatus.LOADING`) | 시도·첫 문항 불러오는 중(`QuizSessionLoader.load`) | 본문 자리에 원형 진행 표시(300 ms 뒤) | 상단 닫기는 동작 |
 | S13 | 문항(`ANSWERING`) | 문항 표시, 답하기 전 | 6.10 S13 | 선택지 |
+| S13 | 자동 생성 문항(`question.generated`) | `ANSWERING`·`FEEDBACK` 공통 | 본문 맨 위 라벨 "자동 생성 연습 문제"(누를 수 없음) + 지시문. 뜻 고르기는 선택지가, 단어 고르기는 지문이 한국어(`ko-KR`) | 라벨은 동작 없음. 선택지 |
+| S13 | 자동 생성 피드백(`FEEDBACK`) | 저장 직후 | 5.5 + 해설 카드: 해설 본문, "관련 단어 보기"(단어가 `retired`면 행 숨김), `provenance != null`이면 `ProvenanceChip`(없으면 칩 줄 없음, "해설 검토 중" 없음) | "관련 단어 보기" → S06, "다음" / "결과 보기" |
 | S13·S14·S16 | 답 저장 중(`saving`) | 답 저장 300 ms 초과 | 선택지 아래 얇은 진행 막대, 선택지 입력 무시 | 없음 |
 | S13·S16 | 답 저장 실패(`saveFailed`) | `saveAnswer` 예외 | 고른 선택지는 "선택" 모양(5.4)으로 남고 피드백은 보이지 않는다(저장 전에는 다음으로 가지 않는다), 스낵바 "답을 저장하지 못했습니다" | 스낵바 "다시 시도"(같은 답을 다시 저장, `Indefinite`) |
 | S13·S16 | 피드백(`FEEDBACK`) | 저장 직후(연습·청해) | 5.5 + 해설 카드 | "다음" / 마지막이면 "결과 보기" |
@@ -1034,7 +1065,9 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 | S15 | 틀린 문항 없음 | "틀린 문항" 필터에 0 | 목록 자리에 "틀린 문항이 없습니다" | "전체" 칩 |
 | S15 | 채점할 문항 없음(`EMPTY`) | 남은 문항 0(모두 `retired`) | 합계 자리에 "채점할 문항이 없습니다", 영역 줄·목록 없음, 고지는 그대로 | "연습으로" |
 | S15 | 빠진 문항 있음 | `retiredCount > 0` | 합계 아래 bodyMedium "콘텐츠 업데이트로 빠진 문항 {retiredCount}개는 채점에서 뺐습니다" | - |
-| S15 | 해설 보기 | `reviewIndex != null` | 6.10 S15 해설 보기 | "이전 문항"·"다음 문항", 뒤로 = `reviewIndex = null` |
+| S15 | 해설 보기 | `reviewIndex != null` | 6.10 S15 해설 보기(자동 생성 문항이면 라벨 + "관련 단어 보기") | "이전 문항"·"다음 문항", 뒤로 = `reviewIndex = null` |
+| S15 | 자동 생성 시도 결과 | `LOADED` ∧ `items`의 문항이 `generated` | 제목 접두 "자동 생성 · "(6.10 S15 1번). 나머지(합계·고지·목록)는 같다 | 행 → 해설 보기 |
+| S15 | 자동 생성 시도의 빠진 문항 | 콘텐츠 판이 바뀐 뒤 어휘가 `retired`·없음이거나 문항이 생성 불가(`Skip`)가 됨(quizgen.md 6.1) | 기존 "빠진 문항 있음" 행과 같은 문구·`retiredCount`. 남은 문항의 정오는 그대로(정답 자리는 ID에 있다), 지난 시도의 오답 글자는 달라 보일 수 있다 | - |
 | S16 | 문항(답하기 전) × 음성 상태 | `SpeakerState` `Initializing` / `Ready` / `Playing` / `MissingJapaneseData` / `NoEngine` / `AudioFileMissing`(D-04 B 구현 이후) / `Error` | 5.8 표(재생 컨트롤 자리) + 6.11 대본 처음 상태(`NoEngine`·`AudioFileMissing`이면 펼침) | 5.8 표 |
 | S16 | 설치·설정 화면을 열 수 없음(`externalOpenFailed`) | `startExternal`이 false | 그 버튼 아래 안내 문구(6.11) | "대본 보기"는 그대로 |
 | S16 | 설치·설정 뒤 돌아옴 | ON_START에 `MissingJapaneseData`·`NoEngine`·`Error` | `Speaker`를 새로 만들어 `Initializing` 행으로 다시 확인 → 결과 상태 | - |
@@ -1141,7 +1174,11 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 | S02 샘플 띠 | "개발용 샘플 콘텐츠입니다. 실제 학습 데이터가 아닙니다." | 순서상 요약 카드 앞 |
 | 선택지(S13·S14·S16) | 묶음 `selectableGroup`, 각 `Role.RadioButton`: "{번호}번, [ja]{선택지}[/ja]" + 채점 뒤 ", 정답" / ", 오답, 내가 고른 답" | 선택 상태는 TalkBack이 "선택됨"을 붙인다 |
 | 문제 피드백 | 5.5 | 피드백 노드 `liveRegion = Polite` |
-| 지시문 | 4.3 방법, 예: "밑줄 친 [ja]{대상}[/ja]의 읽기로 알맞은 것을 고르세요." | 문항이 바뀌면 지시문 노드로 포커스 이동 |
+| 지시문 | 4.3 방법, 예: "밑줄 친 [ja]{대상}[/ja]의 읽기로 알맞은 것을 고르세요." | 문항이 바뀌면 본문의 첫 노드로 포커스 이동 — 고정 문항은 이 지시문 노드, 자동 생성 문항은 아래 라벨 노드(다음 쓸기가 지시문) |
+| 자동 생성 라벨(S13·S15 해설 보기) | "자동 생성 연습 문제"(글자 그대로, 한국어) | 노드 하나, 동작·`Role` 없음, `liveRegion` 없음. 문항이 바뀔 때 포커스가 여기로 와 한 번 읽는다. 지시문과 합치지 않는다(순서만 앞) |
+| 한국어 선택지(뜻 고르기, S13·S15 해설 보기) | 묶음 `selectableGroup`, 각 `Role.RadioButton`: "{번호}번, {뜻}" + 채점 뒤 ", 정답" / ", 오답, 내가 고른 답" | 한국어 부분 `ko-KR`, 뜻 안 일본어 구간 `ja-JP`(4.3 방법, `JpSpans.annotate` 결과를 `text`로). `String` 속성에 일본어를 넣지 않는다 |
+| 한국어 지문(단어 고르기) | 지시문 다음 노드 "{뜻}" | `ko-KR`, 뜻 안 일본어 구간만 `ja-JP`. 후리가나 없음 |
+| 관련 단어 보기(자동 생성 해설) | "관련 단어 보기", `onClickLabel` "단어 상세 열기" | 한국어만. 해설 본문 노드 다음, 출처 칩 앞 |
 | 모의고사 번호 이동 칩 | "{k}번 문항, 답함" / "{k}번 문항, 답하지 않음" + 현재면 ", 현재 문항" (`stateDescription` 대신 라벨에, 한국어만) | |
 | 모의고사 타이머 | 노드 하나, 1초마다 알리지 않는다(`liveRegion` 없음). 포커스하면 "경과 {m}분 {s}초" | |
 | 문장 배열 "이 칸" | 지문 노드 안에서 "빈칸 1, 빈칸 2, 고를 칸, 빈칸 4"처럼 칸 위치를 읽는다(빈칸 모양만으로 전하지 않는다) | |
@@ -1161,12 +1198,14 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 | S03 문법 카드 | 6.9.1 | 앞·뒷면 `Polite` 알림은 단어 카드와 같다(같은 `review_card` 노드) |
 | S12 급수 칩 | M3 `FilterChip` + `Role.RadioButton`("N5, 선택됨") | |
 | S12 유형 행 | "{유형}, {n}문항" | |
+| S12 자동 생성 머리·설명 | 머리 "자동 생성 연습"(`heading()`), 이어서 설명 줄 그대로(한국어) | 순서상 3번 유형 영역 다음, 자동 생성 행 앞 |
+| S12 자동 생성 행 | 활성 "{유형}, 자동 생성, 단어 {n}개" / 비활성 "{유형}, 자동 생성, 단어 {n}개, 사용할 수 없음, {이유}" | 한국어만. `clickable(enabled)`이 `Disabled` 시맨틱을 남기고 낭독 문구는 `clearAndSetSemantics { contentDescription }`(4.3 5번). 누르면 시작 알림 없음(화면이 바뀐다) |
 | S12 비활성 "시작" | "모의고사 시작, 사용할 수 없음, 문항이 모자라 아직 볼 수 없습니다" | |
 | S13·S14·S16 연습·모의고사 끝내기 | "연습 끝내기" / "모의고사 멈추기" / "청해 끝내기" | |
 | 문제 고지 카드(S12·S14·S15) | 카드 글자 그대로(한국어) | 순서상 그 화면 제목 다음 |
 | S14 "제출" | "제출", `onClickLabel` "답안 제출하기" | |
 | S14 기준 시간 지남 | 타이머 노드 "경과 {m}분 {s}초, 기준 {T}분 지남" | 지나는 순간 알리지 않는다(시험 중 방해 금지) |
-| S15 합계 | "정답 {정답}개, 전체 {전체}개, {비율}퍼센트" | 화면이 열리면 제목 줄로 포커스 |
+| S15 합계 | "정답 {정답}개, 전체 {전체}개, {비율}퍼센트" | 화면이 열리면 제목 줄로 포커스(자동 생성 시도의 제목은 "자동 생성, N5 {유형} 연습 결과"로 읽는다) |
 | S15 영역 줄 | "{영역}, {정답}/{전체}, {비율}퍼센트"(막대는 숨김) | |
 | S15 문항 행 | "{번호}번, {유형}, 정답/오답/답하지 않음, 정답 {m}번, 내 답 {k}번" + ", 대본으로 풂" | |
 | S16 지시문·질문 | 지시문 한국어, 질문 4.3 방법 `[ja]{question}[/ja]` | 문항이 바뀌면 지시문 노드로 포커스 |
@@ -1222,11 +1261,15 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 | 문제 | practice | `home`(유형 목록·모의고사 카드·N-11 줄), `home_resume`(이어서 풀기 카드), `home_loading`, `home_exam_unavailable`, `home_empty`, `home_confirm_abandon`, `home_confirm_replace`, `choice`(한자 읽기, 밑줄·후리가나 없음), `choice_arrange`(문장 배열 `＿★＿` "이 칸"), `choice_passage`(지문/문제 탭), `feedback`(오답·해설 카드·칩), `feedback_correct`, `saving`, `save_error`, `set_empty` | `home_resume`, `feedback` |
 | 문제 | mock_exam | `intro`(영역별 문항·기준 시간·청해 제외 줄·고지), `intro_shortfall`("시작" 비활성), `nav`(번호 이동 줄: 답함·답 안 함·현재, 선택됨), `over_time`("기준 지남"), `confirm_exit`, `confirm_submit`(미응답), `resume_unavailable`, `intro_failed`(불러오기 실패 `FAILED`) | `intro`, `nav` |
 | 문제 | quiz | `result`(모의고사: 영역별 원점수·걸린 시간·청해 제외 줄·고지), `result_practice`, `result_all_correct`, `result_retired_some`, `result_empty`, `result_explanation`(해설 보기), `result_explanation_unanswered` | `result`, `result_explanation` |
+| 자동 생성 | practice | `home_generated`(S12 자동 생성 영역: 활성 행과 두 가지 이유의 비활성 행이 모두 보이는 픽스처 — 아래) | `home_generated`(QG4 합격 기준은 라이트 한 장 `practice_home_generated_light_font200`. 다크는 찍으면 비교만) |
+| 자동 생성 | quiz | `generated_kanji_reading`(S13 답하기 전: 라벨·지시문·지문 `[[橋]]`·선택지, 후리가나 토글 없음), `generated_meaning_ja_ko`(S13 피드백: 오답을 고른 뒤, 한국어 선택지·해설 카드·"관련 단어 보기"·칩 — 뜻 안 일본어 구간이 있는 선택지 하나 포함), `result_generated`(S15 결과: 제목 접두 "자동 생성 · ") | |
 | 청해 | listening | `ready`, `playing`, `no_engine`(대본 펼침), `script_open`(화자 라벨), `missing_voice`(설치 안내 + 대본 보기), `error`, `initializing`, `feedback`, `external_open_failed`(안내 문구) | `missing_voice`, `feedback` |
 | 청해 | quiz | `result_listening`(대본으로 풂 줄·행 표시) | |
 | 청해 | settings | `with_listening`(대본 먼저 보기 스위치) | |
 | 청해 | attribution | `all_notices`(고지 1~4·KanjiVG 카드가 모두 있는 픽스처) | `all_notices` |
 
+- 자동 생성 스크린샷 이름(QG4, quizgen.md·milestones.json): `practice_home_generated`, `quiz_generated_kanji_reading`, `quiz_generated_meaning_ja_ko`, `quiz_result_generated` 각각 `_light`·`_dark`, 그리고 `practice_home_generated_light_font200`. 파일 이름은 위 규칙 그대로 `screenshots/{screen}_{state}_{light|dark}[_font200].png`(예: `quiz_generated_meaning_ja_ko_dark.png`).
+- 자동 생성 픽스처: `home_generated`는 N4 급수 칩 선택 + 한자 읽기 "단어 7개"(비활성, 이유 "대상 단어가 부족합니다"), 표기 "단어 245개"(활성), 뜻 고르기 "단어 63개"(활성), 단어 고르기 "단어 6개"(비활성, 이유 "검수된 뜻이 부족해 만들 수 없습니다") — 활성·비활성·두 이유가 한 화면에 모인다. `generated_meaning_ja_ko`의 한국어 선택지 중 하나에 일본어 구간("[ja]〜さん[/ja]보다 정중한 호칭")을 넣는다.
 - 픽스처 추가(2~4순위): 긴 문법 제목([ja]〜なければならない[/ja]), 접속 3행 이상, 비슷한 문법이 `retired`인 항목 하나, 필순 획 수가 많은 한자(획 번호 겹침 확인, 예 [ja]曜[/ja]), 대상 구간 `[[…]]`가 루비와 겹친 예문(`[[{行|い}けば]]`), 문장 배열 문항, 긴 지문(탭 전환), 고른 오답의 이유가 있는 문항, 섞기 시드 고정, 경과 시간 고정(고정 시계), 화자 셋(M·F·N) 대본, `script_shown = 1`인 답.
 - 앞·뒷면 위치 검사: `review_front_word`와 `review_back_word`에서 표제어 노드의 y 좌표·글자 크기가 같은지 Compose UI 테스트로 확인한다(5.1). 한자·회상 카드도 같다.
 - 픽스처에 반드시 넣을 것: 긴 가타카나 단어, 후리가나가 본문보다 넓은 단어([ja]今日[/ja]), 송리가나가 있는 단어([ja]食べる[/ja], [ja]お茶[/ja]), 한국식·일본식 글자 모양이 다른 한자(直, 骨, 角 — D2 확인용), 검수 칩의 생성 5 × 검수 6 조합 중 화면마다 최소 6가지(5.7), 한국어 음 없는 한자, 일본어 구간이 섞인 한국어 뜻("〜さん보다 정중한 호칭").
@@ -1252,12 +1295,12 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 | KanjiDetail 필순(S07) | `KanjiDetailUiState.strokes: List<String>?`(해석 실패는 저장소가 `null`), `strokeSourceName: String?`(architecture.md 9.4). 그리기 상태 `StrokePlayback { IDLE, PLAYING, DONE }`와 획 번호 스위치는 화면 안 상태(`rememberSaveable`)이고 UiState에 없다(6.7.1) |
 | GrammarList(S10, 탭 목적지 `Grammar`) | architecture.md 9.1: `GrammarListStatus { LOADING, LOADED, EMPTY }`, `GrammarListUiState(status, levels: Set<JlptLevel>, rows: List<GrammarRow(id, level, title, meaningKo)>)`, `GrammarRepository.list(levels)`. `levels` 초기값 규칙은 `BrowseUiState`와 같다. 7절 "급수에 문법 없음" = `EMPTY` |
 | GrammarDetail(S11, 라우트 `GrammarDetail(id: String)`) | architecture.md 9.1: `GrammarDetailUiState(status: DetailStatus, detail: GrammarDetailUi?)`, `GrammarDetailUi(id, level, title, meaningKo, explanationKo, connections: List<ConnectionUi(posKo, form, example)>, examples: List<ExampleUi(ja, ko, sourceId, sourceRef, author, license)>, contrasts: List<ContrastUi(grammarId, title, mine, other)>, provenance: MeaningUi, needsReview)`. `detail()`이 null(없음·retired·JSON 깨짐)이면 `RETIRED`. 예문 출처 줄(6.9 S11 5번)은 `ExampleUi.sourceId != "authored"`일 때만 |
-| PracticeHome(S12, 탭 목적지 `Practice`) | architecture.md 9.2.6: `PracticeHomeUiState(status: PracticeHomeStatus { LOADING, LOADED, EMPTY }, level, levels, types: List<PracticeTypeUi(section, type, count)>, exam: ExamCardUi(level, questionCount, limitMs, hasShortfall)?, resume: ResumeExamUi(attemptId, level, answered, total, elapsedMs)?, confirmReplace: ResumeExamUi?, confirmAbandon, startFailed)`. 고지 필드 없음(N-11 요약 줄은 문자열 리소스, 6.10 S12 4번). 시도는 `QuizRepository.startAttempt`로 만든 뒤 그 ID로 이동한다. 7절 대응: "진행 중인 모의고사 있음" = `resume != null`, "포기하기" 대화상자 = `confirmAbandon`, "새 모의고사 시작 시 미완료" = `confirmReplace`, "시작 실패" = `startFailed` |
+| PracticeHome(S12, 탭 목적지 `Practice`) | architecture.md 9.2.6: `PracticeHomeUiState(status: PracticeHomeStatus { LOADING, LOADED, EMPTY }, level, levels, types: List<PracticeTypeUi(section, type, count)>, exam: ExamCardUi(level, questionCount, limitMs, hasShortfall)?, resume: ResumeExamUi(attemptId, level, answered, total, elapsedMs)?, confirmReplace: ResumeExamUi?, confirmAbandon, startFailed, **generated: List<GeneratedTypeUi(type, targets, enabled)>**)`(`generated`는 quizgen.md 6.3 확장 — `levels` = 고정 문항 있는 급수 ∪ `enabled` 있는 급수, `EMPTY` = `types.isEmpty() && generated.none { it.enabled }`, `startGenerated(type)`. 자동 생성 행은 6.10 S12 4번, 7절 "자동 생성" 3행). 고지 필드 없음(N-11 요약 줄은 문자열 리소스, 6.10 S12 5번). 시도는 `QuizRepository.startAttempt`로 만든 뒤 그 ID로 이동한다. 7절 대응: "진행 중인 모의고사 있음" = `resume != null`, "포기하기" 대화상자 = `confirmAbandon`, "새 모의고사 시작 시 미완료" = `confirmReplace`, "시작 실패" = `startFailed` |
 | ExamStart(S14 시작 화면, 라우트 `ExamStart(level: JlptLevel)`, 시도 행을 만들기 전) | architecture.md 7절·9.2.6: `ExamStartUiState(status: ExamStartStatus { LOADING, LOADED, EMPTY, FAILED }, level, sections: List<ExamSectionLine(titleKo, count, minutes)>, total, limitMs, hasShortfall, starting, startFailed)`. 7절 대응: "시작 화면 로딩" = `LOADING`, "시작 화면" = `LOADED`, "시작 화면 문항 모자람" = `LOADED` ∧ `hasShortfall`, "시작 화면 빔" = `EMPTY`, "시작 실패" = `startFailed`, "시작" 비활성 = `starting`. 스크린샷 `mock_exam_intro`(+`_font200`)·`mock_exam_intro_shortfall`(12절) 7절 "시작 화면 불러오기 실패" = `FAILED`(**이 문서의 제안 이름** — "다시 시도" = 템플릿·`pool`·`buildSet` 다시 부르기). `startFailed`는 `startAttempt` 예외에만 쓴다. architecture.md 9.2.6이 다른 이름을 정하면 그것을 따른다 |
-| Quiz(S13·S14, 라우트 `Quiz(attemptId: Long)`) | architecture.md 9.2.6: `QuizUiState(status: QuizStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, CONFIRM_EXIT, CONFIRM_SUBMIT, SUBMITTED }, mode: QuizMode { PRACTICE, EXAM, LISTENING }, attemptId, index, total, question: QuizQuestionUi?, chosenIndex, answeredIndices, sectionStarts, elapsedMs, limitMs, unansweredCount, saving, saveFailed)`, `QuizQuestionUi(id, section, type, target, stem, passage, lines, choices(섞은 순서), answerIndex(섞은 뒤), explanationKo, whyWrongKo(섞은 순서, 정답 자리 null), targets, provenance, needsReview)`. 7절 대응: S13 "문항" = `ANSWERING`, "피드백" = `FEEDBACK`, S14 "진행 중" = `ANSWERING`, "진행 중 이탈" = `CONFIRM_EXIT`, "제출 전 미응답" = `CONFIRM_SUBMIT`, "세트가 빔"·"재개할 문항 없음" = `EMPTY`, "끝"·제출 = `SUBMITTED`, "기준 시간 지남" = `elapsedMs > limitMs`(상태 아님). 시도 읽기는 `QuizSessionLoader`(`AttemptMeta`, `retiredCount`) 한 곳 |
+| Quiz(S13·S14, 라우트 `Quiz(attemptId: Long)`) | architecture.md 9.2.6: `QuizUiState(status: QuizStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, CONFIRM_EXIT, CONFIRM_SUBMIT, SUBMITTED }, mode: QuizMode { PRACTICE, EXAM, LISTENING }, attemptId, index, total, question: QuizQuestionUi?, chosenIndex, answeredIndices, sectionStarts, elapsedMs, limitMs, unansweredCount, saving, saveFailed)`, `QuizQuestionUi(id, section, type, target, stem, passage, lines, choices(섞은 순서), answerIndex(섞은 뒤), explanationKo, whyWrongKo(섞은 순서, 정답 자리 null), targets, **provenance: MeaningUi?(null = 해설에 AI가 쓴 한국어 없음 → 칩 없음), generated: Boolean**, needsReview)`(굵은 두 필드는 quizgen.md 6.2 확장 — 고정 문항·청해는 `provenance`가 늘 값이고 `generated = false`; 자동 생성 문항은 선택지 순서를 섞지 않는다 `fixedOrder`). 7절 대응: S13 "문항" = `ANSWERING`, "피드백" = `FEEDBACK`, S14 "진행 중" = `ANSWERING`, "진행 중 이탈" = `CONFIRM_EXIT`, "제출 전 미응답" = `CONFIRM_SUBMIT`, "세트가 빔"·"재개할 문항 없음" = `EMPTY`, "끝"·제출 = `SUBMITTED`, "기준 시간 지남" = `elapsedMs > limitMs`(상태 아님). 시도 읽기는 `QuizSessionLoader`(`AttemptMeta`, `retiredCount`) 한 곳 |
 | Listening(S16, 라우트 `Listening(attemptId: Long)`) | architecture.md 9.3.3: `ListeningUiState(status: ListeningStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, SUBMITTED }, attemptId, index, total, question: QuizQuestionUi?(lines 있음), chosenIndex, scriptOpen, scriptSeen(→ `script_shown`, UI-U13 A), speaker: SpeakerState, rate(0.8f/1.0f, 저장 안 함), audioNotice: NoticeUi?(N-12), externalOpenFailed, saving, saveFailed)`. 재생은 `Speaker.speak(utteranceId, lines: List<SpeechLine(text, voice: Voice { MALE, FEMALE, NARRATOR })>, rate)`, 변환은 `ScriptSpeech.lines`. 재확인은 ON_START에 `Speaker`를 새로 만든다. `AudioFileMissing`은 D-04 B 구현이 생길 때 더해진다 |
 | QuizResult(S15, 라우트 `QuizResult(attemptId: Long)`) | architecture.md 9.2.6: `QuizResultUiState(status: QuizResultStatus { LOADING, LOADED, EMPTY }, mode, level, type, score: Score?(`sections`·`examSections`·`correct`·`total`·`unanswered`, 척도 점수 없음), elapsedMs, limitMs, scriptShownCount, retiredCount, filter: ResultFilter { WRONG, ALL }, items: List<QuizReviewItemUi(index, question, chosenIndex, correct, scriptShown)>, reviewIndex: Int?)`. 해설 보기는 `reviewIndex`(하위 라우트 없음). 비율은 화면이 `percent(correct, total)`(6.10 S15 규칙)로 만든다 |
-| 시도 저장(S12~S16) | `quiz_attempt`(`exam_id` 모의고사 `exam-n<급>`·연습·청해 NULL, `seed`, `question_order_json`, `current_index`, `elapsed_ms`, `finished_at_epoch_ms`), `quiz_answer.chosen_index`(섞기 전 색인), `script_shown`(architecture.md 9.2.4). 포기·연습 이탈·새 모의고사로 바꾸기 모두 `finish`(행 유지). 미완료 모의고사 0~1개는 `startAttempt`가 지킨다 |
+| 시도 저장(S12~S16) | (자동 생성 시도도 같은 표: `exam_id = NULL`, `question_order_json`에 `gq:` ID, 문항 내용은 저장하지 않고 ID로 다시 만든다 — quizgen.md 6.1. 학습 기록 스키마 변경 없음) `quiz_attempt`(`exam_id` 모의고사 `exam-n<급>`·연습·청해 NULL, `seed`, `question_order_json`, `current_index`, `elapsed_ms`, `finished_at_epoch_ms`), `quiz_answer.chosen_index`(섞기 전 색인), `script_shown`(architecture.md 9.2.4). 포기·연습 이탈·새 모의고사로 바꾸기 모두 `finish`(행 유지). 미완료 모의고사 0~1개는 `startAttempt`가 지킨다 |
 
 저장 실패 계약(architecture.md 7·8.2): `StudyRepository.applyReview`는 실패하면 예외를 던진다. `ReviewViewModel`은 잡아서 카드·미리보기·대기열을 그대로 두고 `saveFailed`를 채운다. "다시 시도"는 처음 계산한 `ScheduleResult`를 다시 저장한다.
 
@@ -1324,6 +1367,7 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 | UI-U11 | 문법 카드 앞면 예문 후리가나 | A. `body_furigana`를 따름(기본 켬) / B. `front_furigana`를 따름(기본 끔) | **A** | 문법 카드의 정답은 뜻이고 읽기가 아니다. 단어 카드용 "앞면 후리가나"(읽기 숨김)를 문법 예문에 걸면 N5 학습자가 예문을 못 읽어 문법을 판단할 수 없다. 앞·뒷면 같은 설정이라 위치가 흔들리지 않는다 |
 | UI-U12 | 문법 급수 "비공식" 고지 위치(U-3 A) | A. 기존 고지 N-09("JLPT 공식 자료가 아닙니다")에 문법 문장을 덧붙이고 화면 링크는 `About(anchor = "N-09")` / B. 새 고지 ID를 만든다 | **A** | 같은 주제(급수 분류가 공식이 아님)라 카드 하나로 충분하다. 새 ID는 sources.md·매니페스트·`notices.ko.json`·앵커 대조를 모두 늘린다. A도 N-09 문구 변경은 analyst 몫이다(13.3 #18) |
 | UI-U13 | "대본으로 풂" 판정 시점 | A. 답하기 전에 대본을 한 번이라도 펼쳤으면 기록 / B. 답을 고르는 순간 대본이 펼쳐져 있었으면 기록(architecture.md 9.2 현재 문구) | **A** | B는 펼쳐 읽고 접은 뒤 답하면 "듣고 푼" 것으로 남아 결과가 부풀려진다. 판정 값 하나(`scriptSeenBeforeAnswer`)라 구현 비용은 같다. A면 architecture.md 9.2 `script_shown` 정의 문구를 고친다(13.3 #16) |
+| UI-U14 | 자동 생성 문항 표시(quizgen.md Q-05·6.5) | A. 영역 머리 "자동 생성 연습"(S12) + 문항 라벨 "자동 생성 연습 문제"(S13·S15 해설 보기) + 결과 제목 접두, 학습 기록 연결 없음 / B. 고정 문항 행과 섞어 보이고 라벨 없음 | **A** | 사람이 직접 쓴 문항과 규칙으로 만든 문항을 사용자가 구분할 수 있어야 하고(D11), 이름이 같은 유형(한자 읽기·표기)이 두 곳에 있어 이름만으로는 못 가른다. 라벨은 누를 수 없는 글자라 학습 흐름을 방해하지 않는다. TalkBack 포커스는 생성 문항에서 라벨 → 지시문 순서(11.1) |
 
 ## 변경 이력
 
@@ -1338,3 +1382,4 @@ M3 기본 크기를 쓰고, 한글 본문은 줄 간격만 늘렸다.
 | 2026-11-03 | architecture.md 11.6·9.2.6·9.3.3·9.4·11.2 33~41 정본에 맞춤: 5.8(`speak(…, lines, rate)`, "음성 설정 열기" 늘 보임), 6.7.1(`StrokePlayback { IDLE, PLAYING, DONE }` — 중간 멈춤 상태 삭제, 해석 실패는 저장소 `strokes = null`, `strokeSourceName`), 6.10(`PracticeConfig.PRACTICE_SIZE`, `ExamCardUi`·`hasShortfall`, 청해 제외 한 줄 3곳, `confirmReplace` 대화상자 문구, 모두 답하면 확인 없이 제출, `elapsedMs > limitMs`, `examSections`/`sections`, 비율 반올림 규칙과 기대값, `reviewIndex`), 6.11(`Listening(attemptId)`, `question` NULL이면 숨김·재생 안 함, `ScriptSpeech.lines`·피치는 `Speaker` 몫, 열기 실패 안내 문구를 버튼 아래로, ON_START 재확인), 7절 상태 이름, 11.1, 12절(마일스톤 이름 `practice_home`·`practice_choice`·`practice_feedback`·`mock_exam_nav`·`mock_exam_confirm_exit`·`mock_exam_confirm_submit`·`quiz_result` 체계로), 13.1, 13.3(14건 해소, 남은 1건), 14절 UI-U09 = AR-U11 |
 | 2026-11-03 | 설계 검증(3차) 지적 반영: 카드 뒤집기·다음 카드·되돌리기를 포커스 이동 대신 같은 `review_card` 노드의 `liveRegion = Polite` 하나로 통일, 포커스 코드 이동 없음·M4 시맨틱 테스트(4.3·5.6·11.1), `clearAndSetSemantics` 수정자 순서·재선언 규칙과 선택지 Role/Selected/OnClick 테스트(4.3·11.1), 하루 새 카드 `NumberStepper`·하루 시작 시각 라디오 시트(Slider·TimePicker 금지, 6.1·6.8·11.1·11.2·12), MVP 전 화면 `_font200`(12), 하단 고정 영역 나란히 배치·S05 IME 인셋(3.3·6.5), S12 `notice` 필드 삭제·13.3 #1 해소(6.10·13.1·13.3), S14 시작 화면 `ExamStart(level)`·`ExamStartUiState` 대응과 `confirmReplace` "새로 시작" → 시작 화면(6.10·7·12·13.1·13.3 #3), `SessionCards.load` 이름(6.2·6.8·7·13.1), S09 아이콘 카드 `fullText`·Tatoeba 메모(9.2·13.3 #5), S06·S07·S11 진입 경로(1.1) |
 | 2026-11-03 | 설계 검증(반영 후) 지적 반영: S14 시작 화면 불러오기 실패 `ExamStartStatus.FAILED`(제안 이름) 행과 "다시 시도" = 템플릿·`buildSet` 다시 부르기, `startFailed`는 `startAttempt` 예외만(7·13.1), 시작 화면 영역 문항 수 = `ExamSectionLine.count`(6.10), S06 학습 상태 `CardStateSummary`·`CardProgress`, S07 칩 `KanjiDetailUiState.level`(6.6·6.7·13.1) |
+| 2026-11-08 | quizgen.md 6.3·6.5 반영(QG4 착수 전): 6.10 "자동 생성 연습" 공통 소절, S12 4번 영역(유형 행 4개·비활성 이유·단어 수 라벨·급수 칩 합집합·EMPTY 규칙·시작 연타·글꼴 200%·TalkBack), S13 라벨 위치·포커스 순서·한국어 지문·뜻 고르기 지시문 2개·관련 단어 보기(S06)·칩 없음 규칙, S15 제목 접두·해설 보기 라벨·빠진 문항, 4.2·5.4·5.5 한국어 선택지와 해설 카드 규칙, 1.1, 7절 상태 7행(기존 3행 보강), 11.1 낭독 6행, 12절 스크린샷 5개 이름·픽스처, 13.1 `generated`·`provenance?`, 14절 UI-U14 |
