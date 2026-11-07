@@ -46,10 +46,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -66,6 +68,7 @@ class PracticeHomeActions(
     val onStartExam: (JlptLevel) -> Unit = {}, val onResume: (Long) -> Unit = {},
     val onRequestAbandon: () -> Unit = {}, val onConfirmAbandon: () -> Unit = {}, val onCancelAbandon: () -> Unit = {},
     val onNotice: () -> Unit = {},
+    val onResumeReplace: () -> Unit = {}, val onReplace: () -> Unit = {}, val onCancelReplace: () -> Unit = {},
 )
 
 @Composable
@@ -88,8 +91,9 @@ fun PracticeHomeRoute(vm: PracticeHomeViewModel, onQuiz: (Long) -> Unit, onExamS
     PracticeHomeScreen(
         state, snackbar,
         PracticeHomeActions(
-            vm::selectLevel, { s, t -> vm.startPractice(s, t, onQuiz) }, onExamStart, onQuiz,
+            vm::selectLevel, { s, t -> vm.startPractice(s, t, onQuiz) }, { vm.requestStartExam(onExamStart) }, onQuiz,
             vm::requestAbandon, vm::confirmAbandon, vm::cancelAbandon, onNotice,
+            { vm.resumeFromReplace(onQuiz) }, { vm.replaceWithNew(onExamStart) }, vm::cancelReplace,
         ),
     )
 }
@@ -154,7 +158,7 @@ fun PracticeHomeScreen(state: PracticeHomeUiState, snackbar: SnackbarHostState =
                             }
                         }
                     }
-                    NoticeCard(actions.onNotice)
+                    NoticeCard(stringResource(R.string.practice_notice), actions.onNotice, Modifier.testTag("practice_notice"), Modifier.padding(horizontal = Spacing.lg))
                     Spacer(Modifier.navigationBarsPadding())
                 }
                 SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
@@ -162,9 +166,10 @@ fun PracticeHomeScreen(state: PracticeHomeUiState, snackbar: SnackbarHostState =
         }
     }
     if (state.confirmAbandon) AbandonDialog(actions)
+    state.confirmReplace?.let { ReplaceDialog(it, actions) }
 }
 
-private fun mmss(ms: Long): String = String.format(java.util.Locale.ROOT, "%02d:%02d", ms / 60_000, ms / 1000 % 60)
+internal fun mmss(ms: Long): String = String.format(java.util.Locale.ROOT, "%02d:%02d", ms / 60_000, ms / 1000 % 60)
 
 @Composable
 private fun ResumeCard(r: ResumeExamUi, actions: PracticeHomeActions) {
@@ -210,15 +215,19 @@ private fun ExamCard(e: ExamCardUi, actions: PracticeHomeActions) {
             )
             Text(stringResource(R.string.practice_exam_no_listening), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             val a11y = stringResource(R.string.practice_exam_start_a11y)
-            Column(
-                Modifier.padding(top = Spacing.sm).then(if (e.hasShortfall) Modifier.semantics(mergeDescendants = true) { contentDescription = a11y } else Modifier),
-                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-            ) {
-                Button({ actions.onStartExam(e.level) }, Modifier.heightIn(min = 48.dp).testTag("practice_exam_start"), enabled = !e.hasShortfall) {
+            val reason = stringResource(R.string.practice_exam_unavailable)
+            Column(Modifier.padding(top = Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                // 비활성 이유는 버튼의 stateDescription으로 읽힌다(보이는 이유 글은 중복 낭독 방지로 숨김)
+                Button(
+                    { actions.onStartExam(e.level) },
+                    Modifier.heightIn(min = 48.dp).testTag("practice_exam_start")
+                        .then(if (e.hasShortfall) Modifier.semantics { contentDescription = a11y; stateDescription = reason } else Modifier),
+                    enabled = !e.hasShortfall,
+                ) {
                     Text(stringResource(R.string.practice_exam_start))
                 }
                 if (e.hasShortfall) {
-                    Text(stringResource(R.string.practice_exam_unavailable), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(reason, Modifier.clearAndSetSemantics {}, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -247,19 +256,21 @@ private fun TypeRow(t: PracticeTypeUi, actions: PracticeHomeActions) {
     }
 }
 
-/** N-11 고지 줄(ui-design 6.10): 문자열 리소스이므로 attribution.json이 없어도 늘 보인다. */
+/** 문제 고지 카드(ui-design 6.10): 문자열 리소스이므로 attribution.json이 없어도 늘 보인다. onMore가 있으면 "자세히". */
 @Composable
-private fun NoticeCard(onMore: () -> Unit) {
+internal fun NoticeCard(text: String, onMore: (() -> Unit)? = null, textModifier: Modifier = Modifier, modifier: Modifier = Modifier) {
     Surface(
-        Modifier.fillMaxWidth().padding(horizontal = Spacing.lg), shape = MaterialTheme.shapes.small,
+        modifier.fillMaxWidth(), shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         Row(Modifier.padding(Spacing.md), horizontalArrangement = Arrangement.spacedBy(Spacing.md), verticalAlignment = Alignment.CenterVertically) {
             Icon(painterResource(R.drawable.ic_ms_info), contentDescription = null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.practice_notice), Modifier.testTag("practice_notice"), style = MaterialTheme.typography.bodyMedium)
-                val moreA11y = stringResource(R.string.practice_notice_more_a11y) // 보이는 "자세히"를 포함한 목적지 이름
-                TextButton(onMore, Modifier.heightIn(min = 48.dp).semantics { contentDescription = moreA11y }) { Text(stringResource(R.string.practice_notice_more)) }
+                Text(text, textModifier, style = MaterialTheme.typography.bodyMedium)
+                if (onMore != null) {
+                    val moreA11y = stringResource(R.string.practice_notice_more_a11y) // 보이는 "자세히"를 포함한 목적지 이름
+                    TextButton(onMore, Modifier.heightIn(min = 48.dp).semantics { contentDescription = moreA11y }) { Text(stringResource(R.string.practice_notice_more)) }
+                }
             }
         }
     }
@@ -275,5 +286,32 @@ private fun AbandonDialog(actions: PracticeHomeActions) {
         text = { Text(stringResource(R.string.practice_abandon_body)) },
         confirmButton = { TextButton(actions.onConfirmAbandon, Modifier.testTag("practice_abandon_confirm")) { Text(stringResource(R.string.practice_abandon)) } },
         dismissButton = { TextButton(actions.onCancelAbandon, Modifier.focusRequester(focus)) { Text(stringResource(R.string.practice_cancel)) } },
+    )
+}
+
+/** 미완료 모의고사가 있는데 "시작"(ui-design 7절 S12 confirmReplace). "이어서 풀기"가 기본 포커스. */
+@Composable
+private fun ReplaceDialog(r: ResumeExamUi, actions: PracticeHomeActions) {
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    AlertDialog(
+        onDismissRequest = actions.onCancelReplace,
+        title = { Text(stringResource(R.string.practice_replace_title)) },
+        text = {
+            // 카드와 같이 경과는 "분 초"로 읽힌다
+            val spoken = stringResource(R.string.practice_replace_body_a11y, r.level.name, r.answered, r.total, r.elapsedMs / 60_000, r.elapsedMs / 1000 % 60)
+            Text(
+                stringResource(R.string.practice_replace_body, r.level.name, r.answered, r.total, mmss(r.elapsedMs)),
+                Modifier.testTag("practice_replace_body").semantics { contentDescription = spoken },
+            )
+        },
+        // 버튼 셋: 세로로 쌓아 글꼴 200%에서도 잘리지 않게 한다
+        confirmButton = {
+            Column(horizontalAlignment = Alignment.End) {
+                TextButton(actions.onResumeReplace, Modifier.focusRequester(focus).testTag("practice_replace_resume")) { Text(stringResource(R.string.practice_resume_action)) }
+                TextButton(actions.onReplace, Modifier.testTag("practice_replace_new")) { Text(stringResource(R.string.practice_replace_new)) }
+                TextButton(actions.onCancelReplace) { Text(stringResource(R.string.practice_cancel)) }
+            }
+        },
     )
 }

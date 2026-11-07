@@ -58,6 +58,7 @@ import com.jlptstudy.app.ui.theme.LoadingDelayMs
 import com.jlptstudy.app.ui.theme.Spacing
 import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.createSavedStateHandle
 import androidx.navigation.toRoute
 import com.jlptstudy.app.ui.detail.DetailActions
 import com.jlptstudy.app.ui.detail.KanjiDetailRoute
@@ -89,10 +90,14 @@ import com.jlptstudy.app.ui.about.AboutViewModel
 import com.jlptstudy.app.ui.about.rememberMeaningSourceTexts
 import com.jlptstudy.app.ui.about.rememberProvenanceSheet
 import com.jlptstudy.app.data.QuizSessionLoader
+import com.jlptstudy.app.ui.practice.ExamStartRoute
+import com.jlptstudy.app.ui.practice.ExamStartViewModel
 import com.jlptstudy.app.ui.practice.PracticeHomeRoute
 import com.jlptstudy.app.ui.practice.PracticeHomeScreen
 import com.jlptstudy.app.ui.practice.PracticeHomeUiState
 import com.jlptstudy.app.ui.practice.PracticeHomeViewModel
+import com.jlptstudy.app.ui.practice.QuizResultRoute
+import com.jlptstudy.app.ui.practice.QuizResultViewModel
 import com.jlptstudy.app.ui.practice.QuizRoute
 import com.jlptstudy.app.ui.practice.QuizViewModel
 import com.jlptstudy.app.ui.settings.SettingsRoute
@@ -305,8 +310,34 @@ private fun AppShell(
                     )
                 }
             }
-            composable<QuizResult> { Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {} } // S15는 M19d
-            composable<ExamStart> { Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {} } // S14 시작 화면은 M19c
+            composable<QuizResult> { entry ->
+                val content = container?.quizContentRepository
+                val quiz = container?.quizRepository
+                val study = container?.studyRepository
+                val records = container?.contentRepository
+                val grammar = container?.grammarRepository
+                if (container != null && content != null && quiz != null && study != null && records != null && grammar != null) {
+                    val id = entry.toRoute<QuizResult>().attemptId
+                    val vm: QuizResultViewModel = viewModel(key = "quiz-result-$id") {
+                        QuizResultViewModel(id, QuizSessionLoader(quiz, content), records, grammar, study, createSavedStateHandle())
+                    }
+                    val onChip = rememberProvenanceSheet(rememberMeaningSourceTexts(container.attributionRepository)) { nav.navigate(About()) }
+                    QuizResultRoute(
+                        vm, onClose = { nav.popBackStack() }, onTarget = { nav.navigate(it.toRoute()) },
+                        onNotice = { nav.navigate(About("N-11")) }, onChipClick = onChip,
+                    )
+                }
+            }
+            composable<ExamStart> { entry ->
+                val content = container?.quizContentRepository
+                val quiz = container?.quizRepository
+                if (container != null && content != null && quiz != null) {
+                    val level = entry.toRoute<ExamStart>().level
+                    val vm: ExamStartViewModel = viewModel(key = "exam-start-$level") { ExamStartViewModel(level, content, quiz, container.clock) }
+                    // 시작하면 시작 화면을 백 스택에서 뺀다: 진행 중 뒤로 = CONFIRM_EXIT 뒤 S12
+                    ExamStartRoute(vm, onBack = { nav.popBackStack() }, onStarted = { nav.navigate(Quiz(it)) { popUpTo<ExamStart> { inclusive = true } } })
+                }
+            }
             composable<GrammarDetail> { entry ->
                 val grammar = container?.grammarRepository
                 val study = container?.studyRepository

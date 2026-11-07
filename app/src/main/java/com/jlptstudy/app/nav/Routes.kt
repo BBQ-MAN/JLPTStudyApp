@@ -18,3 +18,10 @@ import kotlinx.serialization.Serializable
 @Serializable data class Quiz(val attemptId: Long)
 @Serializable data class QuizResult(val attemptId: Long)
 @Serializable data class ExamStart(val level: com.jlptstudy.app.JlptLevel)
+
+/** S15 해설의 관련 항목 링크 → 상세 라우트(S06·S07·S11). */
+fun com.jlptstudy.app.ui.practice.TargetLink.toRoute(): Any = when (kind) {
+    com.jlptstudy.app.ui.practice.TargetKind.VOCAB -> VocabDetail(id)
+    com.jlptstudy.app.ui.practice.TargetKind.KANJI -> KanjiDetail(id)
+    com.jlptstudy.app.ui.practice.TargetKind.GRAMMAR -> GrammarDetail(id)
+}

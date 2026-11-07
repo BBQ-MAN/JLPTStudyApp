@@ -60,7 +60,11 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.jlptstudy.app.data.QuizMode
+import kotlinx.coroutines.delay
 import com.jlptstudy.app.R
 import com.jlptstudy.app.ui.common.JpSpans
 import com.jlptstudy.app.ui.common.RubySegment
@@ -80,6 +84,9 @@ import com.jlptstudy.app.ui.theme.Spacing
 class QuizActions(
     val onClose: () -> Unit = {}, val onChoose: (Int) -> Unit = {}, val onNext: () -> Unit = {}, val onToggleFurigana: () -> Unit = {},
     val onChipClick: ((MeaningUi) -> Unit)? = null,
+    // S14 모의고사
+    val onPrev: () -> Unit = {}, val onGoTo: (Int) -> Unit = {}, val onSubmit: () -> Unit = {},
+    val onContinue: () -> Unit = {}, val onStopExit: () -> Unit = {}, val onCancelSubmit: () -> Unit = {}, val onConfirmSubmit: () -> Unit = {},
 )
 
 @Composable
@@ -87,23 +94,40 @@ fun QuizRoute(vm: QuizViewModel, onExit: () -> Unit, onResult: (Long) -> Unit, o
     val state by vm.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val exit = { vm.exit(onExit) }
-    BackHandler { exit() } // 확인 없이 finish 후 S12
+    BackHandler { exit() } // 연습: 확인 없이 finish 후 S12 / 모의고사: CONFIRM_EXIT
     LaunchedEffect(state.status) { if (state.status == QuizStatus.SUBMITTED) onResult(state.attemptId) }
-    val message = stringResource(if (state.status == QuizStatus.ANSWERING) R.string.quiz_save_failed else R.string.quiz_finish_failed)
+    LifecycleEventEffect(Lifecycle.Event.ON_START) { vm.onStart() }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.onStop() } // 백그라운드: 확인 없이 저장하고 시간 멈춤
+    if (state.mode == QuizMode.EXAM) LaunchedEffect(Unit) { while (true) { delay(1_000); vm.tick() } }
+    val message = stringResource(
+        when {
+            !state.finishFailed -> R.string.quiz_save_failed
+            state.mode == QuizMode.EXAM -> R.string.exam_submit_failed
+            else -> R.string.quiz_finish_failed
+        },
+    )
     val retry = stringResource(R.string.action_retry)
     LaunchedEffect(state.saveFailed) {
         if (state.saveFailed && snackbar.showSnackbar(message, retry, duration = SnackbarDuration.Indefinite) == SnackbarResult.ActionPerformed) vm.retry()
     }
-    QuizScreen(state, snackbar, QuizActions(exit, vm::choose, vm::next, vm::toggleFurigana, onChipClick))
+    QuizScreen(
+        state, snackbar,
+        QuizActions(
+            exit, vm::choose, vm::next, vm::toggleFurigana, onChipClick,
+            vm::prev, vm::goTo, vm::requestSubmit, vm::continueExam, { vm.stopAndExit(onExit) }, vm::cancelSubmit, vm::confirmSubmit,
+        ),
+    )
 }
 
-/** S13(ui-design 6.10): 연습 문제 풀이. 고르면 즉시 채점해 피드백과 해설 카드를 보인다. */
+/** S13(ui-design 6.10): 연습 문제 풀이. 고르면 즉시 채점해 피드백과 해설 카드를 보인다. S14 모의고사 진행도 같은 틀(mode EXAM). */
 @Composable
 fun QuizScreen(state: QuizUiState, snackbar: SnackbarHostState = remember { SnackbarHostState() }, actions: QuizActions = QuizActions()) {
     val q = state.question
+    val exam = state.mode == QuizMode.EXAM
     if (state.status == QuizStatus.EMPTY) {
         StatusScreen(
-            stringResource(R.string.quiz_empty_title), body = stringResource(R.string.quiz_empty_body),
+            stringResource(if (exam) R.string.exam_resume_empty_title else R.string.quiz_empty_title),
+            body = stringResource(if (exam) R.string.exam_resume_empty_body else R.string.quiz_empty_body),
             icon = painterResource(R.drawable.ic_ms_info), actions = listOf(StatusAction(stringResource(R.string.quiz_empty_action), actions.onClose)),
         )
         return
@@ -112,7 +136,7 @@ fun QuizScreen(state: QuizUiState, snackbar: SnackbarHostState = remember { Snac
         Box(Modifier.fillMaxSize().safeDrawingPadding()) {
             Column(Modifier.widthIn(max = 600.dp).fillMaxSize().align(Alignment.TopCenter)) {
                 val noRuby = q != null && QuizTypeLabels.alwaysNoRuby(q.section, q.type)
-                Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = Spacing.xs), verticalAlignment = Alignment.CenterVertically) {
+                if (exam) ExamTopBar(state, actions) else Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = Spacing.xs), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(actions.onClose) { Icon(painterResource(R.drawable.ic_ms_close), stringResource(R.string.quiz_close)) }
                     Box(Modifier.weight(1f))
                     if (q != null && !noRuby) FuriganaToggle(state.showRuby, actions.onToggleFurigana)
@@ -121,6 +145,7 @@ fun QuizScreen(state: QuizUiState, snackbar: SnackbarHostState = remember { Snac
                     StatusContent(stringResource(R.string.detail_loading), loading = true, takeFocus = false, modifier = Modifier.align(Alignment.CenterHorizontally))
                 } else {
                     QuizBody(state, q, noRuby, actions, Modifier.weight(1f))
+                    if (exam) ExamBottomBar(state, actions)
                     if (state.status == QuizStatus.FEEDBACK) {
                         Button(
                             actions.onNext,
@@ -133,6 +158,8 @@ fun QuizScreen(state: QuizUiState, snackbar: SnackbarHostState = remember { Snac
             SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
         }
     }
+    if (state.status == QuizStatus.CONFIRM_EXIT) ExamExitDialog(actions)
+    if (state.status == QuizStatus.CONFIRM_SUBMIT) ExamSubmitDialog(state.unansweredCount, actions)
 }
 
 @Composable
@@ -143,12 +170,15 @@ private fun QuizBody(state: QuizUiState, q: QuizQuestionUi, noRuby: Boolean, act
     val progressFocus = remember { FocusRequester() }
     LaunchedEffect(q.id) { runCatching { progressFocus.requestFocus() } }
     Column(modifier.fillMaxWidth()) {
+        val exam = state.mode == QuizMode.EXAM
         Column(Modifier.fillMaxWidth().padding(horizontal = Spacing.lg, vertical = Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text("${state.index + 1}/${state.total}", style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = "tnum"), modifier = Modifier.focusRequester(progressFocus).focusable().testTag("quiz_progress"))
-                Text(QuizTypeLabels.name(q.section, q.type), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // 모의고사는 현재 영역 이름(템플릿 titleKo), 연습은 유형 이름
+                val label = if (exam) state.sectionTitles.getOrNull(state.sectionStarts.indexOfLast { it <= state.index }) else QuizTypeLabels.name(q.section, q.type)
+                Text(label.orEmpty(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            LinearProgressIndicator(
+            if (exam) ExamNumberRow(state, actions.onGoTo) else LinearProgressIndicator(
                 progress = { if (state.total == 0) 0f else (state.index + if (state.status == QuizStatus.FEEDBACK) 1 else 0).toFloat() / state.total },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 4.dp).clearAndSetSemantics {}, // 같은 줄의 "3/10"이 정보를 담는다
                 color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -160,9 +190,7 @@ private fun QuizBody(state: QuizUiState, q: QuizQuestionUi, noRuby: Boolean, act
         ) {
             Instruction(q)
             q.passage?.let { p ->
-                Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                    Box(Modifier.padding(Spacing.lg)) { RubyText(p, style = jp.bodyLarge, showRuby = showRuby) }
-                }
+                PassageCard(p, showRuby)
             }
             StemView(q.stem, showRuby)
             val feedback = state.status == QuizStatus.FEEDBACK
@@ -176,7 +204,8 @@ private fun QuizBody(state: QuizUiState, q: QuizQuestionUi, noRuby: Boolean, act
                     }
                     ChoiceButton(
                         number = i + 1, segments = segs, showRuby = showRuby, look = look,
-                        chosen = i == state.chosenIndex, enabled = state.status == QuizStatus.ANSWERING && state.chosenIndex == null && !state.saving,
+                        chosen = i == state.chosenIndex,
+                        enabled = state.status == QuizStatus.ANSWERING && (exam || state.chosenIndex == null) && !state.saving,
                     ) { actions.onChoose(i) }
                 }
             }
@@ -195,9 +224,16 @@ private fun QuizBody(state: QuizUiState, q: QuizQuestionUi, noRuby: Boolean, act
     }
 }
 
+@Composable
+internal fun PassageCard(p: List<RubySegment>, showRuby: Boolean) {
+    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLow) {
+        Box(Modifier.padding(Spacing.lg)) { RubyText(p, style = LocalJpTypography.current.bodyLarge, showRuby = showRuby) }
+    }
+}
+
 /** 지시문: 한국어 문구 + `{대상}` 일본어 구간(ja-JP). 문항 target이 없으면 대상 자리를 비운다. */
 @Composable
-private fun Instruction(q: QuizQuestionUi) {
+internal fun Instruction(q: QuizQuestionUi) {
     val text = remember(q.id) {
         val tpl = QuizTypeLabels.instruction(q.section, q.type)
         buildAnnotatedString {
@@ -215,7 +251,7 @@ private fun Instruction(q: QuizQuestionUi) {
 /** 지문 `stem`: 빈칸 토큰을 앱이 그리는 칸으로 바꾼다. 토큰이 없으면 RubyText 하나. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun StemView(stem: List<RubySegment>, showRuby: Boolean) {
+internal fun StemView(stem: List<RubySegment>, showRuby: Boolean) {
     val jp = LocalJpTypography.current
     val parts = remember(stem) { QuizStem.split(stem) }
     if (parts.none { it !is StemPart.Text }) {
@@ -349,7 +385,7 @@ private fun FeedbackLine(q: QuizQuestionUi, chosen: Int?, showRuby: Boolean) {
 /** 해설 카드(5.5): 정답 근거, 고른 오답의 이유를 맨 위로 한 오답별 이유, 출처 칩과 검토 중 표시. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ExplanationCard(q: QuizQuestionUi, chosen: Int?, onChipClick: ((MeaningUi) -> Unit)?) {
+internal fun ExplanationCard(q: QuizQuestionUi, chosen: Int?, onChipClick: ((MeaningUi) -> Unit)?) {
     Surface(Modifier.fillMaxWidth().testTag("quiz_explanation"), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLow) {
         Column(Modifier.padding(Spacing.lg), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             Text(stringResource(R.string.quiz_expl_title), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium)

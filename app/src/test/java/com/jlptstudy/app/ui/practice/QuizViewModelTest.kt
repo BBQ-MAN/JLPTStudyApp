@@ -155,10 +155,12 @@ class QuizViewModelTest {
         assertEquals(1, quiz.saveCalls)
     }
 
-    @Test fun `시험 시도를 열면 LOADING에 갇히지 않고 EMPTY로 닫기 동선이 보인다`() {
+    @Test fun `시험 시도를 열면 EXAM 모드로 ANSWERING이고 템플릿이 없어도 풀 수 있다`() {
         val id = runBlocking { quiz.startAttempt("exam-n5", 1L, content.items.map { it.id }, clock.ms) }
         val s = QuizViewModel(id, QuizSessionLoader(quiz, content), quiz, MemStudy(), clock).state.value
-        assertEquals(QuizStatus.EMPTY, s.status)
+        assertEquals(QuizStatus.ANSWERING, s.status)
+        assertEquals(com.jlptstudy.app.data.QuizMode.EXAM, s.mode)
+        assertNull(s.limitMs)
     }
 
     @Test fun `finish가 실패해도 닫기는 나간다`() {

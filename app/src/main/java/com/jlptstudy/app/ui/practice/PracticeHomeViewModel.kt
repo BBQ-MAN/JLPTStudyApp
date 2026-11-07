@@ -87,8 +87,7 @@ class PracticeHomeViewModel(
     private suspend fun examCard(level: JlptLevel, pool: List<PoolItem>): ExamCardUi? {
         val template = safe { content.examTemplate(level) } ?: return null // 깨진 템플릿은 카드를 숨긴다(S14 시작 화면이 FAILED로 보인다)
         val built = Quiz.buildSet(pool, template, clock.millis(), excluded = setOf(Section.LISTENING))
-        val minutes = template.sections.filterNot { s -> s.parts.all { it.section == Section.LISTENING } }.sumOf { it.minutes }
-        return ExamCardUi(level, built.questionIds.size, minutes * 60_000L, built.shortfalls.isNotEmpty())
+        return ExamCardUi(level, built.questionIds.size, template.limitMs(), built.shortfalls.isNotEmpty())
     }
 
     private suspend fun loadResume(): ResumeExamUi? = safe {
@@ -125,6 +124,27 @@ class PracticeHomeViewModel(
     /** 스낵바 "다시 시도". */
     fun retryStart() { _state.update { it.copy(startFailed = false) }; lastStart?.invoke() }
     fun startFailedShown() { _state.update { it.copy(startFailed = false) } }
+
+    /** 모의고사 카드 "시작": 미완료 모의고사가 있으면 confirmReplace만 띄운다(AR-U14 A). 없으면 시작 화면으로. */
+    fun requestStartExam(onExamStart: (JlptLevel) -> Unit) {
+        val s = _state.value
+        if (s.resume != null) _state.update { it.copy(confirmReplace = s.resume) } else onExamStart(s.level)
+    }
+    fun cancelReplace() { _state.update { it.copy(confirmReplace = null) } }
+
+    /** confirmReplace "이어서 풀기": 풀던 시도로. */
+    fun resumeFromReplace(onResume: (Long) -> Unit) {
+        val r = _state.value.confirmReplace ?: return
+        _state.update { it.copy(confirmReplace = null) }
+        onResume(r.attemptId)
+    }
+
+    /** confirmReplace "새로 시작": finish·startAttempt를 부르지 않고 시작 화면으로. 이전 시도는 시작 화면의 "시작"이 저장소 트랜잭션에서 닫는다. */
+    fun replaceWithNew(onExamStart: (JlptLevel) -> Unit) {
+        if (_state.value.confirmReplace == null) return
+        _state.update { it.copy(confirmReplace = null) }
+        onExamStart(_state.value.level)
+    }
 
     fun requestAbandon() { if (_state.value.resume != null) _state.update { it.copy(confirmAbandon = true) } }
     fun cancelAbandon() { _state.update { it.copy(confirmAbandon = false) } }

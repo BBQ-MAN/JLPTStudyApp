@@ -21,7 +21,7 @@ data class LoadedAttempt(
 )
 
 /** 시도를 읽는 한 곳(architecture.md 9.2.6). 콘텐츠에서 빠진 문항은 items·answers에서 뺀다. */
-class QuizSessionLoader(private val quiz: QuizRepository, private val content: QuizContentRepository) {
+class QuizSessionLoader(private val quiz: QuizRepository, val content: QuizContentRepository) {
     suspend fun load(attemptId: Long): LoadedAttempt? {
         val record = quiz.attempt(attemptId) ?: return null
         val contents = content.contents(record.questionOrder)

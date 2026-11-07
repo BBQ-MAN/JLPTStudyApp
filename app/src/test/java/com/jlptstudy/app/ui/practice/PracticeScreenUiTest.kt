@@ -137,8 +137,11 @@ class PracticeScreenUiTest {
             }
         }
         rule.onNodeWithText("N4 모의고사 · 3/40 문항 답함 · 경과 02:05").assertIsDisplayed()
-        rule.onNodeWithText("문항이 모자라 아직 볼 수 없습니다").assertIsDisplayed()
         rule.onNodeWithTag("practice_exam_start").assertIsNotEnabledCompat()
+        // TalkBack: "모의고사 시작, 문항이 모자라 아직 볼 수 없습니다, 사용 중지됨"(ui-design S12) — 이유가 버튼 낭독에 들어 있다
+        val start = rule.onNodeWithTag("practice_exam_start").fetchSemanticsNode().config
+        assertEquals("모의고사 시작", start[SemanticsProperties.ContentDescription].joinToString())
+        assertEquals("문항이 모자라 아직 볼 수 없습니다", start[SemanticsProperties.StateDescription])
         rule.onNodeWithText("이어서 풀기").performClick()
         rule.onNodeWithTag("practice_abandon").performClick()
         rule.onNodeWithText("모의고사를 포기할까요?").assertIsDisplayed()
@@ -148,6 +151,11 @@ class PracticeScreenUiTest {
         rule.onNodeWithTag("practice_abandon").performClick()
         rule.onNodeWithTag("practice_abandon_confirm").performClick()
         assertEquals("abandon", events.last())
+        state = base.copy(confirmReplace = resume)
+        assertEquals(
+            "N4 모의고사, 3/40 문항 답함, 경과 2분 5초. 새로 시작하면 풀던 모의고사는 결과 없이 끝납니다(고른 답은 기록에 남습니다).",
+            rule.onNodeWithTag("practice_replace_body").fetchSemanticsNode().config[SemanticsProperties.ContentDescription].joinToString(),
+        )
     }
 
     private fun androidx.compose.ui.test.SemanticsNodeInteraction.assertIsNotEnabledCompat() {
