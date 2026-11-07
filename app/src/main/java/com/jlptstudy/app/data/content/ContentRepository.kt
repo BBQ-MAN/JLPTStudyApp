@@ -138,7 +138,7 @@ class RoomContentRepository(private val dao: ContentDao) :
                     val k = kanji[p.contentId] ?: continue
                     val level = JlptLevel.fromN(k.level) ?: continue
                     ReviewCardUi.Kanji(
-                        cardId = p.cardId, level = level, literal = k.literal, strokeCount = k.strokeCount,
+                        cardId = p.cardId, level = level, literal = k.literal, strokeCount = strokePathCount(k.literal) ?: k.strokeCount,
                         on = strings(k.onReadings), kun = strings(k.kunReadings), koreanReadings = strings(k.koreanReadings),
                         words = words[k.literal].orEmpty().take(3).map { WordRef(it.vocabId, it.written, it.reading, it.textKo.orEmpty()) },
                     )
@@ -189,13 +189,19 @@ class RoomContentRepository(private val dao: ContentDao) :
         if (retired(listOf(literal)).isNotEmpty()) return null
         val k = dao.kanjiByIds(listOf(literal)).firstOrNull() ?: return null
         val level = JlptLevel.fromN(k.level) ?: return null
+        val strokes = strokes(literal)
         return KanjiDetail(
-            literal = k.literal, level = level, strokeCount = k.strokeCount,
+            // 사전 획수와 필순 그림의 획 수가 다른 한자(飴 13/14, 噌 14/15)는 화면의 '획수'를 그림의 획 수(paths 개수)에 맞춘다(U-9)
+            literal = k.literal, level = level, strokeCount = strokes?.size ?: k.strokeCount,
             on = strings(k.onReadings), kun = strings(k.kunReadings), koreanReadings = strings(k.koreanReadings),
             words = dao.kanjiWords(listOf(literal)).map { WordRef(it.vocabId, it.written, it.reading, it.textKo.orEmpty()) },
-            strokes = strokes(literal),
+            strokes = strokes,
         )
     }
+
+    /** 카드용: 해석 없이 paths 개수만 센다(세션 대기열 전체에 부르므로). 행 없음·JSON 깨짐·빈 목록이면 null. */
+    private suspend fun strokePathCount(literal: String): Int? =
+        dao.strokePaths(literal)?.let { runCatching { strings(it).size }.getOrNull() }?.takeIf { it > 0 }
 
     /** 행 없음·JSON 깨짐·경로 하나라도 해석 실패면 null(절 숨김, 일부 획만 그린 필순은 틀린 정보다). */
     private suspend fun strokes(literal: String): List<String>? {

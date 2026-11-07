@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SegmentedButton
@@ -43,6 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,6 +54,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -69,6 +72,7 @@ import com.jlptstudy.app.ui.level.LevelPicker
 import com.jlptstudy.app.ui.theme.LoadingDelayMs
 import com.jlptstudy.app.ui.theme.Spacing
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class SettingsActions(
     val onLevels: (Set<JlptLevel>) -> Unit = {}, val onNewCards: (Int) -> Unit = {}, val onDayHour: (Int) -> Unit = {},
@@ -164,14 +168,19 @@ fun SettingsScreen(
         }
     }
     if (daySheetOpen && !state.loading) {
-        ModalBottomSheet(onDismissRequest = { daySheetOpen = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-            DayStartSheetContent(state.dayBoundaryHour) { actions.onDayHour(it); daySheetOpen = false }
+        val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val scope = rememberCoroutineScope()
+        ModalBottomSheet(onDismissRequest = { daySheetOpen = false }, sheetState = sheet) {
+            // 고르면 값을 저장하고 시트를 내리는 애니메이션이 끝난 뒤에 닫는다(바로 지우면 시트가 툭 사라진다)
+            DayStartSheetContent(state.dayBoundaryHour) { actions.onDayHour(it); scope.launch { sheet.hide() }.invokeOnCompletion { daySheetOpen = false } }
         }
     }
     if (sheetOpen && !state.loading) { // 로딩 전엔 선택값이 비어 있으므로 기다린다
         val available = state.levelOptions.filter { it.available }.map { it.level }.toSet()
         var picked by remember { mutableStateOf(state.targetLevels intersect available) }
-        ModalBottomSheet(onDismissRequest = { sheetOpen = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val scope = rememberCoroutineScope()
+        ModalBottomSheet(onDismissRequest = { sheetOpen = false }, sheetState = sheet) {
             Column(Modifier.padding(horizontal = Spacing.lg).padding(bottom = Spacing.lg).testTag("level_picker_sheet"), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 Text(stringResource(R.string.settings_levels), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleLarge)
                 LevelPicker(
@@ -183,7 +192,7 @@ fun SettingsScreen(
                     Text(stringResource(R.string.level_none_selected), Modifier.semantics { liveRegion = LiveRegionMode.Polite }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 }
                 Button(
-                    { actions.onLevels(picked); sheetOpen = false }, Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                    { actions.onLevels(picked); scope.launch { sheet.hide() }.invokeOnCompletion { sheetOpen = false } }, Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     enabled = picked.isNotEmpty(),
                 ) { Text(stringResource(R.string.level_save)) }
             }
@@ -237,6 +246,8 @@ private fun ClickRow(label: String, value: String?, modifier: Modifier = Modifie
     ) {
         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
         if (value != null) Text(value, style = MaterialTheme.typography.let { if (tnum) it.bodyLarge.copy(fontFeatureSettings = "tnum") else it.bodyMedium }, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // 누르면 열린다는 표시. 행 전체가 하나의 버튼이라 따로 낭독하지 않는다
+        Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null, Modifier.padding(start = Spacing.xs), tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

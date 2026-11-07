@@ -202,6 +202,7 @@ private fun Progress(items: List<LevelProgress>) {
                 LinearProgressIndicator(
                     progress = { if (p.totalWords == 0) 0f else (p.learnedWords.toFloat() / p.totalWords).coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth().clearAndSetSemantics {},
+                    drawStopIndicator = {}, // 0%일 때 트랙 끝의 점만 보이지 않게
                 )
             }
         }

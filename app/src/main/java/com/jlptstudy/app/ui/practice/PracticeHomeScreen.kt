@@ -158,7 +158,7 @@ fun PracticeHomeScreen(state: PracticeHomeUiState, snackbar: SnackbarHostState =
                             }
                         }
                     }
-                    NoticeCard(stringResource(R.string.practice_notice), actions.onNotice, Modifier.testTag("practice_notice"), Modifier.padding(horizontal = Spacing.lg))
+                    NoticeCard(stringResource(R.string.practice_notice), Modifier.padding(horizontal = Spacing.lg), actions.onNotice, Modifier.testTag("practice_notice"))
                     Spacer(Modifier.navigationBarsPadding())
                 }
                 SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
@@ -258,7 +258,7 @@ private fun TypeRow(t: PracticeTypeUi, actions: PracticeHomeActions) {
 
 /** 문제 고지 카드(ui-design 6.10): 문자열 리소스이므로 attribution.json이 없어도 늘 보인다. onMore가 있으면 "자세히". */
 @Composable
-internal fun NoticeCard(text: String, onMore: (() -> Unit)? = null, textModifier: Modifier = Modifier, modifier: Modifier = Modifier) {
+internal fun NoticeCard(text: String, modifier: Modifier = Modifier, onMore: (() -> Unit)? = null, textModifier: Modifier = Modifier) {
     Surface(
         modifier.fillMaxWidth(), shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surfaceContainerHighest,

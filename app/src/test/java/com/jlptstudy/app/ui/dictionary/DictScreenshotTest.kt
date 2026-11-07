@@ -50,14 +50,15 @@ abstract class DictShots {
     }
 
     /** dialog = true: 대화상자 창까지 담는다(onRoot는 본 창만 찍는다). */
-    @OptIn(com.github.takahirom.roborazzi.ExperimentalRoborazziApi::class)
+    @OptIn(com.github.takahirom.roborazzi.ExperimentalRoborazziApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
     protected fun shots(name: String, fontScale: Float = 1f, setup: () -> Unit = {}, dialog: Boolean = false, content: @Composable () -> Unit) {
         val capture = { path: String -> if (dialog) com.github.takahirom.roborazzi.captureScreenRoboImage(path) else rule.onRoot().captureRoboImage(path) }
         var dark by mutableStateOf(false)
         rule.mainClock.autoAdvance = false
         rule.setContent {
             val d = LocalDensity.current
-            CompositionLocalProvider(LocalDensity provides Density(d.density, fontScale), LocalFrozenProgress provides true) {
+            // 눌림 물결(ripple)은 플랫폼 그리기라 compose 시계로 멈출 수 없어 실행마다 가장자리 픽셀이 달라진다. 스크린샷에서는 끈다(필순 시계는 mainClock 수동 진행으로 이미 고정).
+            CompositionLocalProvider(LocalDensity provides Density(d.density, fontScale), LocalFrozenProgress provides true, androidx.compose.material3.LocalRippleConfiguration provides null) {
                 JlptTheme(if (dark) ThemeMode.DARK else ThemeMode.LIGHT) { content() }
             }
         }
@@ -107,6 +108,8 @@ class DictScreenshotTest : DictShots() {
         VocabDetailScreen(vocabState.copy(meanings = fiveMeanings + mean("직접 쓴 뜻, 검수 전", "authored", "human", "unreviewed", null)))
     }
     @Test fun kanji_detail_loaded() = shots("kanji_detail_loaded") { KanjiDetailScreen(kanjiState) }
+    @Config(qualifiers = "w360dp-h1400dp-xhdpi")
+    @Test fun kanji_detail_loaded_font200() = shots("kanji_detail_loaded", fontScale = 2f) { KanjiDetailScreen(kanjiState) }
     // 필순 절은 첫 화면 밖이라 긴 화면으로 찍는다. 합성 픽스처(source_id authored)이며 실제 필순이 아니다.
     private val strokesState get() = kanjiState.copy(strokes = com.jlptstudy.app.ui.detail.syntheticStrokes, strokeSourceName = "합성 필순 출처")
     @Config(qualifiers = "w360dp-h1400dp-xhdpi")

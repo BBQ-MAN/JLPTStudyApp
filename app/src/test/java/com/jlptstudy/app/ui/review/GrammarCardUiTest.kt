@@ -81,7 +81,7 @@ class GrammarCardUiTest {
         show(card) { true }
         val text = node("review_card").fetchSemanticsNode().config[SemanticsProperties.Text].single().text
         assertEquals("뒷면. 뜻 시험 대응 표현. 예문 뜻 시험 예문 뜻. 시험 요약 첫 문단. ${ProvenanceLabel.of(card.provenance)}. 설명 검토 중", text)
-        rule.onNodeWithText("설명 검토 중").assertExists()
+        rule.onNodeWithText("설명 검토 중", useUnmergedTree = true).assertExists() // 뒷면은 낭독 노드 하나라 병합 트리에는 칩이 없다
     }
 
     private fun assertStable(c: ReviewCardUi) {

@@ -218,6 +218,6 @@ class QuizResultUiTest {
         val quiz = FakeQuiz()
         val id = runBlocking { quiz.startAttempt(null, 42L, content.items.map { it.id }, 1L) }
         items.forEach { it.chosenIndex?.let { c -> quiz.answer(id, it.question.id, c, it.correct) } }
-        return QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy())
+        return QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy(), androidx.lifecycle.SavedStateHandle())
     }
 }

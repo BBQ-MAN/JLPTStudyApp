@@ -52,7 +52,7 @@ class QuizResultViewModelTest {
         // 1번 정답(원래 색인 0), 2번 오답, 3번은 답하지 않음
         quiz.answer(id, content.items[0].id, content.items[0].answerIndex, true, scriptShown = false)
         quiz.answer(id, content.items[1].id, (content.items[1].answerIndex + 1) % 4, false)
-        val v = QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy())
+        val v = QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy(), androidx.lifecycle.SavedStateHandle())
         val s = v.state.value
         assertEquals(QuizResultStatus.LOADED, s.status)
         assertEquals(QuizMode.EXAM, s.mode)
@@ -88,7 +88,7 @@ class QuizResultViewModelTest {
         val content = FakeQuizContent(qs(emptyList(), emptyList()))
         val id = attemptOf(content)
         quiz.answer(id, content.items[0].id, content.items[0].answerIndex, true)
-        val s = QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy()).state.value
+        val s = QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy(), androidx.lifecycle.SavedStateHandle()).state.value
         assertEquals(QuizMode.PRACTICE, s.mode)
         assertEquals("kanji-reading", s.type)
         assertEquals(Section.VOCAB, s.score!!.sections.single().section)
@@ -100,13 +100,13 @@ class QuizResultViewModelTest {
     @Test fun `빠진 문항은 retiredCount로 세고 남은 문항이 0이면 EMPTY다`() {
         val content = FakeQuizContent(qs(emptyList(), emptyList()))
         val id = attemptOf(content, order = listOf(content.items[0].id, "q-n5-vocab-9999", content.items[1].id))
-        val s = QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy()).state.value
+        val s = QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy(), androidx.lifecycle.SavedStateHandle()).state.value
         assertEquals(1, s.retiredCount)
         assertEquals(2, s.items.size)
         assertEquals(2, s.score!!.total) // 분모는 남은 문항 기준
 
         val none = attemptOf(content, order = listOf("q-n5-vocab-9998", "q-n5-vocab-9999"))
-        val e = QuizResultViewModel(none, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy()).state.value
+        val e = QuizResultViewModel(none, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy(), androidx.lifecycle.SavedStateHandle()).state.value
         assertEquals(QuizResultStatus.EMPTY, e.status)
         assertEquals(2, e.retiredCount)
         assertTrue(e.items.isEmpty())
@@ -114,7 +114,7 @@ class QuizResultViewModelTest {
     }
 
     @Test fun `시도가 없으면 EMPTY다`() {
-        val s = QuizResultViewModel(99, QuizSessionLoader(quiz, FakeQuizContent()), LinkContent(), LinkGrammar(), MemStudy()).state.value
+        val s = QuizResultViewModel(99, QuizSessionLoader(quiz, FakeQuizContent()), LinkContent(), LinkGrammar(), MemStudy(), androidx.lifecycle.SavedStateHandle()).state.value
         assertEquals(QuizResultStatus.EMPTY, s.status)
     }
 
@@ -124,7 +124,7 @@ class QuizResultViewModelTest {
         quiz.answer(id, content.items[0].id, 0, true, scriptShown = true)
         quiz.answer(id, content.items[1].id, 1, false, scriptShown = true)
         quiz.answer(id, content.items[2].id, 2, false)
-        val s = QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy()).state.value
+        val s = QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy(), androidx.lifecycle.SavedStateHandle()).state.value
         assertEquals(2, s.scriptShownCount)
         assertTrue(s.items[0].scriptShown)
         assertFalse(s.items[2].scriptShown)
@@ -137,7 +137,7 @@ class QuizResultViewModelTest {
         quiz.answer(id, content.items[1].id, (content.items[1].answerIndex + 1) % 4, false)
         // 2번(index 2)은 답하지 않음, 3번 정답
         quiz.answer(id, content.items[3].id, content.items[3].answerIndex, true)
-        val v = QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy())
+        val v = QuizResultViewModel(id, QuizSessionLoader(quiz, content), LinkContent(), LinkGrammar(), MemStudy(), androidx.lifecycle.SavedStateHandle())
         assertEquals(listOf(1, 2), v.state.value.visibleItems.map { it.index })
         v.openReview(1)
         v.stepReview(-1)
@@ -172,7 +172,7 @@ class QuizResultViewModelTest {
         val content = FakeQuizContent(qs(targets))
         val id = attemptOf(content)
         val v = QuizResultViewModel(
-            id, QuizSessionLoader(quiz, content), LinkContent(setOf("jm:1358280", "av-n5-0001"), setOf("駅")), LinkGrammar(setOf("gr-n5-0001")), MemStudy(),
+            id, QuizSessionLoader(quiz, content), LinkContent(setOf("jm:1358280", "av-n5-0001"), setOf("駅")), LinkGrammar(setOf("gr-n5-0001")), MemStudy(), androidx.lifecycle.SavedStateHandle(),
         )
         assertTrue("해설을 열기 전에는 해소하지 않는다", v.state.value.targetLinks.isEmpty())
         v.openReview(0)
@@ -193,7 +193,7 @@ class QuizResultViewModelTest {
         val flaky = object : ContentRepository by ok {
             override suspend fun vocabDetail(id: String) = if (fail) throw java.io.IOException("x") else ok.vocabDetail(id)
         }
-        val v = QuizResultViewModel(id, QuizSessionLoader(quiz, content), flaky, LinkGrammar(), MemStudy())
+        val v = QuizResultViewModel(id, QuizSessionLoader(quiz, content), flaky, LinkGrammar(), MemStudy(), androidx.lifecycle.SavedStateHandle())
         v.openReview(0)
         assertEquals(listOf("駅"), v.state.value.targetLinks.getValue(content.items[0].id).map { it.id })
         // 일시적 실패는 캐시하지 않는다: 다시 열면 복구된 링크가 나온다

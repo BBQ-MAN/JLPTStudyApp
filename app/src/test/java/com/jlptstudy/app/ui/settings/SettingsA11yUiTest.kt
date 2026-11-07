@@ -158,4 +158,33 @@ class SettingsA11yUiTest {
         rule.onNodeWithTag("row_day_start").assertIsFocused()
         assertEquals("6시", rule.onNodeWithTag("row_day_start").fetchSemanticsNode().config[SemanticsProperties.StateDescription])
     }
+
+    @Test fun `스테퍼는 다시 그리기 전의 빠른 연속 탭을 잃지 않는다`() {
+        val got = mutableListOf<Int>()
+        rule.mainClock.autoAdvance = false // 두 탭 사이에 프레임이 돌지 않는다: value 인자는 낡은 20 그대로
+        rule.setContent { JlptTheme { com.jlptstudy.app.ui.components.NumberStepper("하루 새 카드", 20, { got += it }) } }
+        rule.mainClock.advanceTimeByFrame()
+        rule.onNodeWithContentDescription(inc).performClick()
+        rule.onNodeWithContentDescription(inc).performClick()
+        rule.onNodeWithContentDescription(dec).performClick()
+        assertEquals(listOf(25, 30, 25), got)
+    }
+
+    @Test fun `저장 결과가 탭 사이에 돌아와도 스테퍼는 마지막으로 보낸 값에서 이어 계산하고 1초 뒤에는 화면 값으로 돌아온다`() {
+        val got = mutableListOf<Int>()
+        var shown by mutableStateOf(20)
+        rule.mainClock.autoAdvance = false
+        rule.setContent { JlptTheme { com.jlptstudy.app.ui.components.NumberStepper("하루 새 카드", shown, { got += it }) } }
+        rule.mainClock.advanceTimeByFrame()
+        rule.onNodeWithContentDescription(inc).performClick()   // 25 전송
+        rule.onNodeWithContentDescription(inc).performClick()   // 30 전송
+        shown = 25                                              // 첫 저장 결과만 먼저 돌아온다
+        rule.mainClock.advanceTimeByFrame()
+        rule.onNodeWithContentDescription(inc).performClick()   // 35여야 한다(25에서 이어 30이면 한 번을 잃은 것)
+        assertEquals(listOf(25, 30, 35), got)
+        // 저장이 실패해 화면 값이 그대로면, 잠시 뒤 다음 탭은 화면 값(25)에서 시작한다
+        rule.mainClock.advanceTimeBy(1_100)
+        rule.onNodeWithContentDescription(inc).performClick()
+        assertEquals(30, got.last())
+    }
 }

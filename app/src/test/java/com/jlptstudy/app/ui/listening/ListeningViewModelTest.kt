@@ -294,7 +294,7 @@ class ListeningViewModelTest {
         v.next()
         assertEquals(ListeningStatus.SUBMITTED, v.state.value.status)
         assertEquals(listOf(id), quiz.finishCalls.map { it.first })
-        val r = QuizResultViewModel(id, QuizSessionLoader(quiz, content), FakeContentRepository, LinkGrammar(), MemStudy()).state.value
+        val r = QuizResultViewModel(id, QuizSessionLoader(quiz, content), FakeContentRepository, LinkGrammar(), MemStudy(), androidx.lifecycle.SavedStateHandle()).state.value
         assertEquals(QuizResultStatus.LOADED, r.status)
         assertEquals(QuizMode.LISTENING, r.mode)
         assertEquals(listOf(true, false), r.items.map { it.scriptShown })

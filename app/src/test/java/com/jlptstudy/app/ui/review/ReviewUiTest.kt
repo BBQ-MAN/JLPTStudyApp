@@ -104,12 +104,15 @@ class ReviewUiTest {
                 DoneScreen(ReviewUiState(status = ReviewStatus.READY, finished = true, reviewedInSession = 4, newInSession = 2, newCardsLeftAfterSession = left), {}, { more++ })
             }
         }
-        rule.onNodeWithText("새 카드 5장 더 학습").performClick(); assertEquals(1, more)
+        rule.onNodeWithText("새 카드 3장 더 학습").performClick(); assertEquals(1, more) // 남은 수가 5보다 적으면 그 수만큼
         rule.onNodeWithText("새 카드 3장을 더 할 수 있어요", substring = true).assertExists()
         rule.onNodeWithText("4장 복습 · 새 카드 2장", substring = true).assertExists()
+        left = 8
+        rule.waitForIdle()
+        rule.onNodeWithText("새 카드 5장 더 학습").assertExists()
         left = 0
         rule.waitForIdle()
-        rule.onNodeWithText("새 카드 5장 더 학습").assertDoesNotExist()
+        rule.onNodeWithText("더 학습", substring = true).assertDoesNotExist()
         rule.onNodeWithText("더 할 수 있어요", substring = true).assertDoesNotExist()
         rule.onNodeWithText("홈으로").assertExists()
     }

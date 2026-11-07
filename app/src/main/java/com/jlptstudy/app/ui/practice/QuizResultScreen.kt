@@ -148,7 +148,7 @@ private fun ColumnScope.ListPane(state: QuizResultUiState, listState: androidx.c
                 item { Text(stringResource(R.string.result_script_shown, state.scriptShownCount), Modifier.testTag("result_script_shown"), style = MaterialTheme.typography.bodyMedium) }
             }
         }
-        item { NoticeCard(stringResource(R.string.result_notice), actions.onNotice, Modifier.testTag("result_notice_text"), Modifier.testTag("result_notice")) }
+        item { NoticeCard(stringResource(R.string.result_notice), Modifier.testTag("result_notice"), actions.onNotice, Modifier.testTag("result_notice_text")) }
         if (state.status == QuizResultStatus.LOADED) {
             item { ListHeader(state.filter, actions.onFilter) }
             if (visible.isEmpty()) {
@@ -275,7 +275,7 @@ private fun ListHeader(filter: ResultFilter, onFilter: (ResultFilter) -> Unit) {
 }
 
 @Composable
-private fun ResultRow(item: QuizReviewItemUi, focusModifier: Modifier, onClick: () -> Unit) {
+private fun ResultRow(item: QuizReviewItemUi, modifier: Modifier, onClick: () -> Unit) {
     val q = item.question
     val ext = LocalExtendedColors.current
     val type = QuizTypeLabels.name(q.section, q.type)
@@ -290,7 +290,7 @@ private fun ResultRow(item: QuizReviewItemUi, focusModifier: Modifier, onClick: 
         ) + if (item.scriptShown) stringResource(R.string.result_row_script) else ""
     Row(
         Modifier.fillMaxWidth().heightIn(min = 64.dp).testTag("result_row_${item.index}")
-            .then(focusModifier).clickable(role = Role.Button, onClick = onClick)
+            .then(modifier).clickable(role = Role.Button, onClick = onClick)
             .clearAndSetSemantics { contentDescription = a11y },
         horizontalArrangement = Arrangement.spacedBy(Spacing.md), verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -77,6 +77,7 @@ class ScreenshotTest {
     @Test fun nav_shell_all_tabs() = shots("nav_shell_all_tabs") { Shell(AppState.Ready(needsOnboarding = false)) }
     @Test fun nav_shell_all_tabs_font200() = shots("nav_shell_all_tabs", fontScale = 2f) { Shell(AppState.Ready(false)) }
     @Test fun app_opening() = shots("app_opening") { Shell(AppState.Opening) }
+    @Test fun app_opening_font200() = shots("app_opening", fontScale = 2f) { Shell(AppState.Opening) }
     @Test fun error_content_db() = shots("error_content_db") { Shell(AppState.ContentDbFailed) }
     @Test fun error_record_db() = shots("error_record_db") { Shell(AppState.RecordDbFailed) }
     @Test fun error_content_db_font200() = shots("error_content_db", fontScale = 2f) { Shell(AppState.ContentDbFailed) }

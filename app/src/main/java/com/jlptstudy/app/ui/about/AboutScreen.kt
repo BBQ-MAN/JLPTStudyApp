@@ -2,7 +2,7 @@ package com.jlptstudy.app.ui.about
 
 import android.content.ClipData
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +39,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +61,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -97,21 +100,29 @@ fun AboutScreen(state: AboutUiState, anchor: String? = null, onBack: () -> Unit 
     val clipboard = LocalClipboard.current
     val noApp = stringResource(R.string.about_link_unavailable)
     val copy = stringResource(R.string.about_copy_url)
+    val copied = stringResource(R.string.about_copied)
+    // 복사한 뒤 스낵바(liveRegion)로 알린다: Android 12 이하는 시스템 '복사됨' 표시가 없다(WCAG 4.1.3).
+    val copyUrl: (String) -> Unit = { url ->
+        scope.launch {
+            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, url)))
+            snackbar.currentSnackbarData?.dismiss()
+            snackbar.showSnackbar(copied)
+        }
+    }
     // ACTION_VIEW는 미리 판정하지 않고 시작한 뒤 예외로 안다(architecture.md 5.1).
     val onOpen: (String) -> Unit = { url ->
-        val uri = Uri.parse(url)
+        val uri = url.toUri()
         if (uri.scheme == "https" || uri.scheme == "http") {
             if (!context.startExternal(Intent(Intent.ACTION_VIEW, uri))) {
                 scope.launch {
                     snackbar.currentSnackbarData?.dismiss()
-                    if (snackbar.showSnackbar(noApp, copy, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) {
-                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, url)))
-                    }
+                    if (snackbar.showSnackbar(noApp, copy, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) copyUrl(url)
                 }
             }
         }
     }
     Surface(Modifier.fillMaxSize().testTag("about_screen"), color = MaterialTheme.colorScheme.surface) {
+      CompositionLocalProvider(LocalCopyUrl provides copyUrl) {
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top))) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -138,8 +149,11 @@ fun AboutScreen(state: AboutUiState, anchor: String? = null, onBack: () -> Unit 
             }
             SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).navigationBarsPadding())
         }
+      }
     }
 }
+
+private val LocalCopyUrl = staticCompositionLocalOf<(String) -> Unit> { {} }
 
 @Composable
 private fun LoadingCards() {
@@ -282,26 +296,35 @@ private fun LibraryCard(l: LicenseUi, onOpen: (String) -> Unit) {
 private fun localeOf(text: String): LocaleList =
     LocaleList(if (text.any { it in '가'..'힣' || it in 'ㄱ'..'ㆎ' }) "ko-KR" else "en")
 
-/** URL을 글자로 보이고(밑줄 + primary), 누르면 onOpen, 길게 누르거나 옆 버튼으로 복사(9.1). 기본 URI 처리기는 쓰지 않는다(열 앱이 없을 때 죽지 않게). */
+/**
+ * 보이는 URL 글자만 줄바꿈 위치를 고른다: '/'와 '.' 앞에서는 끊지 않고(줄 맨 앞에 '/'나 '.html'이 홀로 오지 않게) 단일 '/' 뒤에서 끊는다.
+ * 복사·열기는 원래 url을 쓴다. 안 보이는 글자는 U+2060(붙임)과 U+200B(끊을 수 있음)뿐이다.
+ */
+internal fun breakFriendly(url: String): String =
+    url.replace(Regex("(?<!/)/(?!/)"), "\u2060/\u200B").replace(".", "\u2060.")
+
+/**
+ * URL을 글자로 보이고(밑줄 + primary), 누르면 onOpen, 길게 누르거나 옆 버튼으로 복사(9.1). 기본 URI 처리기는 쓰지 않는다(열 앱이 없을 때 죽지 않게).
+ * 보이는 글자에는 줄바꿈용 안 보이는 글자가 있으므로 낭독 문구는 원래 url로 지정하고, 복사 버튼 이름에도 url을 넣어 구별되게 한다(WCAG 2.4.6·2.5.3).
+ */
 @Composable
 private fun UrlText(url: String, onOpen: (String) -> Unit, modifier: Modifier = Modifier) {
     val color = MaterialTheme.colorScheme.primary
-    val clipboard = LocalClipboard.current
-    val scope = rememberCoroutineScope()
-    val copy: () -> Unit = { scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, url))) } }
+    val copy = LocalCopyUrl.current
     val text: AnnotatedString = buildAnnotatedString {
         withLink(
             LinkAnnotation.Url(url, TextLinkStyles(SpanStyle(color = color, textDecoration = TextDecoration.Underline))) { onOpen(url) },
-        ) { append(url) }
+        ) { append(breakFriendly(url)) }
     }
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(
             text, Modifier.weight(1f).heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically)
-                .pointerInput(url) { detectTapGestures(onLongPress = { copy() }) },
+                .semantics { this.text = AnnotatedString(url) }
+                .pointerInput(url) { detectTapGestures(onLongPress = { copy(url) }) },
             style = MaterialTheme.typography.bodyMedium,
         )
-        IconButton(copy, Modifier.minimumInteractiveComponentSize()) {
-            Icon(painterResource(R.drawable.ic_ms_content_copy), contentDescription = stringResource(R.string.about_copy_url))
+        IconButton({ copy(url) }, Modifier.minimumInteractiveComponentSize()) {
+            Icon(painterResource(R.drawable.ic_ms_content_copy), contentDescription = stringResource(R.string.about_copy_url_named, url))
         }
     }
 }

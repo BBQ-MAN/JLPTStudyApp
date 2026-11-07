@@ -79,6 +79,10 @@ class HomeScreenshotTest : HomeShots() {
     @Test fun level_loaded() = shots("level_loaded") {
         LevelSelectScreen(LevelUiState(LevelStatus.READY, allAvailable, setOf(JlptLevel.N5, JlptLevel.N4), newCardsPerDay = 15), {}, {}, {}, {}, {})
     }
+    @Config(qualifiers = "w360dp-h1400dp-xhdpi")
+    @Test fun level_loaded_font200() = shots("level_loaded", fontScale = 2f) {
+        LevelSelectScreen(LevelUiState(LevelStatus.READY, allAvailable, setOf(JlptLevel.N5, JlptLevel.N4), newCardsPerDay = 15), {}, {}, {}, {}, {})
+    }
     @Test fun level_unavailable() = shots("level_unavailable") {
         LevelSelectScreen(LevelUiState(LevelStatus.READY, levelOptions, setOf(JlptLevel.N5)), {}, {}, {}, {}, {})
     }
@@ -107,6 +111,16 @@ class HomeScreenshotTest : HomeShots() {
 @Config(qualifiers = "w360dp-h960dp-xhdpi")
 class SettingsScreenshotTest : HomeShots() {
     @Test fun settings_loaded() = shots("settings_loaded") {
+        SettingsScreen(
+            SettingsUiState(
+                loading = false, targetLevels = setOf(JlptLevel.N5, JlptLevel.N4), newCardsPerDay = 15, dayBoundaryHour = 4,
+                vocabRecallEnabled = false, contentVersion = "v1abdec2bac5e", levelOptions = levelOptions,
+            ),
+            SnackbarHostState(),
+        )
+    }
+    @Config(qualifiers = "w360dp-h1600dp-xhdpi")
+    @Test fun settings_loaded_font200() = shots("settings_loaded", fontScale = 2f) {
         SettingsScreen(
             SettingsUiState(
                 loading = false, targetLevels = setOf(JlptLevel.N5, JlptLevel.N4), newCardsPerDay = 15, dayBoundaryHour = 4,

@@ -136,7 +136,8 @@ fun ReviewScreen(
                         }
                     }
                 }
-                SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).onSizeChanged { snackPx = it.height }.padding(bottom = if (twoPane) 0.dp else with(LocalDensity.current) { bottomPx.toDp() }))
+                // 스낵바 자체 높이만 잰다(onSizeChanged가 padding 안쪽): 바깥에 두면 평가 버튼 높이까지 더해져 뒷면 끝에 빈 여백이 생긴다
+                SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = if (twoPane) 0.dp else with(LocalDensity.current) { bottomPx.toDp() }).onSizeChanged { snackPx = it.height })
             }
         }
     }
@@ -352,7 +353,7 @@ fun DoneScreen(state: ReviewUiState, onHome: () -> Unit, onStudyMore: () -> Unit
         title = stringResource(R.string.done_title), body = body, icon = painterResource(R.drawable.ic_ms_check_circle),
         actions = buildList {
             add(StatusAction(stringResource(R.string.review_empty_home), onHome))
-            if (left > 0) add(StatusAction(stringResource(R.string.done_more_action), onStudyMore))
+            if (left > 0) add(StatusAction(stringResource(R.string.done_more_action, minOf(left, EXTRA_NEW_STEP)), onStudyMore))
         },
     )
 }

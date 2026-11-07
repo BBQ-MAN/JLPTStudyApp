@@ -103,6 +103,8 @@
     <string name="about_failed_body">앱을 다시 설치하거나 업데이트해 주세요.</string>
     <string name="about_link_unavailable">링크를 열 앱이 없습니다</string>
     <string name="about_copy_url">주소 복사</string>
+    <string name="about_copy_url_named">주소 복사: %1$s</string>
+    <string name="about_copied">주소를 복사했습니다</string>
     <string name="sheet_provenance_title">이 뜻은 어떻게 만들었나요</string>
     <string name="sheet_provenance_about">출처와 라이선스 보기</string>
     <string name="opening_title">학습 콘텐츠를 준비하고 있습니다</string>
@@ -130,12 +132,12 @@
     <string name="review_kind_kanji">한자</string>
     <string name="review_kind_grammar">문법</string>
     <string name="review_grammar_detail">자세히</string>
+    <string name="review_grammar_detail_action">문법 자세히 보기</string>
     <string name="review_kind_recall">뜻 → 일본어</string>
     <string name="review_remaining">남은 %1$d장</string>
     <string name="review_progress_a11y">남은 %1$d장, 복습 %2$d, 새 카드 %3$d</string>
     <string name="review_progress_detail">복습 %1$d · 새 카드 %2$d</string>
     <string name="review_reading">읽기</string>
-    <string name="review_back">뒷면</string>
     <string name="review_korean_reading">한국어 음</string>
     <string name="review_on_reading">음독</string>
     <string name="review_kun_reading">훈독</string>
@@ -144,6 +146,7 @@
     <string name="review_words_used">쓰인 단어</string>
     <string name="review_more_meanings">뜻 %1$d개 더</string>
     <string name="review_chip_detail">만든 방법 자세히 보기</string>
+    <string name="review_chip_detail_n">%1$d번 뜻 만든 방법 자세히 보기</string>
     <string name="review_empty_all_done">오늘 복습을 모두 마쳤어요</string>
     <string name="review_empty_new_limit">오늘 새 카드 %1$d장을 모두 학습했어요</string>
     <string name="review_empty_next_due">다음 복습: %1$s에 %2$d장</string>
@@ -151,7 +154,7 @@
     <string name="done_title">이번 학습을 마쳤어요</string>
     <string name="done_body">%1$d장 복습 · 새 카드 %2$d장</string>
     <string name="done_more_available">새 카드 %1$d장을 더 할 수 있어요</string>
-    <string name="done_more_action">새 카드 5장 더 학습</string>
+    <string name="done_more_action">새 카드 %1$d장 더 학습</string>
     <string name="home_title">오늘의 학습</string>
     <string name="home_menu_more">더보기</string>
     <string name="home_menu_about">정보</string>
@@ -225,9 +228,7 @@
     <string name="dict_filter_clear">필터 지우기</string>
     <string name="dict_tab_words">단어</string>
     <string name="dict_tab_kanji">한자</string>
-    <string name="dict_level_filter">급수 필터</string>
     <string name="dict_loading">목록을 불러오는 중</string>
-    <string name="dict_search_label">단어와 한자 검색</string>
     <string name="dict_no_result_title">\'%1$s\'에 맞는 단어가 없습니다</string>
     <string name="dict_no_result_body">급수 필터를 넓히거나 다른 표기로 찾아 보세요.</string>
     <string name="dict_no_content_title">이 급수의 콘텐츠가 아직 없습니다</string>

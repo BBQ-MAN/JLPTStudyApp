@@ -30,7 +30,7 @@ class QuizResultViewModel(
     private val content: ContentRepository,
     private val grammar: GrammarRepository,
     study: StudyRepository,
-    private val saved: SavedStateHandle = SavedStateHandle(),
+    private val saved: SavedStateHandle,
 ) : ViewModel() {
     private val _state = MutableStateFlow(QuizResultUiState())
     val state: StateFlow<QuizResultUiState> = _state.asStateFlow()
