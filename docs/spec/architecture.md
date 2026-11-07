@@ -136,8 +136,9 @@ startOfStudyDay(d)  = LocalDate.ofEpochDay(d).atStartOfDay().plusMinutes(boundar
 |------|----------|-------------|
 | 1 | M2 | 아래 표 전부(`content_meta`, `vocab`, `vocab_meaning`, `kanji`, `vocab_kanji`, `retired`) |
 | 2 | T05a(엔티티·스키마 JSON) → T05b(파이프라인·에셋) | `kanji_stroke`(9.4), `grammar`, `grammar_example`(9.1), `question`, `exam_template`(9.2), `listening`(9.3) — 열은 9절 표가 정본 |
+| 3 | QG1 | `jm_form`, `vocab_conflict` — 자동 생성 문제 오답 배제용. 열·파생 규칙의 정본은 `docs/spec/quizgen.md` 3절 |
 
-v3 이후는 정하지 않았다. 9절 표에 없는 열이 필요해지면 새 마일스톤에서 v3를 만들고 4.5 "버전을 올릴 때"를 따른다(콘텐츠 DB는 통째 교체라 마이그레이션이 없다).
+v4 이후는 정하지 않았다. 9절 표에 없는 열이 필요해지면 새 마일스톤에서 v3를 만들고 4.5 "버전을 올릴 때"를 따른다(콘텐츠 DB는 통째 교체라 마이그레이션이 없다).
 
 **출처 열 묶음 P**(직접 작성 콘텐츠 행 공통 — `grammar`·`question`·`listening`): `source_id TEXT NOT NULL`, `ko_source TEXT NOT NULL`, `ko_method TEXT NOT NULL`, `ko_review_status TEXT NOT NULL`, `ko_reviewed_at TEXT NULL`, `ko_reviewer_kind TEXT NULL`, `needs_review INTEGER NOT NULL`. `ko_*`는 `vocab_meaning`과 같은 이름·허용 값이고 그 행의 한국어 텍스트(설명·해설·번역) 전체의 출처다. 작성 파일의 `method`·`reviewStatus`·`reviewedAt`·`reviewerKind`·`needsReview`가 그대로 들어가고 `ko_source`는 `authored`다.
 
@@ -199,7 +200,7 @@ v3 이후는 정하지 않았다. 9절 표에 없는 열이 필요해지면 새 
 
 2순위 이후 테이블(필순·문법·예문·문항·모의고사 템플릿·청해)은 9절 표대로 **T05a 한 마일스톤에서 엔티티 6개를 모두 추가하고 `ContentDatabase` 버전을 1 → 2로 한 번만 올린다**. 처음에는 빈 테이블이다. 콘텐츠 DB는 매번 통째로 교체하므로(4.5) 마이그레이션이 필요 없다. 버전을 올리는 T05a가 같은 마일스톤 안에서 번들 에셋을 다시 만들고(4.5 "버전을 올릴 때", 파이프라인 코드 변경 없음), T05b가 파이프라인 쪽 검사·결정성을 확인한다. 그 뒤 기능 마일스톤은 행을 채울 때만 에셋을 다시 만든다(버전은 그대로 2).
 
-**쓰는 필드:** KANJIDIC2는 `literal`, `misc/stroke_count`, `misc/freq`, `ja_on`, `ja_kun`, `korean_h`만 쓴다(매니페스트 S-02 `usedFields`와 같음). JMdict는 `ent_seq`, `keb`, `reb`, 첫 sense `pos`, sense `misc`(`uk`), `stagk`·`stagr`, 영어 `gloss`만 쓴다. `ke_pri`·`re_pri`는 쓰지 않는다. 이 목록은 매니페스트 S-01 `usedFields`·sources.md S-01.used(`sense/stagk`·`sense/stagr` 포함)와 같다(11.3-5 완료).
+**쓰는 필드:** KANJIDIC2는 `literal`, `misc/stroke_count`, `misc/freq`, `ja_on`, `ja_kun`, `korean_h`만 쓴다(매니페스트 S-02 `usedFields`와 같음). JMdict는 `ent_seq`, `keb`, `reb`, 첫 sense `pos`, sense `misc`(`uk`), `stagk`·`stagr`, 영어 `gloss`만 쓴다(QG1부터 `sense/xref`와 급수 목록 밖 동형·동음 항목의 `keb`·`reb`도 — 자동 생성 문제 배제 표 파생용, 원문은 번들하지 않음, quizgen.md 3.2·3.5). `ke_pri`·`re_pri`는 쓰지 않는다. 이 목록은 매니페스트 S-01 `usedFields`·sources.md S-01.used(`sense/stagk`·`sense/stagr` 포함)와 같다(11.3-5 완료).
 
 ### 4.3 한자 급수(파생)
 
@@ -1493,3 +1494,4 @@ ui-design.md 14절의 UI-U 항목(그 문서가 정본, 이 문서에 걸리는 
 | 2026-11-03 | ui-design 13.3 14건 답(11.6): `Score.examSections`·`AnswerInput.type`·`score(answers, template)`·연습 세트 규칙(9.2.5), 빈칸 `＿＿`·`＿★＿` 표기(9.2.2), 포기 = `finish`(삭제 없음, `abandon` 삭제)·`QuizSessionLoader`·`AttemptMeta` 유도·`retiredCount`·`limitMs`(9.2.6), S12·S13·S15 UiState 필드 보강·해설 보기 = `reviewIndex`(9.2.6), `listening.question` NULL 허용·`ScriptSpeech`·줄 사이 400 ms(9.3.1·9.3.2), 설치 뒤 재확인 = ON_START 재생성(9.3.2), `scriptSeen`(9.3.3), 필순 경로 해석 실패 판정은 저장소(9.4). UI-U13 A로 `script_shown` = 답하기 전 한 번이라도 펼침(9.2.4). analyst 보고 반영: LICENSE.md 재배포 조건은 자료별 라이선스(6.7, S-03은 CC BY-SA 3.0). 11.3-11 N-09 문법 문장(analyst 몫) |
 | 2026-11-03 | 설계 검증 확정 지적 반영: 머리 콘텐츠 상태·10절 게이트 상태를 manifest·milestones 현재 값으로, `clearAndSetSemantics` 노드의 동작 시맨틱 규칙(7), 6.5 "앱 자산"에 `generated-asset`(S-12)·`G-S12`·T11(10), N-09 문법 급수 문장 판정(6.6), `libraries.json` 실제 형식(`key`·`fullText`)과 `LicenseUi.fullText`(6.6·7), `KanjiDetailUiState.level`·`CardStateSummary`·`CardProgress`(7), `ExamStart(level)` 라우트·`ExamStartUiState`·"포기하고 새로 시작" 경로(7·9.2.6), 4.2 `stagk`·`stagr`는 매니페스트에 아직 없음(11.3-5), Tatoeba 카드 메모(9.1), 11.2 42~46·11.3 5·6·12·13, 11.4 T11·T12·G-S12 |
 | 2026-11-03 | design-review(wf_5d2fc6cd-7c3) 반영 후 불일치 0~5번: T14(S03 `review_card` 알림·`NumberStepper`·하루 시작 시각 시트·S05 IME 인셋) 신설과 T12·T09 선행(11.4), N-09 문법 문장 = `notices.N-09.grammarPrefix`를 본문 **앞**에(6.6·11.3-11), `ExamStartStatus.FAILED`(불러오기 실패)·`startFailed`는 `startAttempt` 예외만(9.2.6·11.2-45), G-S12 핵심 행 정의·`S-12.copyright`는 D-09 사용자 결정(10), T11 → T13 이름 변경·T09는 G-S12·T13에 의존하지 않음(AR-U15, 6.5·10·11.4·12), 4.2·11.3-5 `stagk`·`stagr` 완료 |
+| 2026-11-08 | 자동 생성 연습 문제 설계를 `docs/spec/quizgen.md`로 분리(정본). 콘텐츠 DB v3(`jm_form`·`vocab_conflict`, QG1) 버전 표 행과 4.2 "쓰는 필드"(`sense/xref`, 동형·동음 항목 `keb`·`reb`)만 이 문서에 반영. 9.2.5 `QuizQuestion.fixedOrder`·9.2.6 `QuizContent.provenance` nullable·`generated`는 quizgen.md 5.2·6.2가 정본 |
