@@ -115,6 +115,11 @@ class SettingsScreenshotTest : HomeShots() {
             SnackbarHostState(),
         )
     }
+    @Test fun settings_day_start_sheet() = shots("settings_day_start_sheet") {
+        androidx.compose.material3.Surface(color = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerLow) {
+            com.jlptstudy.app.ui.settings.DayStartSheetContent(hour = 4) {} // 04:00 선택됨
+        }
+    }
     @Test fun settings_with_grammar() = shots("settings_with_grammar") {
         SettingsScreen(
             SettingsUiState(

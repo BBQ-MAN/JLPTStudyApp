@@ -3,6 +3,7 @@ package com.jlptstudy.app.ui.practice
 import com.jlptstudy.app.JlptLevel
 import com.jlptstudy.app.data.QuizMode
 import com.jlptstudy.app.ui.common.RubySegment
+import com.jlptstudy.app.speech.Voice
 import com.jlptstudy.app.ui.review.MeaningUi
 import com.jlptstudy.quiz.Score
 import com.jlptstudy.quiz.Section
@@ -44,6 +45,9 @@ data class ExamStartUiState(
 
 enum class QuizStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, CONFIRM_EXIT, CONFIRM_SUBMIT, SUBMITTED }
 
+/** 청해 대본 한 줄(architecture.md 9.3.1). speakText = 읽는 문자열(ScriptSpeech 규칙). */
+data class ListeningLineUi(val voice: Voice, val text: List<RubySegment>, val speakText: String)
+
 data class QuizQuestionUi(
     val id: String, val section: Section, val type: String, val target: String?,
     val stem: List<RubySegment>, val passage: List<RubySegment>?,
@@ -51,9 +55,9 @@ data class QuizQuestionUi(
     val answerIndex: Int, // 섞은 뒤 색인
     val explanationKo: String, val whyWrongKo: List<String?>, // 섞은 순서, 정답 자리 null
     val targets: List<String>, val provenance: MeaningUi, val needsReview: Boolean,
+    val lines: List<ListeningLineUi>? = null, // 청해만(대본). 계약은 passage 뒤지만 기존 위치 인자 호출을 지키려고 끝에 둔다
 )
 
-// 청해 대본(lines)은 M23에서 더한다.
 data class QuizUiState(
     val status: QuizStatus = QuizStatus.LOADING, val mode: QuizMode = QuizMode.PRACTICE,
     val attemptId: Long = 0, val index: Int = 0, val total: Int = 0,

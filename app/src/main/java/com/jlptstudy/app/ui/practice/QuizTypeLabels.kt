@@ -56,7 +56,14 @@ object QuizTypeLabels {
             else -> GENERIC
         }
         Section.READING -> "글을 읽고 질문에 알맞은 답을 고르세요."
-        Section.LISTENING -> GENERIC
+        Section.LISTENING -> when (type) {
+            "task" -> "음성을 듣고, 이 사람이 이제 무엇을 해야 하는지 알맞은 것을 고르세요."
+            "point", "integrated" -> "음성을 듣고 질문에 알맞은 답을 고르세요."
+            "summary" -> "음성을 듣고 이야기의 중심 내용으로 알맞은 것을 고르세요."
+            "utterance" -> "상황 설명을 듣고 이 사람이 할 말로 알맞은 것을 고르세요."
+            "quick-response" -> "말을 듣고 알맞은 대답을 고르세요."
+            else -> GENERIC
+        }
     }
 
     private const val GENERIC = "알맞은 것을 고르세요."

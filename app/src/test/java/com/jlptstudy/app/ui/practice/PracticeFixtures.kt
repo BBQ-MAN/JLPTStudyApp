@@ -59,6 +59,7 @@ class FakeQuizContent(
         return templates[level]
     }
     override suspend fun examLevels(): Set<JlptLevel> = templates.keys
+    override suspend fun hasListening(): Boolean = items.any { it.section == Section.LISTENING }
 }
 
 class FakeQuiz : QuizRepository {

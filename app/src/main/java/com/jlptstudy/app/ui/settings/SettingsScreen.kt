@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -31,6 +33,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -54,13 +57,14 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jlptstudy.app.CardKind
 import com.jlptstudy.app.JlptLevel
 import com.jlptstudy.app.R
 import com.jlptstudy.app.ThemeMode
-import com.jlptstudy.app.ui.common.StepperRow
+import com.jlptstudy.app.ui.components.NumberStepper
 import com.jlptstudy.app.ui.level.LevelPicker
 import com.jlptstudy.app.ui.theme.LoadingDelayMs
 import com.jlptstudy.app.ui.theme.Spacing
@@ -71,6 +75,7 @@ class SettingsActions(
     val onKind: (CardKind, Boolean) -> Unit = { _, _ -> }, val onFrontFurigana: (Boolean) -> Unit = {},
     val onBodyFurigana: (Boolean) -> Unit = {}, val onTheme: (ThemeMode) -> Unit = {},
     val onAbout: () -> Unit = {}, val onLevelNotice: () -> Unit = {}, val onRetry: () -> Unit = {}, val onSaveFailedShown: () -> Unit = {},
+    val onListeningScriptFirst: (Boolean) -> Unit = {},
 )
 
 @Composable
@@ -89,7 +94,7 @@ fun SettingsRoute(vm: SettingsViewModel, openLevelPicker: Boolean, onAbout: () -
         state, host, openLevelPicker,
         SettingsActions(
             vm::setLevels, vm::setNewCards, vm::setDayBoundaryHour, vm::setKind, vm::setFrontFurigana, vm::setBodyFurigana,
-            vm::setTheme, onAbout, onLevelNotice,
+            vm::setTheme, onAbout, onLevelNotice, onListeningScriptFirst = vm::setListeningScriptFirst,
         ),
     )
 }
@@ -107,6 +112,13 @@ fun SettingsScreen(
         if (wasOpen && !sheetOpen) runCatching { levelRowFocus.requestFocus() }
         wasOpen = sheetOpen
     }
+    var daySheetOpen by rememberSaveable { mutableStateOf(false) }
+    val dayRowFocus = remember { FocusRequester() }
+    var dayWasOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(daySheetOpen) { // 키보드·D-pad 입력 포커스(터치 모드에서는 clickable이 거절한다. 낭독 포커스는 시트가 닫히며 플랫폼이 돌려준다, 11.1). 고르거나 닫으면 포커스는 "하루 시작 시각" 행으로
+        if (dayWasOpen && !daySheetOpen) runCatching { dayRowFocus.requestFocus() }
+        dayWasOpen = daySheetOpen
+    }
     Surface(Modifier.fillMaxSize().testTag("settings_screen"), color = MaterialTheme.colorScheme.surface) {
         Box(Modifier.fillMaxSize()) {
             if (state.loading) {
@@ -118,16 +130,13 @@ fun SettingsScreen(
                     val levelsText = JlptLevel.entries.filter { it in state.targetLevels }.joinToString(" · ") { it.name }
                         .ifEmpty { stringResource(R.string.settings_levels_none) }
                     ClickRow(stringResource(R.string.settings_levels), levelsText, Modifier.focusRequester(levelRowFocus).testTag("row_levels")) { sheetOpen = true }
-                    StepperRow(
-                        stringResource(R.string.settings_new_cards), state.newCardsPerDay.toString(),
-                        { actions.onNewCards(state.newCardsPerDay - 5) }, { actions.onNewCards(state.newCardsPerDay + 5) },
-                        canDecrease = state.newCardsPerDay > 5, canIncrease = state.newCardsPerDay < 50,
-                    )
-                    StepperRow(
+                    NumberStepper(stringResource(R.string.settings_new_cards), state.newCardsPerDay, actions.onNewCards)
+                    val dayHour = stringResource(R.string.settings_day_start_hour, state.dayBoundaryHour)
+                    ClickRow(
                         stringResource(R.string.settings_day_start), "%02d:00".format(state.dayBoundaryHour),
-                        { actions.onDayHour(state.dayBoundaryHour - 1) }, { actions.onDayHour(state.dayBoundaryHour + 1) },
-                        canDecrease = state.dayBoundaryHour > 0, canIncrease = state.dayBoundaryHour < 12,
-                    )
+                        Modifier.focusRequester(dayRowFocus).testTag("row_day_start").semantics { stateDescription = dayHour },
+                        onClickLabel = stringResource(R.string.action_change), tnum = true,
+                    ) { daySheetOpen = true }
                     Text(stringResource(R.string.settings_kinds), Modifier.padding(top = Spacing.md), style = MaterialTheme.typography.titleSmall)
                     SwitchRow(stringResource(R.string.settings_kind_vr), state.vocabRecognitionEnabled) { actions.onKind(CardKind.VR, it) }
                     SwitchRow(stringResource(R.string.settings_kind_kr), state.kanjiCardsEnabled) { actions.onKind(CardKind.KR, it) }
@@ -142,15 +151,21 @@ fun SettingsScreen(
                     SwitchRow(stringResource(R.string.settings_front_furigana), state.frontFurigana, actions.onFrontFurigana)
                     SwitchRow(stringResource(R.string.settings_body_furigana), state.bodyFurigana, actions.onBodyFurigana)
                     ThemeRow(state.theme, actions.onTheme)
+                    if (state.listeningAvailable) SwitchRow(stringResource(R.string.settings_listening_script_first), state.listeningScriptFirst, actions.onListeningScriptFirst)
 
                     Section(R.string.settings_group_info)
-                    ClickRow(stringResource(R.string.about_title), null, Modifier.testTag("row_about"), actions.onAbout)
+                    ClickRow(stringResource(R.string.about_title), null, Modifier.testTag("row_about")) { actions.onAbout() }
                     val version = appVersion()
                     InfoRow(stringResource(R.string.settings_version), stringResource(R.string.settings_version_value, version, state.contentVersion))
                     Box(Modifier.navigationBarsPadding().padding(bottom = Spacing.lg))
                 }
             }
             SnackbarHost(host, Modifier.align(Alignment.BottomCenter))
+        }
+    }
+    if (daySheetOpen && !state.loading) {
+        ModalBottomSheet(onDismissRequest = { daySheetOpen = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+            DayStartSheetContent(state.dayBoundaryHour) { actions.onDayHour(it); daySheetOpen = false }
         }
     }
     if (sheetOpen && !state.loading) { // 로딩 전엔 선택값이 비어 있으므로 기다린다
@@ -176,6 +191,32 @@ fun SettingsScreen(
     }
 }
 
+/** 하루 시작 시각 시트 본문(ui-design 6.8): 정시 라디오 13개. 고르면 [onPick]. */
+@Composable
+internal fun DayStartSheetContent(hour: Int, onPick: (Int) -> Unit) {
+    Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = Spacing.lg).padding(bottom = Spacing.lg).testTag("day_start_sheet")) {
+        Text(stringResource(R.string.settings_day_start), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium)
+        Text(
+            stringResource(R.string.settings_day_start_note), Modifier.padding(vertical = Spacing.sm),
+            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Column(Modifier.selectableGroup()) {
+            (0..12).forEach { h ->
+                val description = stringResource(R.string.settings_day_start_hour, h)
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag("day_start_$h")
+                        .selectable(h == hour, role = Role.RadioButton) { onPick(h) }
+                        .semantics { contentDescription = description },
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+                ) {
+                    RadioButton(h == hour, onClick = null)
+                    Text("%02d:00".format(h), style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun appVersion(): String {
     val context = LocalContext.current
@@ -189,13 +230,13 @@ private fun Section(title: Int) {
 }
 
 @Composable
-private fun ClickRow(label: String, value: String?, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun ClickRow(label: String, value: String?, modifier: Modifier = Modifier, onClickLabel: String? = null, tnum: Boolean = false, onClick: () -> Unit) {
     Row(
-        modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(role = Role.Button, onClick = onClick),
+        modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-        if (value != null) Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (value != null) Text(value, style = MaterialTheme.typography.let { if (tnum) it.bodyLarge.copy(fontFeatureSettings = "tnum") else it.bodyMedium }, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

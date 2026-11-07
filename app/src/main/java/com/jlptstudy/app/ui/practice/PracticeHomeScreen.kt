@@ -72,7 +72,7 @@ class PracticeHomeActions(
 )
 
 @Composable
-fun PracticeHomeRoute(vm: PracticeHomeViewModel, onQuiz: (Long) -> Unit, onExamStart: (JlptLevel) -> Unit, onNotice: () -> Unit) {
+fun PracticeHomeRoute(vm: PracticeHomeViewModel, onQuiz: (Long) -> Unit, onListening: (Long) -> Unit, onExamStart: (JlptLevel) -> Unit, onNotice: () -> Unit) {
     val state by vm.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { vm.reload() } // Quiz에서 돌아오면 미완료 시도를 다시 읽는다
@@ -91,7 +91,7 @@ fun PracticeHomeRoute(vm: PracticeHomeViewModel, onQuiz: (Long) -> Unit, onExamS
     PracticeHomeScreen(
         state, snackbar,
         PracticeHomeActions(
-            vm::selectLevel, { s, t -> vm.startPractice(s, t, onQuiz) }, { vm.requestStartExam(onExamStart) }, onQuiz,
+            vm::selectLevel, { s, t -> vm.startPractice(s, t) { id -> if (s == Section.LISTENING) onListening(id) else onQuiz(id) } }, { vm.requestStartExam(onExamStart) }, onQuiz,
             vm::requestAbandon, vm::confirmAbandon, vm::cancelAbandon, onNotice,
             { vm.resumeFromReplace(onQuiz) }, { vm.replaceWithNew(onExamStart) }, vm::cancelReplace,
         ),

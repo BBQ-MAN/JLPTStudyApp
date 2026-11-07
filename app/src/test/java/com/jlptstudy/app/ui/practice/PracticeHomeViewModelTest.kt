@@ -45,12 +45,17 @@ class PracticeHomeViewModelTest {
         assertTrue(s.types.none { it.count == 0 })
     }
 
-    @Test fun `문항이 없거나 청해뿐이면 EMPTY이다`() {
+    @Test fun `문항이 없으면 EMPTY이고 청해 행만 있어도 청해 유형이 들어온다`() {
         assertEquals(PracticeHomeStatus.EMPTY, vm().state.value.status)
-        content.items = listOf(qc("ls-n5-0001", section = Section.LISTENING, type = "task"))
-        val s = vm().state.value
-        assertEquals(PracticeHomeStatus.EMPTY, s.status)
-        assertTrue(s.types.isEmpty())
+        content.items = listOf(qc("ls-n5-0001", section = Section.LISTENING, type = "task"), qc("ls-n5-0002", section = Section.LISTENING, type = "task"))
+        val v = vm()
+        val s = v.state.value
+        assertEquals(PracticeHomeStatus.LOADED, s.status)
+        assertEquals(listOf(Triple(Section.LISTENING, "task", 2)), s.types.map { Triple(it.section, it.type, it.count) })
+        assertNull("청해는 모의고사에 넣지 않는다", s.exam)
+        var started = -1L
+        v.startPractice(Section.LISTENING, "task") { started = it }
+        assertEquals(setOf("ls-n5-0001", "ls-n5-0002"), quiz.attempts.getValue(started).questionOrder.toSet())
     }
 
     @Test fun `처음 급수는 학습 급수 중 문항이 있는 가장 쉬운 급수이고 없으면 문항이 있는 가장 쉬운 급수이다`() {

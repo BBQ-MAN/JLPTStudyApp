@@ -6,6 +6,8 @@ import android.provider.Settings as AndroidSettings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -41,6 +43,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
@@ -90,6 +96,8 @@ import com.jlptstudy.app.ui.about.AboutViewModel
 import com.jlptstudy.app.ui.about.rememberMeaningSourceTexts
 import com.jlptstudy.app.ui.about.rememberProvenanceSheet
 import com.jlptstudy.app.data.QuizSessionLoader
+import com.jlptstudy.app.ui.listening.ListeningRoute
+import com.jlptstudy.app.ui.listening.ListeningViewModel
 import com.jlptstudy.app.ui.practice.ExamStartRoute
 import com.jlptstudy.app.ui.practice.ExamStartViewModel
 import com.jlptstudy.app.ui.practice.PracticeHomeRoute
@@ -226,7 +234,17 @@ private fun AppShell(
             NavigationSuiteType.None
         },
     ) {
-      Box(Modifier.fillMaxSize()) {
+      // 하단 바가 차지한 높이를 소비 처리해, 안쪽 화면의 imePadding()이 키보드 높이에서 바 높이를 한 번만 빼게 한다(ui-design 6.5).
+      var bottomGap by remember { mutableStateOf(0.dp) }
+      val density = LocalDensity.current
+      Box(
+        Modifier.fillMaxSize()
+            .onGloballyPositioned { c ->
+                val root = c.findRootCoordinates()
+                bottomGap = with(density) { (root.size.height - c.positionInRoot().y - c.size.height).coerceAtLeast(0f).toDp() }
+            }
+            .consumeWindowInsets(PaddingValues(bottom = bottomGap)),
+      ) {
         NavHost(nav, startDestination = start) {
             composable<LevelSelect> {
                 val c = container
@@ -290,7 +308,7 @@ private fun AppShell(
                 if (container != null && content != null && quiz != null && study != null) {
                     val vm: PracticeHomeViewModel = viewModel { PracticeHomeViewModel(content, quiz, study, container.clock) }
                     PracticeHomeRoute(
-                        vm, onQuiz = { nav.navigate(Quiz(it)) }, onExamStart = { nav.navigate(ExamStart(it)) }, onNotice = { nav.navigate(About("N-11")) },
+                        vm, onQuiz = { nav.navigate(Quiz(it)) }, onListening = { nav.navigate(Listening(it)) }, onExamStart = { nav.navigate(ExamStart(it)) }, onNotice = { nav.navigate(About("N-11")) },
                     )
                 } else {
                     PracticeHomeScreen(PracticeHomeUiState()) // 컨테이너 없이 그리는 시험·미리보기: 로딩 자리표시
@@ -307,6 +325,25 @@ private fun AppShell(
                     QuizRoute(
                         vm, onExit = { nav.popBackStack() }, onChipClick = onChip,
                         onResult = { nav.navigate(QuizResult(it)) { popUpTo<Quiz> { inclusive = true } } },
+                    )
+                }
+            }
+            composable<Listening> { entry ->
+                val content = container?.quizContentRepository
+                val quiz = container?.quizRepository
+                val study = container?.studyRepository
+                if (container != null && content != null && quiz != null && study != null) {
+                    val id = entry.toRoute<Listening>().attemptId
+                    val a11y = context.getSystemService(android.view.accessibility.AccessibilityManager::class.java)
+                    val vm: ListeningViewModel = viewModel(key = "listening-$id") {
+                        ListeningViewModel(
+                            id, QuizSessionLoader(quiz, content), quiz, study, container.attributionRepository, container.clock, container.speakerFactory,
+                        ) { a11y?.isTouchExplorationEnabled == true }
+                    }
+                    val onChip = rememberProvenanceSheet(rememberMeaningSourceTexts(container.attributionRepository)) { nav.navigate(About()) }
+                    ListeningRoute(
+                        vm, onExit = { nav.popBackStack() }, onNotice = { nav.navigate(About("N-12")) }, onChipClick = onChip,
+                        onResult = { nav.navigate(QuizResult(it)) { popUpTo<Listening> { inclusive = true } } },
                     )
                 }
             }

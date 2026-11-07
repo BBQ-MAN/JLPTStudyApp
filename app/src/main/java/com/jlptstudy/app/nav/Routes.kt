@@ -16,6 +16,7 @@ import kotlinx.serialization.Serializable
 @Serializable data class GrammarDetail(val id: String)
 @Serializable data object Practice
 @Serializable data class Quiz(val attemptId: Long)
+@Serializable data class Listening(val attemptId: Long)
 @Serializable data class QuizResult(val attemptId: Long)
 @Serializable data class ExamStart(val level: com.jlptstudy.app.JlptLevel)
 

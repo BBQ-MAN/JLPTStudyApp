@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jlptstudy.app.CardKind
 import com.jlptstudy.app.data.content.GrammarRepository
+import com.jlptstudy.app.data.content.QuizContentRepository
 import com.jlptstudy.app.JlptLevel
 import com.jlptstudy.app.ThemeMode
 import com.jlptstudy.app.data.content.ContentRepository
@@ -32,6 +33,8 @@ data class SettingsUiState(
     val grammarCardsEnabled: Boolean = true,
     /** 계약 밖 필드: 번들에 문법 행이 있을 때만 문법 스위치를 보인다(architecture.md 9.1). */
     val grammarAvailable: Boolean = false,
+    /** 계약 밖 필드: 번들에 청해 행이 있을 때만 "청해 대본 먼저 보기"를 보인다(ui-design 6.8). */
+    val listeningAvailable: Boolean = false,
     val frontFurigana: Boolean = false,
     val bodyFurigana: Boolean = true,
     val listeningScriptFirst: Boolean = false,
@@ -44,7 +47,7 @@ data class SettingsUiState(
     val kindsWarning: Boolean = false,
 )
 
-private data class Local(val contentVersion: String = "", val options: List<LevelOption> = emptyList(), val saveFailed: Boolean = false, val kindsWarning: Boolean = false, val grammarAvailable: Boolean = false, val loaded: Boolean = false)
+private data class Local(val contentVersion: String = "", val options: List<LevelOption> = emptyList(), val saveFailed: Boolean = false, val kindsWarning: Boolean = false, val grammarAvailable: Boolean = false, val listeningAvailable: Boolean = false, val loaded: Boolean = false)
 
 private const val KINDS_REJECTED = "at least one card kind must be enabled"
 
@@ -60,7 +63,7 @@ class SettingsViewModel(private val study: StudyRepository, private val content:
             vocabRecallEnabled = s.vocabRecallEnabled, grammarCardsEnabled = s.grammarCardsEnabled,
             frontFurigana = s.frontFurigana, bodyFurigana = s.bodyFurigana, listeningScriptFirst = s.listeningScriptFirst,
             theme = s.theme, contentVersion = l.contentVersion, saveFailed = l.saveFailed,
-            levelOptions = l.options, kindsWarning = l.kindsWarning, grammarAvailable = l.grammarAvailable,
+            levelOptions = l.options, kindsWarning = l.kindsWarning, grammarAvailable = l.grammarAvailable, listeningAvailable = l.listeningAvailable,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
@@ -69,7 +72,8 @@ class SettingsViewModel(private val study: StudyRepository, private val content:
             try {
                 val (options, _) = loadLevelOptions(content)
                 val grammar = (content as? GrammarRepository)?.levels().orEmpty().isNotEmpty()
-                local.update { it.copy(options = options, contentVersion = content.meta().contentVersion, grammarAvailable = grammar, loaded = true) }
+                val listening = (content as? QuizContentRepository)?.let { r -> try { r.hasListening() } catch (e: CancellationException) { throw e } catch (_: Exception) { false } } == true
+                local.update { it.copy(options = options, contentVersion = content.meta().contentVersion, grammarAvailable = grammar, listeningAvailable = listening, loaded = true) }
             } catch (e: CancellationException) { throw e } catch (_: Exception) {
                 local.update { it.copy(loaded = true) }
             }
@@ -82,6 +86,7 @@ class SettingsViewModel(private val study: StudyRepository, private val content:
     fun setFrontFurigana(v: Boolean) = save { it.copy(frontFurigana = v) }
     fun setBodyFurigana(v: Boolean) = save { it.copy(bodyFurigana = v) }
     fun setTheme(t: ThemeMode) = save { it.copy(theme = t) }
+    fun setListeningScriptFirst(v: Boolean) = save { it.copy(listeningScriptFirst = v) }
 
     fun setKind(kind: CardKind, on: Boolean) {
         val next = { s: UserSettings ->

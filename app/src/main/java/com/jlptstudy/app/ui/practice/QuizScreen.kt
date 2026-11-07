@@ -233,7 +233,7 @@ internal fun PassageCard(p: List<RubySegment>, showRuby: Boolean) {
 
 /** 지시문: 한국어 문구 + `{대상}` 일본어 구간(ja-JP). 문항 target이 없으면 대상 자리를 비운다. */
 @Composable
-internal fun Instruction(q: QuizQuestionUi) {
+internal fun Instruction(q: QuizQuestionUi, modifier: Modifier = Modifier) {
     val text = remember(q.id) {
         val tpl = QuizTypeLabels.instruction(q.section, q.type)
         buildAnnotatedString {
@@ -245,7 +245,7 @@ internal fun Instruction(q: QuizQuestionUi) {
             }
         }
     }
-    Text(text, Modifier.testTag("quiz_instruction"), style = MaterialTheme.typography.bodyLarge)
+    Text(text, modifier.testTag("quiz_instruction"), style = MaterialTheme.typography.bodyLarge)
 }
 
 /** 지문 `stem`: 빈칸 토큰을 앱이 그리는 칸으로 바꾼다. 토큰이 없으면 RubyText 하나. */
@@ -358,7 +358,7 @@ fun ChoiceButton(
 
 /** 피드백 노드(5.5): 선택 직후 Polite로 한 번 읽는다. 일본어 정답은 JpSpan으로 건다. */
 @Composable
-private fun FeedbackLine(q: QuizQuestionUi, chosen: Int?, showRuby: Boolean) {
+internal fun FeedbackLine(q: QuizQuestionUi, chosen: Int?, showRuby: Boolean) {
     val right = chosen == q.answerIndex
     val ext = LocalExtendedColors.current
     val head = stringResource(if (right) R.string.quiz_feedback_correct else R.string.quiz_feedback_wrong)

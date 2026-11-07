@@ -38,6 +38,12 @@ class ManifestTest {
         assertEquals("@xml/backup_rules", doc.attr("application", "fullBackupContent"))
     }
 
+    @Test fun `메인 액티비티는 adjustResize다(S05 키보드 인셋, ui-design 6_5)`() {
+        val merged = File(buildDir, "intermediates/merged_manifests/debug").walkTopDown().first { it.name == "AndroidManifest.xml" }
+        val doc = parse(merged)
+        assertEquals("adjustResize", doc.attr("activity", "windowSoftInputMode"))
+    }
+
     @Test fun `두 규칙 파일은 학습 기록 DB 파일만 include한다`() {
         val expected = setOf("study.db", "study.db-wal", "study.db-shm")
         for (name in listOf("data_extraction_rules.xml", "backup_rules.xml")) {

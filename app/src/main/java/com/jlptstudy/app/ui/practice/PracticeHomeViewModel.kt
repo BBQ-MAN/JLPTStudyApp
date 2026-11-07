@@ -58,7 +58,7 @@ class PracticeHomeViewModel(
     private suspend fun refresh() = refreshLock.withLock {
         val resume = loadResume()
         val all = try {
-            pools ?: JlptLevel.entries.associateWith { content.pool(it).filter { p -> p.section != Section.LISTENING } }.also { pools = it }
+            pools ?: JlptLevel.entries.associateWith { content.pool(it) }.also { pools = it }
         } catch (e: CancellationException) { throw e } catch (e: Exception) {
             android.util.Log.e("Practice", "문항 풀 읽기 실패", e)
             _state.update { it.copy(status = PracticeHomeStatus.EMPTY, resume = resume) }

@@ -35,7 +35,7 @@ import com.jlptstudy.app.JlptLevel
 import com.jlptstudy.app.R
 import com.jlptstudy.app.ui.common.StatusAction
 import com.jlptstudy.app.ui.common.StatusScreen
-import com.jlptstudy.app.ui.common.StepperRow
+import com.jlptstudy.app.ui.components.NumberStepper
 import com.jlptstudy.app.ui.theme.LoadingDelayMs
 import com.jlptstudy.app.ui.theme.Spacing
 import kotlinx.coroutines.delay
@@ -73,11 +73,7 @@ fun LevelSelectScreen(
                 Text(stringResource(R.string.level_title), Modifier.semantics { heading() }, style = MaterialTheme.typography.headlineSmall)
                 Text(stringResource(R.string.level_subtitle), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 LevelPicker(options, state.selected, onToggle, onOpenNotice, counting = preparing, showBars = bars)
-                StepperRow(
-                    stringResource(R.string.settings_new_cards), state.newCardsPerDay.toString(),
-                    onDecrease = { onSetNewCards(state.newCardsPerDay - 5) }, onIncrease = { onSetNewCards(state.newCardsPerDay + 5) },
-                    canDecrease = state.newCardsPerDay > 5, canIncrease = state.newCardsPerDay < 50,
-                )
+                NumberStepper(stringResource(R.string.settings_new_cards), state.newCardsPerDay, onSetNewCards)
             }
             Column(
                 Modifier.fillMaxWidth().padding(horizontal = Spacing.lg, vertical = Spacing.md),

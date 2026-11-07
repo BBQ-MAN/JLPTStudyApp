@@ -11,6 +11,7 @@ import com.jlptstudy.app.data.study.QuizAnswerRecord
 import com.jlptstudy.app.data.study.QuizRepository
 import com.jlptstudy.app.data.study.StudyRepository
 import com.jlptstudy.app.ui.common.Furigana
+import com.jlptstudy.app.ui.listening.ScriptSpeech
 import com.jlptstudy.app.ui.theme.InputGuardMs
 import com.jlptstudy.app.ui.theme.LoadingDelayMs
 import com.jlptstudy.quiz.Quiz
@@ -275,4 +276,8 @@ internal fun QuizContent.toUi(s: ShuffledQuestion): QuizQuestionUi = QuizQuestio
     id, section, type, target, Furigana.parse(stem), passage?.let(Furigana::parse),
     s.choices.map(Furigana::parse), s.answerIndex, explanationKo,
     List(4) { shown -> whyWrongKo.getOrNull(s.toOriginal(shown)) }, targets, provenance, needsReview,
+    lines?.let { ls ->
+        val speech = ScriptSpeech.lines(ls)
+        ls.mapIndexed { i, l -> ListeningLineUi(speech[i].voice, Furigana.parse(l.text), speech[i].text) }
+    },
 )

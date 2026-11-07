@@ -9,10 +9,14 @@ class FakeSpeaker : Speaker {
     val mutable = MutableStateFlow<SpeakerState>(SpeakerState.Ready)
     override val state: StateFlow<SpeakerState> = mutable
     var shutdownCount = 0
+    var stopCount = 0
+    class Spoken(val utteranceId: String, val lines: List<SpeechLine>, val rate: Float)
+    val spoken = mutableListOf<Spoken>()
     override fun speak(utteranceId: String, lines: List<SpeechLine>, rate: Float) {
+        spoken += Spoken(utteranceId, lines, rate)
         if (mutable.value == SpeakerState.Ready || mutable.value is SpeakerState.Playing) mutable.value = SpeakerState.Playing(utteranceId)
     }
-    override fun stop() { if (mutable.value is SpeakerState.Playing) mutable.value = SpeakerState.Ready }
+    override fun stop() { stopCount++; if (mutable.value is SpeakerState.Playing) mutable.value = SpeakerState.Ready }
     override fun shutdown() { shutdownCount++ }
 }
 

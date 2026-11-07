@@ -191,6 +191,10 @@
     <string name="level_no_content_body">앱에 포함된 콘텐츠를 찾지 못했습니다. 앱을 업데이트해 주세요.</string>
     <string name="stepper_decrease">%1$s 줄이기</string>
     <string name="stepper_increase">%1$s 늘리기</string>
+    <string name="stepper_value">%1$d장</string>
+    <string name="settings_day_start_note">이 시각에 하루가 바뀝니다. 새 카드 수와 복습 기한을 이 시각 기준으로 셉니다.</string>
+    <string name="settings_day_start_hour">%1$d시</string>
+    <string name="action_change">바꾸기</string>
     <string name="settings_group_study">학습</string>
     <string name="settings_group_display">표시</string>
     <string name="settings_group_info">정보</string>
@@ -320,4 +324,32 @@
     <string name="result_link_grammar">문법</string>
     <string name="result_review_prev">이전 문항</string>
     <string name="result_review_next">다음 문항</string>
+    <!-- S16 청해(ui-design 5.8·6.11) -->
+    <string name="listening_close">청해 끝내기</string>
+    <string name="listening_play">재생</string>
+    <string name="listening_stop">정지</string>
+    <string name="listening_replay">처음부터</string>
+    <string name="listening_rate_slow">0.8×</string>
+    <string name="listening_rate_normal">1.0×</string>
+    <string name="listening_rate_name">재생 속도 %1$s</string>
+    <string name="listening_side_initializing">음성을 준비하고 있습니다</string>
+    <string name="listening_side_playing">재생 중</string>
+    <string name="listening_side_stopped">정지됨</string>
+    <string name="listening_side_missing">기기에 일본어 음성이 없습니다. 설치하면 들을 수 있고, 지금은 대본을 읽고 풀 수 있습니다.</string>
+    <string name="listening_side_no_engine">음성 합성 엔진이 없습니다. 대본을 읽고 풀 수 있습니다.</string>
+    <string name="listening_side_error">음성을 재생하지 못했습니다.</string>
+    <string name="listening_preparing_a11y">음성 준비 중, 사용할 수 없음</string>
+    <string name="listening_unavailable_a11y">음성을 사용할 수 없음</string>
+    <string name="listening_install">일본어 음성 설치</string>
+    <string name="listening_open_settings">음성 설정 열기</string>
+    <string name="listening_install_failed">설치 화면을 열 수 없습니다. 기기 설정의 \'텍스트 음성 변환\'에서 일본어 음성을 설치해 주세요.</string>
+    <string name="listening_settings_failed">음성 설정을 열 수 없습니다. 기기 설정의 \'텍스트 음성 변환\'을 직접 열어 주세요.</string>
+    <string name="listening_script_show">대본 보기</string>
+    <string name="listening_script_label">대본</string>
+    <string name="listening_script_state_open">펼침</string>
+    <string name="listening_script_state_closed">접힘</string>
+    <string name="listening_speaker_male">남자</string>
+    <string name="listening_speaker_female">여자</string>
+    <string name="listening_speaker_narrator">내레이션</string>
+    <string name="settings_listening_script_first">청해 대본 먼저 보기</string>
 </resources>

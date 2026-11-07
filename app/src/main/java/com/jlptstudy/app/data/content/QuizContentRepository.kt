@@ -29,6 +29,8 @@ interface QuizContentRepository {
     /** 행 없으면 null, template_json이 깨졌으면 예외. */
     suspend fun examTemplate(level: JlptLevel): ExamTemplate?
     suspend fun examLevels(): Set<JlptLevel>
+    /** 번들에 청해 행이 있는가(설정의 "청해 대본 먼저 보기"를 보일지). */
+    suspend fun hasListening(): Boolean = false
 }
 
 fun QuizContent.toQuestion() = QuizQuestion(id, section, type, choices, answerIndex)
@@ -101,4 +103,5 @@ class RoomQuizContentRepository(private val dao: ContentDao) : QuizContentReposi
     }
 
     override suspend fun examLevels(): Set<JlptLevel> = dao.examTemplateLevels().mapNotNull(JlptLevel::fromN).toSet()
+    override suspend fun hasListening(): Boolean = dao.countListening() > 0
 }

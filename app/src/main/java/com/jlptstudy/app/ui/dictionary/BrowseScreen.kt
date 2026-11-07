@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -87,6 +88,8 @@ fun BrowseScreen(state: BrowseUiState, actions: BrowseActions = BrowseActions())
     Surface(Modifier.fillMaxSize().testTag("browse_screen"), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.statusBarsPadding()) {
             SearchField(state.query, actions.onQuery)
+            // 키보드가 열리면 본문(탭·칩·결과)이 남은 높이로 줄어든다. 검색란은 위에 고정(ui-design 6.5).
+            Column(Modifier.weight(1f).fillMaxWidth().imePadding()) {
             TabRow(selectedTabIndex = state.tab.ordinal) {
                 BrowseTab.entries.forEach { t ->
                     Tab(
@@ -129,6 +132,7 @@ fun BrowseScreen(state: BrowseUiState, actions: BrowseActions = BrowseActions())
                     BrowseStatus.NO_CONTENT_FOR_FILTER -> Empty(AnnotatedString(stringResource(R.string.dict_no_content_title)), R.string.dict_no_content_body, R.string.dict_clear_levels, actions.onClearLevels)
                     BrowseStatus.RESULTS -> if (state.tab == BrowseTab.VOCAB) WordList(state.items, actions.onWord) else KanjiGrid(state.items, actions.onKanji)
                 }
+            }
             }
         }
     }

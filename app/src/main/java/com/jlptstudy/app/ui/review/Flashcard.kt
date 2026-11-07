@@ -12,7 +12,6 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -41,15 +40,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -117,8 +115,6 @@ fun Flashcard(
             }
             val chrome = 32.dp + if (header != null) 40.dp else 0.dp
             val topPad = (cardHeight * 0.4f - chrome - headEstimate / 2).coerceAtLeast(0.dp)
-            val focus = remember { FocusRequester() }
-            LaunchedEffect(card.cardId, revealed) { runCatching { focus.requestFocus() } } // 이동만, liveRegion 없음(11.1)
             val frontText = remember(card, remaining, prefs.bodyFurigana) { frontText(card, remaining, prefs.bodyFurigana) }
             val backText = remember(card) { backText(card) }
             // 표제어는 고정, 그 아래 뒷면 정보만 스크롤한다(ui-design 5.1). 낮은 카드에서는 표제어 위 여백을 먼저 줄인다.
@@ -150,10 +146,10 @@ fun Flashcard(
                     )
                     .pointerInput(revealed) { if (!revealed) detectTapGestures { onReveal() } }
                     .testTag("review_card")
-                    .focusRequester(focus).focusable()
                     .then(
-                        if (revealed) Modifier.semantics { text = backText }
-                        else Modifier.clearAndSetSemantics { text = frontText },
+                        // 같은 노드의 text만 바꾼다: 문구가 바뀔 때 TalkBack이 한 번 읽는다(ui-design 4.3). 접근성 포커스는 옮기지 않는다.
+                        if (revealed) Modifier.semantics { text = backText; liveRegion = LiveRegionMode.Polite }
+                        else Modifier.clearAndSetSemantics { text = frontText; liveRegion = LiveRegionMode.Polite },
                     ),
             ) {
                 header?.invoke()
@@ -438,7 +434,10 @@ internal fun backText(card: ReviewCardUi): AnnotatedString = buildAnnotatedStrin
     fun ko(s: String) = withStyle(KoSpan) { append(s) }
     ko("뒷면.")
     when (card) {
-        is ReviewCardUi.Vocab -> { ko(" 읽기 "); withStyle(JpSpan) { append(card.reading) } }
+        is ReviewCardUi.Vocab -> {
+            ko(" 읽기 "); withStyle(JpSpan) { append(card.reading) }
+            card.meanings.firstOrNull()?.let { m -> ko(". 뜻 "); append(JpSpans.annotate(m.textKo)); ko(". ${ProvenanceLabel.of(m)}") }
+        }
         is ReviewCardUi.Kanji -> { ko(" "); withStyle(JpSpan) { append(card.literal) } }
         is ReviewCardUi.Grammar -> {
             ko(" 뜻 "); append(JpSpans.annotate(card.meaningKo))

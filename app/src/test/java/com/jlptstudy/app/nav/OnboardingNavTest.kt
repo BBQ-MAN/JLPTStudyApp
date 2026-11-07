@@ -90,6 +90,7 @@ class OnboardingNavTest {
         awaitText("단어 20 · 한자 0") // N5 개수(levelCounts)
         rule.onNodeWithTag("level_row_N5").assertIsDisplayed()
         rule.onNodeWithContentDescription("하루 새 카드 늘리기").performClick() // 10 -> 15
+        assertEquals(10, runBlocking { study.settings().first() }.newCardsPerDay) // "시작" 전에는 저장하지 않는다(ui-design 6.8)
         rule.onNodeWithText("시작").performClick()
         awaitUntil { nav.currentDestination?.hasRoute(Home::class) == true }
         val saved = runBlocking { study.settings().first() }
