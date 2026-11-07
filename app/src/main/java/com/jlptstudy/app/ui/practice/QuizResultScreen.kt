@@ -191,7 +191,14 @@ private fun TitleLine(state: QuizResultUiState, modifier: Modifier) {
         state.mode == QuizMode.LISTENING -> stringResource(R.string.result_title_listening, level, typeName)
         else -> stringResource(R.string.result_title_practice, level, typeName)
     }
-    Text(text, modifier.focusable().semantics { heading() }.testTag("result_title"), style = MaterialTheme.typography.headlineSmall)
+    // 자동 생성 시도(items의 문항이 generated, 한 시도는 모두 같다): 접두를 붙이고 낭독은 가운뎃점 대신 쉼표로 읽는다(ui-design 6.10 S15)
+    val generated = state.mode == QuizMode.PRACTICE && typeName != null && level != null && state.items.firstOrNull()?.question?.generated == true
+    val shown = if (generated) stringResource(R.string.result_title_generated, text) else text
+    val spoken = if (generated) stringResource(R.string.result_title_generated_a11y, text) else null
+    Text(
+        shown, modifier.focusable().semantics { heading(); if (spoken != null) contentDescription = spoken }.testTag("result_title"),
+        style = MaterialTheme.typography.headlineSmall,
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -328,9 +335,10 @@ private fun ColumnScope.ReviewPane(state: QuizResultUiState, item: QuizReviewIte
             stringResource(R.string.result_review_title, item.index + 1),
             Modifier.focusRequester(focus).focusable().semantics { heading() }.testTag("result_review_title"), style = MaterialTheme.typography.titleLarge,
         )
+        if (q.generated) GeneratedLabel()
         Instruction(q)
         q.passage?.let { PassageCard(it, showRuby) }
-        StemView(q.stem, showRuby)
+        QuestionStem(q, showRuby)
         Column(Modifier.fillMaxWidth().selectableGroup(), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             q.choices.forEachIndexed { i, segs ->
                 val look = when {
@@ -338,15 +346,17 @@ private fun ColumnScope.ReviewPane(state: QuizResultUiState, item: QuizReviewIte
                     i == item.chosenIndex -> ChoiceLook.WRONG
                     else -> ChoiceLook.NORMAL
                 }
-                ChoiceButton(i + 1, segs, showRuby, look, chosen = i == item.chosenIndex, enabled = false) {}
+                ChoiceButton(i + 1, segs, showRuby, look, chosen = i == item.chosenIndex, enabled = false, korean = QuizTypeLabels.koreanChoices(q.type)) {}
             }
         }
         if (item.chosenIndex == null) {
             Text(stringResource(R.string.result_review_unanswered), Modifier.testTag("result_review_unanswered"), style = MaterialTheme.typography.bodyMedium)
         }
-        ExplanationCard(q, item.chosenIndex, actions.onChipClick)
         val links = state.targetLinks[q.id].orEmpty()
-        if (links.isNotEmpty()) {
+        // 자동 생성 문항은 "관련 단어 보기"가 해설 카드 안에 있고(S13과 같은 모양), 아래 링크 블록은 쓰지 않는다. 단어가 빠졌으면(링크 없음) 줄째 숨긴다
+        val related = if (q.generated) links.firstOrNull { it.kind == TargetKind.VOCAB }?.let { l -> { actions.onTarget(l) } } else null
+        ExplanationCard(q, item.chosenIndex, actions.onChipClick, related)
+        if (!q.generated && links.isNotEmpty()) {
             Column(Modifier.testTag("result_links")) {
                 Text(stringResource(R.string.result_review_links), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {

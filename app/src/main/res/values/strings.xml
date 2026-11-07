@@ -33,6 +33,13 @@
     <string name="practice_replace_body_a11y">%1$s 모의고사, %2$d/%3$d 문항 답함, 경과 %4$d분 %5$d초. 새로 시작하면 풀던 모의고사는 결과 없이 끝납니다(고른 답은 기록에 남습니다).</string>
     <string name="practice_replace_body">%1$s 모의고사 · %2$d/%3$d 문항 답함 · 경과 %4$s. 새로 시작하면 풀던 모의고사는 결과 없이 끝납니다(고른 답은 기록에 남습니다).</string>
     <string name="practice_replace_new">새로 시작</string>
+    <string name="practice_gen_title">자동 생성 연습</string>
+    <string name="practice_gen_desc">단어 데이터에서 규칙으로 만든 연습 문제입니다. 실제 시험 문제와 형식이 다릅니다.</string>
+    <string name="practice_gen_count">단어 %1$d개</string>
+    <string name="practice_gen_a11y">%1$s, 자동 생성, 단어 %2$d개</string>
+    <string name="practice_gen_a11y_disabled">%1$s, 자동 생성, 단어 %2$d개, 사용할 수 없음, %3$s</string>
+    <string name="practice_gen_why_words">대상 단어가 부족합니다</string>
+    <string name="practice_gen_why_meanings">검수된 뜻이 부족해 만들 수 없습니다</string>
     <string name="exam_section_detail">%1$d문항 · 기준 %2$d분</string>
     <string name="exam_total_line">모두 %1$d문항 · 기준 %2$d분</string>
     <string name="exam_no_listening">이 모의고사에는 청해 영역이 없습니다. 청해는 연습 화면의 청해 유형에서 풀 수 있습니다.</string>
@@ -83,6 +90,9 @@
     <string name="quiz_expl_why_chosen">%1$d번 · 내가 고른 답</string>
     <string name="quiz_expl_why">%1$d번</string>
     <string name="quiz_review_chip">해설 검토 중</string>
+    <string name="quiz_generated_label">자동 생성 연습 문제</string>
+    <string name="quiz_related_word">관련 단어 보기</string>
+    <string name="quiz_related_word_click">단어 상세 열기</string>
     <string name="quiz_blank">빈칸</string>
     <string name="quiz_blank_star">이 칸</string>
     <string name="about_title">출처와 라이선스</string>
@@ -288,6 +298,8 @@
     <string name="result_title_exam">%1$s 모의고사 결과</string>
     <string name="result_title_practice">%1$s %2$s 연습 결과</string>
     <string name="result_title_listening">%1$s 청해 %2$s 결과</string>
+    <string name="result_title_generated">자동 생성 · %1$s</string>
+    <string name="result_title_generated_a11y">자동 생성, %1$s</string>
     <string name="result_total_a11y">정답 %1$d개, 전체 %2$d개, %3$d퍼센트</string>
     <string name="result_percent">(%1$d%%)</string>
     <string name="result_unanswered">답하지 않은 문항 %1$d개</string>

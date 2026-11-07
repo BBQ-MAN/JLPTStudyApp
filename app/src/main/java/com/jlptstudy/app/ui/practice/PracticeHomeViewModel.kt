@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jlptstudy.app.JlptLevel
 import com.jlptstudy.app.data.QuizSessionLoader
+import com.jlptstudy.app.data.content.GenTypeAvailability
 import com.jlptstudy.app.data.content.QuizContentRepository
+import com.jlptstudy.app.data.content.QuizGenRepository
 import com.jlptstudy.app.data.study.QuizRepository
 import com.jlptstudy.app.data.study.StudyRepository
 import com.jlptstudy.quiz.ExamPart
@@ -13,6 +15,7 @@ import com.jlptstudy.quiz.ExamTemplate
 import com.jlptstudy.quiz.PoolItem
 import com.jlptstudy.quiz.Quiz
 import com.jlptstudy.quiz.Section
+import com.jlptstudy.quiz.gen.GenType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,12 +33,14 @@ class PracticeHomeViewModel(
     private val quiz: QuizRepository,
     private val study: StudyRepository,
     private val clock: Clock,
+    private val gen: QuizGenRepository? = null, // null = 자동 생성 영역 없음(가짜 저장소·미리보기)
 ) : ViewModel() {
     private val _state = MutableStateFlow(PracticeHomeUiState())
     val state: StateFlow<PracticeHomeUiState> = _state.asStateFlow()
 
     private val loader = QuizSessionLoader(quiz, content)
     private var pools: Map<JlptLevel, List<PoolItem>>? = null
+    private var genAvail: Map<JlptLevel, List<GenTypeAvailability>>? = null // 급수별 생성 가능 단어 수. 은행 캐시를 데워 두어 행을 누를 때는 은행을 만들지 않는다
     private var chosen: JlptLevel? = null
     private var lastStart: (() -> Unit)? = null
     private val refreshLock = Mutex() // init과 ON_START의 reload가 겹쳐도 풀은 한 번만 읽는다
@@ -64,19 +69,31 @@ class PracticeHomeViewModel(
             _state.update { it.copy(status = PracticeHomeStatus.EMPTY, resume = resume) }
             return@withLock
         }
-        val levels = JlptLevel.entries.filter { all[it].orEmpty().isNotEmpty() }
+        val avail = genAvailability()
+        // 고정 문항이 있는 급수 ∪ 자동 생성 유형이 하나라도 활성인 급수(N4는 고정 문항이 없어도 칩이 생긴다)
+        val levels = JlptLevel.entries.filter { all[it].orEmpty().isNotEmpty() || avail[it].orEmpty().any { a -> a.targets >= GEN_MIN_TARGETS } }
         val level = chosen?.takeIf { it in levels } ?: initialLevel(levels).also { chosen = it }
         val pool = all[level].orEmpty()
+        // 이 급수에서 만들 수 있는 단어가 하나도 없으면(생성 표가 없는 DB) 영역째 숨긴다
+        val generated = avail[level].orEmpty().takeIf { l -> l.any { it.targets > 0 } }
+            .orEmpty().map { GeneratedTypeUi(it.type.code, it.targets, it.targets >= GEN_MIN_TARGETS) }
         val types = pool.groupBy { it.section to it.type }
             .map { (k, v) -> PracticeTypeUi(k.first, k.second, v.size) }
             .sortedWith(compareBy({ it.section.ordinal }, { QuizTypeLabels.order(it.section, it.type) }))
         val exam = if (level in safe { content.examLevels() }.orEmpty()) examCard(level, pool) else null
         _state.update {
             it.copy(
-                status = if (types.isEmpty()) PracticeHomeStatus.EMPTY else PracticeHomeStatus.LOADED,
-                level = level, levels = levels, types = types, exam = exam, resume = resume,
+                status = if (types.isEmpty() && generated.none { g -> g.enabled }) PracticeHomeStatus.EMPTY else PracticeHomeStatus.LOADED,
+                level = level, levels = levels, types = types, exam = exam, resume = resume, generated = generated,
             )
         }
+    }
+
+    /** 읽기 실패는 영역만 숨긴다(고정 문항 연습은 그대로). 성공한 값만 캐시한다. */
+    private suspend fun genAvailability(): Map<JlptLevel, List<GenTypeAvailability>> {
+        genAvail?.let { return it }
+        val g = gen ?: return emptyMap()
+        return safe { JlptLevel.entries.associateWith { g.availability(it) } }?.also { genAvail = it } ?: emptyMap()
     }
 
     private suspend fun initialLevel(levels: List<JlptLevel>): JlptLevel {
@@ -115,6 +132,31 @@ class PracticeHomeViewModel(
                 onStarted(quiz.startAttempt(null, seed, ids, clock.millis()))
             } catch (e: CancellationException) { throw e } catch (e: Exception) {
                 android.util.Log.e("Practice", "시작 실패", e)
+                starting = false
+                _state.update { it.copy(startFailed = true) }
+            }
+        }
+    }
+
+    /**
+     * 자동 생성 행: startPractice와 같은 잠금·실패 처리. 문항 ID 목록(`gq:…`)은 QuizGenRepository.newSession이 만들고,
+     * 목록이 비면 시도를 만들지 않고 startFailed다(quizgen.md 6.3).
+     */
+    fun startGenerated(type: String, onStarted: (Long) -> Unit) {
+        val genType = GenType.of(type) ?: return
+        val g = gen ?: return
+        if (starting) return
+        starting = true
+        lastStart = { startGenerated(type, onStarted) }
+        viewModelScope.launch {
+            try {
+                val level = chosen ?: run { starting = false; return@launch }
+                val seed = clock.millis()
+                val ids = g.newSession(level, genType, seed)
+                check(ids.isNotEmpty()) { "빈 세션" }
+                onStarted(quiz.startAttempt(null, seed, ids, clock.millis()))
+            } catch (e: CancellationException) { throw e } catch (e: Exception) {
+                android.util.Log.e("Practice", "자동 생성 시작 실패", e)
                 starting = false
                 _state.update { it.copy(startFailed = true) }
             }

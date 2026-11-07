@@ -41,11 +41,8 @@ class QuizGenSampleTest {
     /** 루비 표기 {표기|읽기} → 표기(읽기). [[ ]]는 벗긴다. */
     private fun plain(s: String) = Furigana.parse(s).joinToString("") { it.base + (it.ruby?.let { r -> "($r)" } ?: "") }
 
-    private fun instruction(type: GenType, target: String?) = when (type) {
-        GenType.KANJI_READING, GenType.ORTHOGRAPHY -> QuizTypeLabels.instruction(Section.VOCAB, type.code).replace(QuizTypeLabels.TARGET, target.orEmpty())
-        GenType.MEANING_JA_KO -> "밑줄 친 ${target.orEmpty()}의 뜻으로 알맞은 것을 고르세요."
-        GenType.MEANING_KO_JA -> "이 뜻을 가진 일본어를 고르세요."
-    }
+    private fun instruction(type: GenType, target: String?) =
+        QuizTypeLabels.instruction(Section.VOCAB, type.code).replace(QuizTypeLabels.TARGET, target.orEmpty())
 
     @Test fun `표본 파일을 쓴다`() = runBlocking {
         val out = System.getenv("QUIZGEN_SAMPLE_OUT")

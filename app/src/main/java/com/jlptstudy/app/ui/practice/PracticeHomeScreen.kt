@@ -69,6 +69,7 @@ class PracticeHomeActions(
     val onRequestAbandon: () -> Unit = {}, val onConfirmAbandon: () -> Unit = {}, val onCancelAbandon: () -> Unit = {},
     val onNotice: () -> Unit = {},
     val onResumeReplace: () -> Unit = {}, val onReplace: () -> Unit = {}, val onCancelReplace: () -> Unit = {},
+    val onStartGenerated: (String) -> Unit = {},
 )
 
 @Composable
@@ -94,6 +95,7 @@ fun PracticeHomeRoute(vm: PracticeHomeViewModel, onQuiz: (Long) -> Unit, onListe
             vm::selectLevel, { s, t -> vm.startPractice(s, t) { id -> if (s == Section.LISTENING) onListening(id) else onQuiz(id) } }, { vm.requestStartExam(onExamStart) }, onQuiz,
             vm::requestAbandon, vm::confirmAbandon, vm::cancelAbandon, onNotice,
             { vm.resumeFromReplace(onQuiz) }, { vm.replaceWithNew(onExamStart) }, vm::cancelReplace,
+            onStartGenerated = { t -> vm.startGenerated(t, onQuiz) },
         ),
     )
 }
@@ -156,6 +158,7 @@ fun PracticeHomeScreen(state: PracticeHomeUiState, snackbar: SnackbarHostState =
                                     rows.forEach { TypeRow(it, actions) }
                                 }
                             }
+                            if (state.generated.isNotEmpty()) GeneratedSection(state.generated, actions)
                         }
                     }
                     NoticeCard(stringResource(R.string.practice_notice), Modifier.padding(horizontal = Spacing.lg), actions.onNotice, Modifier.testTag("practice_notice"))
@@ -251,6 +254,54 @@ private fun TypeRow(t: PracticeTypeUi, actions: PracticeHomeActions) {
                 stringResource(R.string.practice_type_count, t.count), style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = "tnum"),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        HorizontalDivider()
+    }
+}
+
+/** 자동 생성 연습 영역(ui-design 6.10 S12 4번): 머리 + 설명 + 유형 행 4개. 단어 수가 모자라는 행은 눌리지 않고 이유를 글자로 보인다. */
+@Composable
+private fun GeneratedSection(rows: List<GeneratedTypeUi>, actions: PracticeHomeActions) {
+    Column(Modifier.padding(top = Spacing.md)) { // 바깥 간격 12 + 12 = 절 사이 24 dp
+        Text(
+            stringResource(R.string.practice_gen_title),
+            Modifier.padding(horizontal = Spacing.lg).semantics { heading() },
+            style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            stringResource(R.string.practice_gen_desc),
+            Modifier.padding(horizontal = Spacing.lg).padding(top = Spacing.xs, bottom = Spacing.sm),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        rows.forEach { GeneratedRow(it, actions) }
+    }
+}
+
+@Composable
+private fun GeneratedRow(g: GeneratedTypeUi, actions: PracticeHomeActions) {
+    val name = QuizTypeLabels.name(Section.VOCAB, g.type)
+    val reason = if (g.enabled) null else stringResource(if (QuizTypeLabels.koreanChoices(g.type) || QuizTypeLabels.koreanStem(g.type)) R.string.practice_gen_why_meanings else R.string.practice_gen_why_words)
+    val spoken = if (reason == null) stringResource(R.string.practice_gen_a11y, name, g.targets) else stringResource(R.string.practice_gen_a11y_disabled, name, g.targets, reason)
+    Column {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 64.dp).testTag("practice_gen_${g.type}")
+                // 동작 수정자를 clearAndSetSemantics보다 바깥에 둬 Disabled·OnClick을 남기고, 낭독은 한 문장으로 정한다(4.3 5번)
+                .clickable(enabled = g.enabled, onClickLabel = stringResource(R.string.practice_type_start), role = Role.Button) { actions.onStartGenerated(g.type) }
+                .padding(horizontal = Spacing.lg, vertical = Spacing.sm)
+                .clearAndSetSemantics { contentDescription = spoken },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    name, style = MaterialTheme.typography.titleMedium,
+                    color = if (g.enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    stringResource(R.string.practice_gen_count, g.targets), style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = "tnum"),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (reason != null) Text(reason, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
         HorizontalDivider()
     }

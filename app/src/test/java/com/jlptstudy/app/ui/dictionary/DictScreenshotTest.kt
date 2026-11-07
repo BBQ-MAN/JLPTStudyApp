@@ -51,7 +51,7 @@ abstract class DictShots {
 
     /** dialog = true: 대화상자 창까지 담는다(onRoot는 본 창만 찍는다). */
     @OptIn(com.github.takahirom.roborazzi.ExperimentalRoborazziApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
-    protected fun shots(name: String, fontScale: Float = 1f, setup: () -> Unit = {}, dialog: Boolean = false, content: @Composable () -> Unit) {
+    protected fun shots(name: String, fontScale: Float = 1f, setup: () -> Unit = {}, dialog: Boolean = false, lightOnly: Boolean = false, content: @Composable () -> Unit) {
         val capture = { path: String -> if (dialog) com.github.takahirom.roborazzi.captureScreenRoboImage(path) else rule.onRoot().captureRoboImage(path) }
         var dark by mutableStateOf(false)
         rule.mainClock.autoAdvance = false
@@ -66,6 +66,7 @@ abstract class DictShots {
         setup()
         val suffix = if (fontScale > 1f) "_font200" else ""
         capture("$dir/${name}_light$suffix.png")
+        if (lightOnly) return
         dark = true
         androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
         rule.mainClock.advanceTimeBy(1_000)

@@ -306,7 +306,7 @@ private fun AppShell(
                 val quiz = container?.quizRepository
                 val study = container?.studyRepository
                 if (container != null && content != null && quiz != null && study != null) {
-                    val vm: PracticeHomeViewModel = viewModel { PracticeHomeViewModel(content, quiz, study, container.clock) }
+                    val vm: PracticeHomeViewModel = viewModel { PracticeHomeViewModel(content, quiz, study, container.clock, container.quizGenRepository) }
                     PracticeHomeRoute(
                         vm, onQuiz = { nav.navigate(Quiz(it)) }, onListening = { nav.navigate(Listening(it)) }, onExamStart = { nav.navigate(ExamStart(it)) }, onNotice = { nav.navigate(About("N-11")) },
                     )
@@ -323,7 +323,7 @@ private fun AppShell(
                     val vm: QuizViewModel = viewModel(key = "quiz-$id") { QuizViewModel(id, QuizSessionLoader(quiz, content), quiz, study, container.clock) }
                     val onChip = rememberProvenanceSheet(rememberMeaningSourceTexts(container.attributionRepository)) { nav.navigate(About()) }
                     QuizRoute(
-                        vm, onExit = { nav.popBackStack() }, onChipClick = onChip,
+                        vm, onExit = { nav.popBackStack() }, onChipClick = onChip, onWord = { nav.navigate(VocabDetail(it)) },
                         onResult = { nav.navigate(QuizResult(it)) { popUpTo<Quiz> { inclusive = true } } },
                     )
                 }
