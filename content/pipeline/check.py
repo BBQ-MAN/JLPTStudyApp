@@ -165,12 +165,26 @@ def ko_problems(con, table, idcol, manifest):
     return out
 
 
+def check_review_gate(con):
+    """D-03: 표본 검수(sampled·reviewed) 전 N4 이상(level<=4) 뜻은 release에 못 들어온다. N5는 대상 아님."""
+    return [f"FAIL: review-gate vocab_meaning {v}#{o} level {lv} is unreviewed (D-03 sample review required before release)"
+            for v, o, lv in con.execute("""SELECT m.vocab_id, m.ord, v.level FROM vocab_meaning m JOIN vocab v ON v.id = m.vocab_id
+                WHERE v.level <= 4 AND m.ko_review_status = 'unreviewed' ORDER BY m.vocab_id, m.ord""")]
+
+
 def check_refs(con):
     """9.0: 빈 테이블이면 통과. 행이 있으면 kanji_stroke.literal ⊂ kanji.literal, grammar_example.grammar_id ⊂ grammar.id."""
     out = []
     for sql, tag in (("SELECT literal FROM kanji_stroke WHERE literal NOT IN (SELECT literal FROM kanji) ORDER BY literal", "refs kanji_stroke.literal not in kanji"),
                      ("SELECT DISTINCT grammar_id FROM grammar_example WHERE grammar_id NOT IN (SELECT id FROM grammar) ORDER BY grammar_id", "refs grammar_example.grammar_id not in grammar")):
         out += [f"FAIL: {tag}: {r[0]}" for r in con.execute(sql)]
+    for lit, pj in con.execute("SELECT literal, paths_json FROM kanji_stroke ORDER BY literal"):
+        try:
+            ok = isinstance(json.loads(pj), list) and json.loads(pj) and all(isinstance(d, str) and d for d in json.loads(pj))
+        except ValueError:
+            ok = False
+        if not ok:
+            out.append(f"FAIL: refs kanji_stroke {lit} paths_json is not a non-empty JSON array of path strings")
     out += [f"FAIL: refs grammar_example {g}#{o} source {s} must have source_ref, author, license all NULL (authored) or all set"
             for g, o, s in con.execute("""SELECT grammar_id, ord, source_id FROM grammar_example WHERE
                 (source_id = 'authored') != (source_ref IS NULL AND author IS NULL AND license IS NULL) OR
@@ -348,7 +362,7 @@ def run_checks(paths):
         out += check_ids(paths, con, kind) + check_refs(con) + check_meanings(con, manifest)
         out += check_attribution(paths, manifest, db, cfg, release) + check_size(db, meta) + check_authored(paths, kind, manifest)
         if release:
-            out += check_app_assets(manifest) + check_count(paths, con, meta, manifest)
+            out += check_app_assets(manifest) + check_count(paths, con, meta, manifest) + check_review_gate(con)
         if meta.get("sources", "{}") != "{}":
             out += check_snapshot(paths, meta, manifest)
     except sqlite3.Error as e:

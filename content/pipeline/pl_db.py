@@ -19,6 +19,7 @@ class Dataset:
         self.kind = kind
         self.vocab, self.meanings = [], []
         self.kanji_info, self.kanji_source, self.link_source = {}, "authored", "authored"
+        self.strokes = {}  # literal → 획 경로 목록(S-03). sample은 비어 있다
         self.level_source = "authored"
         self.sources = {}  # content_meta.sources
         self.inputs = []  # (라벨, 바이트) — content_version 해시 입력
@@ -294,6 +295,7 @@ def release_dataset(paths, config, manifest):
         ds.spans += au.jp_span_rows("ko-gloss" if src == "S-01" else "authored", vid, rec["meanings"])
     ds.kanji_info = {c: {"stroke_count": k["stroke_count"], "freq": k["freq"], "on": k["ja_on"], "kun": k["ja_kun"], "ko": k["korean_h"]}
                      for c, k in snap["kanji"].items() if k["stroke_count"] is not None}
+    ds.strokes = snap["strokes"]
     ds.sources = {s: {"version": snap["sources"][s]["version"], "files": snap["sources"][s]["files"], "snapshot": snap["hashes"][s]}
                   for s in sorted(snap["hashes"])}
     add_grammar(ds, paths, config)
@@ -327,6 +329,12 @@ def derive_kanji(ds):
                       "sort_key": first[c][1], "source_id": ds.kanji_source})
     vk = [{"kanji": c, "vocab_id": vid, "source_id": ds.link_source} for c, vid in sorted(pairs)]
     return kanji, vk, sorted(missing)
+
+
+def stroke_rows(ds, kanji):
+    """9.4: DB 한자 중 스냅샷에 획 경로가 있는 것만. 경로는 jdump(공백 없는 JSON 문자열 배열)."""
+    return [{"literal": k["literal"], "paths_json": jdump(ds.strokes[k["literal"]]), "source_id": "S-03"}
+            for k in sorted(kanji, key=lambda r: r["literal"]) if k["literal"] in ds.strokes]
 
 
 def content_version(ds, config, schema_bytes):
@@ -406,6 +414,7 @@ def build_db(paths, config, ds, out=print):
               ("vocab_meaning", sorted(ds.meanings, key=lambda r: (r["vocab_id"], r["ord"]))),
               ("kanji", sorted(kanji, key=lambda r: r["literal"])),
               ("vocab_kanji", vk),
+              ("kanji_stroke", stroke_rows(ds, kanji)),
               ("grammar", ds.grammar),
               ("grammar_example", ds.grammar_examples),
               ("question", ds.questions),
@@ -418,6 +427,13 @@ def build_db(paths, config, ds, out=print):
     write_text(paths.assets / "content.db.sha256", sha256_file(db) + "\n")
     m = config["milestone"]
     write_text(paths.report("kanji_missing.tsv", m), "kanji\tvocab_id\n" + "".join(f"{c}\t{v}\n" for c, v in missing))
+    if ds.kind == "release":
+        have = {k["literal"] for k in kanji} & ds.strokes.keys()
+        write_text(paths.report("strokes_missing.tsv", m), "".join(f"{k['literal']}\tN{k['level']}\n" for k in kanji if k["literal"] not in have))  # 머리말 없음: 행 수 = 빠진 한자 수
+        # KANJIDIC2 획 수와 KanjiVG 경로 수가 다른 한자(FAIL 아님: 그림은 KanjiVG 기준). 머리말 없음.
+        write_text(paths.report("strokes_count_mismatch.tsv", m), "".join(
+            f"{k['literal']}\t{k['stroke_count']}\t{len(ds.strokes[k['literal']])}\n" for k in kanji
+            if k["literal"] in have and k["stroke_count"] != len(ds.strokes[k["literal"]])))
     if ds.no_gloss:
         write_text(paths.report("no_gloss.tsv", m), "vocab_id\n" + "".join(f"{v}\n" for v in ds.no_gloss))
     write_text(paths.report("stale_gloss.tsv", m), "vocab_id\tgloss_enHash\tcurrent_enHash\n" + "".join("\t".join(s) + "\n" for s in ds.stale))

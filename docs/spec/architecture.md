@@ -456,7 +456,7 @@ JMdict·KANJIDIC2는 같은 URL이 매일, Tatoeba는 매주 덮어써지므로 
   - `S-01-<version>.jsonl.gz`: 급수 목록 행에 채택되었거나 unmatched 후보인 JMdict 항목만(급수 목록의 **모든 급수**, 그래서 N4 이후 확장도 다시 받지 않는다). 필드는 `ent_seq`, `keb`·`reb` 목록, 첫 sense 품사, sense별 `misc`의 `uk` 여부, `stagk`·`stagr`(있을 때만), 영어 gloss만.
   - `S-02-<version>.jsonl.gz`: 위 항목들의 `keb`에 나오는 문자의 KANJIDIC2 4.2 필드만.
   - `levels-<levelSource>-<version>.tsv`: 급수 목록 행(`LevelRow`). 공개 저장소에 커밋하지 않기로 하면(decisions.md D-08, 미정) 이 파일 대신 방식 B — 원본 사본을 저장소 밖 고정 위치(릴리스 첨부)에 판별로 두고 매니페스트 `pinning.method = "archive"`, `pinning.pinnedCopy` = 그 사본 URL로 적는다(`downloadUrl`·`files[].url`은 원 URL 그대로).
-  - `S-03-<version>.jsonl.gz`(M13): DB 한자의 `kvg:StrokePaths` 경로만(`kvg:StrokeNumbers`는 읽지 않는다. 획 번호는 앱이 계산한다, 9.4).
+  - `S-03-<version>.jsonl.gz`(M13): S-02 스냅샷 한자 중 KanjiVG에 있는 것(모든 급수 — S-01·S-02와 같은 범위라 N3 이후 확장도 다시 받지 않는다. DB 한자는 그 부분집합이고 빌드가 DB에 있는 한자만 `kanji_stroke`에 넣는다)의 `kvg:StrokePaths` 경로만(`kvg:StrokeNumbers`는 읽지 않는다. 획 번호는 앱이 계산한다, 9.4).
   - `S-04-<version>.jsonl.gz`(Tatoeba 예문을 처음 쓰는 마일스톤, S-04 `confirmed` 뒤 — 지금 마일스톤 목록에는 없다): DB에 넣는 문장 행만(`id`, `lang`, `text`, `username`, 문장별 라이선스, jpn–kor 연결). 매주 덮어써지는 원 URL과 무관하게 다시 빌드할 수 있게 한다. 이 마일스톤을 만들 때 refresh-snapshot 대상에 S-04를 더한다.
   - `LICENSE.md`: 자료별 저작자 표시 문구·라이선스 URI·"원 자료에서 일부 필드만 뽑음"이라는 변경 내용. 재배포 조건은 **자료마다 그 자료의 라이선스**를 따른다(S-01·S-02 CC BY-SA 4.0, S-03 KanjiVG CC BY-SA 3.0 등 — 매니페스트 `license`·`licenseUrl` 그대로). 한 라이선스로 묶어 적지 않는다.
 - 스냅샷은 결정적이다: 행은 키 순서로 정렬, JSON 키 정렬, gzip `mtime=0`. 같은 원본으로 두 번 만들면 sha256이 같다.

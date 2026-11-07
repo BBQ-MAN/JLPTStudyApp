@@ -25,17 +25,14 @@ class ContentDbTest {
         }
     }
 
-    @Test fun `v2 새 여섯 테이블 count 조회가 0을 낸다`() = runBlocking {
+    @Test fun `v2 새 여섯 테이블 count 조회가 실행되고 필순은 채워져 있다`() = runBlocking {
         val db = ContentDatabase.open(context)
         try {
             val d = db.contentDao()
-            assertEquals(
-                listOf(0, 0, 0, 0, 0, 0),
-                listOf(
-                    d.countKanjiStroke(), d.countGrammar(), d.countGrammarExample(),
-                    d.countQuestion(), d.countExamTemplate(), d.countListening(),
-                ),
-            )
+            // 번들 DB는 빌드 산출물이라 행 수는 마일스톤마다 늘어난다. 쿼리가 스키마와 맞는지(실행됨)와 M13의 필순 행만 본다.
+            val others = listOf(d.countGrammar(), d.countGrammarExample(), d.countQuestion(), d.countExamTemplate(), d.countListening())
+            assertTrue(others.all { it >= 0 })
+            assertTrue(d.countKanjiStroke() > 0)
             assertEquals(2, db.openHelper.readableDatabase.version)
         } finally {
             db.close()

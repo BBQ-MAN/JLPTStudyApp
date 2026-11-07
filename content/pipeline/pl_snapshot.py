@@ -8,6 +8,7 @@ import levels as lv
 from pl_common import CJK, Fail, jdump, read_json, safe_version, sha256_file, snapshot_name, write_text
 from pl_fetch import fetch
 from pl_parse import parse_jmdict, parse_kanjidic2
+from pl_strokes import read_kanjivg
 
 
 def _gz(path, text):
@@ -32,6 +33,7 @@ def snapshot_files(paths, manifest, level_source):
     return {
         "S-01": paths.snapshot / snapshot_name(manifest["S-01"], "jsonl.gz"),
         "S-02": paths.snapshot / snapshot_name(manifest["S-02"], "jsonl.gz"),
+        "S-03": paths.snapshot / snapshot_name(manifest["S-03"], "jsonl.gz"),
         level_source: paths.snapshot / f"levels-{level_source}-{safe_version(manifest[level_source].get('version'))}.tsv",
     }
 
@@ -44,7 +46,7 @@ def refresh_snapshot(paths, config, manifest, refresh=(), opener=None, out=print
         raise Fail(f"FAIL: refresh-snapshot no level reader for {ls}")
     kw = {"opener": opener} if opener else {}
     used = {}
-    for sid in ("S-01", "S-02", ls):
+    for sid in ("S-01", "S-02", "S-03", ls):
         if sid not in manifest:
             raise Fail(f"FAIL: fetch {sid} not in manifest")
         used[sid] = fetch(manifest[sid], paths.raw, refresh=(sid in refresh), out=out, **kw)
@@ -58,14 +60,17 @@ def refresh_snapshot(paths, config, manifest, refresh=(), opener=None, out=print
     chars = {c for e in entries for k in e["keb"] for c in k if CJK.match(c)}
     kanji = sorted((k for k in parse_kanjidic2(_single(paths.raw, manifest["S-02"])) if k["literal"] in chars), key=lambda k: k["literal"])
 
+    # S-03 스냅샷: S-02 스냅샷의 한자 중 KanjiVG에 있는 것(DB 한자는 그 부분집합). 없는 한자는 build가 strokes_missing.tsv에 남긴다.
+    strokes = read_kanjivg(_single(paths.raw, manifest["S-03"]), [k["literal"] for k in kanji])
     files = snapshot_files(paths, manifest, ls)
+    _gz(files["S-03"], "".join(jdump(r) + "\n" for r in strokes))
     _gz(files["S-01"], "".join(jdump(e) + "\n" for e in entries))
     _gz(files["S-02"], "".join(jdump(k) + "\n" for k in kanji))
     write_text(files[ls], lv.to_tsv(rows))
     write_text(paths.snapshot / "sources.json", jdump({s: {"version": manifest[s].get("version"), "files": used[s]} for s in sorted(used)}) + "\n")
     write_text(paths.snapshot / "LICENSE.md", snapshot_license(manifest, sorted(used)))
     report_unmatched(paths, config, unmatched)
-    out(f"snapshot: {len(entries)} entries, {len(kanji)} kanji, {len(rows)} level rows, {len(unmatched)} unmatched")
+    out(f"snapshot: {len(entries)} entries, {len(kanji)} kanji, {len(strokes)} stroke sets, {len(rows)} level rows, {len(unmatched)} unmatched")
     return files
 
 
@@ -95,6 +100,7 @@ def read_snapshot(paths, manifest, level_source):
     return {
         "entries": _gz_lines(files["S-01"]),
         "kanji": {k["literal"]: k for k in _gz_lines(files["S-02"])},
+        "strokes": {r["literal"]: r["paths"] for r in _gz_lines(files["S-03"])},
         "rows": lv.read_tsv(files[level_source]),
         "sources": read_json(paths.snapshot / "sources.json"),
         "hashes": {s: sha256_file(p) for s, p in files.items()},
