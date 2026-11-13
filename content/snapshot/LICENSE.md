@@ -6,7 +6,7 @@
 
 - 저작자 표시: This app uses the JMdict/EDICT and KANJIDIC dictionary files. These files are the property of the Electronic Dictionary Research and Development Group, and are used in conformance with the Group's licence (https://www.edrdg.org/edrdg/licence.html).
 - 라이선스: CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0/>
-- 변경 내용: 급수 목록에 있는 항목만 추림, 영어 뜻을 바탕으로 한국어 뜻을 번역·편집해 추가(D-02)
+- 변경 내용: 급수 목록에 있는 항목만 추림, 영어 뜻을 바탕으로 한국어 뜻을 번역·편집해 추가(D-02), 급수 목록 항목과 표기 또는 읽기가 같은 목록 밖 항목은 표기·읽기·상호참조(xref)만 뽑음, 이를 바탕으로 표기·읽기 쌍 표(jm_form)와 같은 급수 안 뜻 충돌 목록(vocab_conflict, 영어 뜻·한국어 뜻·xref로 판정)을 만들어 자동 생성 문제의 오답 후보를 고르고 거르는 데 씀
 
 ## S-02 KANJIDIC2 (2026-305 (2026-11-01))
 

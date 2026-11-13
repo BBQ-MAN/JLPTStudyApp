@@ -168,7 +168,7 @@ architecture.md 6.7은 원본 판을 `content/snapshot/`에 커밋한 스냅샷�
 | Q-07 | 생성 문항 저장 방식 | A ID(`gq:<유형>:<자리>:<시드>:<어휘ID>`)만 저장하고 열 때 다시 생성 / B 문항 내용을 학습 기록 DB에 저장(v3 마이그레이션) | A. 학습 기록 DB v2 그대로 | 스키마 변경·마이그레이션 없음. 대가: 콘텐츠 DB 판이 바뀌면 지난 시도의 오답 글자가 달라질 수 있다(정답 자리·정오는 그대로) | 중간: B로 바꾸면 학습 기록 v3 마이그레이션 |
 | Q-08 | 전수 검사 위치 | A `:app` Robolectric 테스트가 번들 `content.db`를 직접 엶 + 파이프라인 `check.py` 표 검사 / B 순수 모듈 테스트에 sqlite-jdbc 추가 / C Python으로 생성기 재구현 | A | 기존 `ContentDbTest`가 같은 방식으로 번들 DB를 연다. 새 의존성·이중 구현 없음 | 낮음 |
 | Q-09 | 대상 어휘·오답 범위 | A `jm:` 어휘만, 오답은 같은 급수 / B 직접 작성 `av-…` 포함, 인접 급수 허용 | A | `av-` 어휘는 JMdict 배제 데이터가 없다. 같은 급수가 사용자 지시 | 낮음 |
-| Q-10 | JMdict 사용 필드·범위 확장 | A `sense/xref`와 급수 목록 밖 동형·동음 항목의 `keb`·`reb`를 파생 표에 씀(영어 gloss는 번들 안 함) / B xref 없이 영어·한국어 겹침만 | A. 같은 자료(S-01, CC BY-SA 4.0, confirmed)라 새 라이선스 판단 없음. 매니페스트 S-01 `usedFields`·`modifications`와 sources.md S-01.used 갱신을 analyst에게 요청(QG1 보고서). 출시 전 반영 | 사용자 지시(xref 동의어 배제). 변경 표시(CC BY-SA §3(a)(1)(B))가 정확하려면 문구 갱신 필요 | 낮음 |
+| Q-10 | JMdict 사용 필드·범위 확장 | A `sense/xref`와 급수 목록 밖 동형·동음 항목의 `keb`·`reb`를 파생 표에 씀(영어 gloss는 번들 안 함) / B xref 없이 영어·한국어 겹침만 | A. 같은 자료(S-01, CC BY-SA 4.0, confirmed)라 새 라이선스 판단 없음. 매니페스트 S-01 `usedFields`·`modifications`와 sources.md S-01.used 갱신을 analyst에게 요청(QG1 보고서). 출시 전 반영. 반영됨(2026-11-13, 매니페스트·sources.md S-01.used·S-01.derived. 파이프라인 재생성은 별도) | 사용자 지시(xref 동의어 배제). 변경 표시(CC BY-SA §3(a)(1)(B))가 정확하려면 문구 갱신 필요 | 낮음 |
 
 ## 변경 이력
 
@@ -187,3 +187,4 @@ architecture.md 6.7은 원본 판을 `content/snapshot/`에 커밋한 스냅샷�
 | 2026-11-03 | design-review 후속: AR-U15(G-S12는 공개 출시만 막음) 잠정 채택 |
 | 2026-11-07 | 재개 실행에서 U-8(모의고사 문항 수 연습용 값)·U-9(필순 획수 표시)·U-10(EDRDG 새 판 반영 보류)을 하네스 추천안으로 잠정 채택 |
 | 2026-11-08 | 자동 생성 연습 문제 설계(`docs/spec/quizgen.md`)에서 Q-01~Q-10을 하네스 추천안으로 잠정 채택 |
+| 2026-11-13 | Q-10 문서 반영(매니페스트 S-01 usedFields·modifications, sources.md S-01.used·S-01.derived). 결정 번복 아님, 파이프라인 재생성은 별도 |
