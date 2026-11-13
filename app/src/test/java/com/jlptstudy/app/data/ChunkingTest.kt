@@ -102,6 +102,12 @@ class ChunkingTest {
             override suspend fun listeningByIds(ids: List<String>) = TODO()
             override suspend fun examTemplateRow(level: Int) = TODO()
             override suspend fun examTemplateLevels() = TODO()
+            override suspend fun quizVocab(level: Int) = TODO()
+            override suspend fun quizMeanings(level: Int) = TODO()
+            override suspend fun quizKanji(level: Int) = TODO()
+            override suspend fun quizForms(level: Int) = TODO()
+            override suspend fun quizConflicts(level: Int) = TODO()
+            override suspend fun vocabLevel(id: String) = TODO()
         }
         RoomContentRepository(dao).cardContents(ids2000 + (1..1000).map { "kr:字$it" })
         for (name in listOf("vocab", "meanings", "retired", "kanji", "words")) {

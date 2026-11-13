@@ -2,7 +2,9 @@ package com.jlptstudy.app.ui.practice
 
 import com.jlptstudy.app.JlptLevel
 import com.jlptstudy.app.data.content.QuizContent
+import com.jlptstudy.app.data.content.GenTypeAvailability
 import com.jlptstudy.app.data.content.QuizContentRepository
+import com.jlptstudy.app.data.content.QuizGenRepository
 import com.jlptstudy.app.data.content.toPoolItem
 import com.jlptstudy.app.data.study.QuizAnswerRecord
 import com.jlptstudy.app.data.study.QuizAttemptRecord
@@ -14,6 +16,7 @@ import com.jlptstudy.quiz.ExamSection
 import com.jlptstudy.quiz.ExamTemplate
 import com.jlptstudy.quiz.PoolItem
 import com.jlptstudy.quiz.Section
+import com.jlptstudy.quiz.gen.GenType
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -118,5 +121,51 @@ fun quizQuestion(
     c: QuizContent = qc("q-n5-vocab-0001"), answer: Int = 0, why: List<String?> = c.whyWrongKo,
 ) = QuizQuestionUi(
     c.id, c.section, c.type, c.target, Furigana.parse(c.stem), c.passage?.let(Furigana::parse), c.choices.map(Furigana::parse), answer,
-    c.explanationKo, why, c.targets, c.provenance, c.needsReview,
+    c.explanationKo, why, c.targets, c.provenance, c.needsReview, generated = c.generated,
 )
+
+/** 합성 자동 생성 문항(실제 콘텐츠가 아니다). reviewed 뜻 출처 칩은 provenance로, 없으면 null(칩 없음). */
+val genProvenance = MeaningUi("선생님", "authored", "llm:test-model@2026-11-03", "reviewed", "2026-11-05", "agent")
+
+fun gc(
+    type: String, id: String = "gq:$type:0:a:jm:1", stem: String, target: String?, choices: List<String>, answer: Int = 0,
+    why: List<String?> = listOf(null, "다른 단어의 읽기입니다.", "다른 단어의 읽기입니다.", "다른 단어의 읽기입니다."),
+    provenance: MeaningUi? = null, explanation: String = "「橋」의 읽기는 「はし」입니다.", targets: List<String> = listOf("jm:1"),
+) = QuizContent(
+    id, JlptLevel.N5, Section.VOCAB, type, stem, null, target, null, choices, answer, explanation, why, targets, provenance, false, generated = true,
+)
+
+/** 자동 생성 저장소 가짜: 급수별 유형 단어 수와 세션 ID 목록을 정해 준다. */
+class FakeQuizGen(
+    var targets: Map<JlptLevel, List<Int>> = emptyMap(), // GenType 선언 순서의 단어 수
+    var ids: List<String> = (1..10).map { "gq:kanji-reading:0:a:jm:$it" },
+) : QuizGenRepository {
+    var failAvailability: Throwable? = null
+    val sessions = mutableListOf<Triple<JlptLevel, GenType, Long>>()
+    var sessionGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
+    override suspend fun availability(level: JlptLevel): List<GenTypeAvailability> {
+        failAvailability?.let { throw it }
+        val t = targets[level] ?: List(GenType.entries.size) { 0 }
+        return GenType.entries.mapIndexed { i, g -> GenTypeAvailability(g, t[i]) }
+    }
+    override suspend fun newSession(level: JlptLevel, type: GenType, seed: Long, size: Int): List<String> {
+        sessions += Triple(level, type, seed)
+        sessionGate?.await()
+        return ids
+    }
+    override suspend fun contents(ids: List<String>): Map<String, QuizContent> = emptyMap()
+}
+
+// 자동 생성 화면 픽스처(ui-design 12절): 한자 읽기 ① 칩 없음 / 뜻 고르기 ③ 한국어 선택지 중 하나에 일본어 구간 / 단어 고르기 ③ 한국어 지문
+val genKanjiQ = quizQuestion(gc("kanji-reading", stem = "[[橋]]", target = "橋", choices = listOf("はし", "きょう", "はね", "かけ")))
+val genJaKoQ = quizQuestion(
+    gc(
+        "meaning-ja-ko", stem = "[[{先生|せんせい}]]", target = "先生", choices = listOf("선생님", "〜さん보다 정중한 호칭", "의사", "학생"), answer = 0,
+        why = listOf(null, "「〜さん」보다 정중한 호칭은 다른 단어의 뜻입니다.", "다른 단어의 뜻입니다.", "다른 단어의 뜻입니다."), provenance = genProvenance, explanation = "「先生」의 뜻은 「선생님」입니다.",
+    ),
+)
+val genKoJaQ = quizQuestion(
+    gc("meaning-ko-ja", stem = "선생님", target = null, choices = listOf("{先生|せんせい}", "{学生|がくせい}", "{医者|いしゃ}", "{友達|ともだち}"), provenance = genProvenance,
+        explanation = "「先生」(せんせい)의 뜻은 「선생님」입니다."),
+)
+

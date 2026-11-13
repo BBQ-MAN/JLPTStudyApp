@@ -13,8 +13,9 @@ import kotlinx.coroutines.withContext
         KanjiEntity::class, VocabKanjiEntity::class, RetiredEntity::class,
         KanjiStrokeEntity::class, GrammarEntity::class, GrammarExampleEntity::class,
         QuestionEntity::class, ExamTemplateEntity::class, ListeningEntity::class,
+        JmFormEntity::class, VocabConflictEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class ContentDatabase : RoomDatabase() {

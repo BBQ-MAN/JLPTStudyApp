@@ -158,3 +158,19 @@ data class ListeningEntity(
     @ColumnInfo(name = "ko_reviewer_kind") val koReviewerKind: String?,
     @ColumnInfo(name = "needs_review") val needsReview: Boolean,
 )
+
+// docs/spec/quizgen.md 3.3 (콘텐츠 DB v3). 자동 생성 연습 문제의 오답 배제 데이터 — 파이프라인 pl_quizgen.py가 만든다.
+
+/** 사전 전체 항목의 표기·읽기 쌍. written = 표기 원문, reading = 읽기를 히라가나로 바꾼 값. */
+@Entity(tableName = "jm_form", primaryKeys = ["written", "reading"], indices = [Index("reading")])
+data class JmFormEntity(
+    val written: String,
+    val reading: String,
+)
+
+/** `jm:` 어휘마다 한 행. conflictIds = 같은 급수에서 뜻이 겹치는 어휘 ID의 정렬된 JSON 문자열 배열. */
+@Entity(tableName = "vocab_conflict")
+data class VocabConflictEntity(
+    @PrimaryKey @ColumnInfo(name = "vocab_id") val vocabId: String,
+    @ColumnInfo(name = "conflict_ids") val conflictIds: String,
+)

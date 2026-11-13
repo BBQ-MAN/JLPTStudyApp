@@ -182,7 +182,7 @@ class QuizResultUiTest {
     @Test fun `해설 카드에 question 행 P로 만든 출처 칩이 있고 needs_review면 해설 검토 중 칩이 있다`() {
         val review = item(0, 1, false, needsReview = true)
         rule.setContent { JlptTheme { QuizResultScreen(state(listOf(review), reviewIndex = 0)) } }
-        rule.onNodeWithText(ProvenanceLabel.of(review.question.provenance)).assertExists()
+        rule.onNodeWithText(ProvenanceLabel.of(review.question.provenance!!)).assertExists()
         rule.onNodeWithText("해설 검토 중").assertExists()
         rule.onNodeWithTag("result_review_unanswered", useUnmergedTree = true).assertDoesNotExist()
     }

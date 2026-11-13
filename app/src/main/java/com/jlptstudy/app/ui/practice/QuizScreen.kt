@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -84,13 +85,14 @@ import com.jlptstudy.app.ui.theme.Spacing
 class QuizActions(
     val onClose: () -> Unit = {}, val onChoose: (Int) -> Unit = {}, val onNext: () -> Unit = {}, val onToggleFurigana: () -> Unit = {},
     val onChipClick: ((MeaningUi) -> Unit)? = null,
+    val onWord: (String) -> Unit = {}, // 자동 생성 해설 "관련 단어 보기"(S06 VocabDetail)
     // S14 모의고사
     val onPrev: () -> Unit = {}, val onGoTo: (Int) -> Unit = {}, val onSubmit: () -> Unit = {},
     val onContinue: () -> Unit = {}, val onStopExit: () -> Unit = {}, val onCancelSubmit: () -> Unit = {}, val onConfirmSubmit: () -> Unit = {},
 )
 
 @Composable
-fun QuizRoute(vm: QuizViewModel, onExit: () -> Unit, onResult: (Long) -> Unit, onChipClick: ((MeaningUi) -> Unit)? = null) {
+fun QuizRoute(vm: QuizViewModel, onExit: () -> Unit, onResult: (Long) -> Unit, onChipClick: ((MeaningUi) -> Unit)? = null, onWord: (String) -> Unit = {}) {
     val state by vm.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val exit = { vm.exit(onExit) }
@@ -113,7 +115,7 @@ fun QuizRoute(vm: QuizViewModel, onExit: () -> Unit, onResult: (Long) -> Unit, o
     QuizScreen(
         state, snackbar,
         QuizActions(
-            exit, vm::choose, vm::next, vm::toggleFurigana, onChipClick,
+            exit, vm::choose, vm::next, vm::toggleFurigana, onChipClick, onWord,
             vm::prev, vm::goTo, vm::requestSubmit, vm::continueExam, { vm.stopAndExit(onExit) }, vm::cancelSubmit, vm::confirmSubmit,
         ),
     )
@@ -167,8 +169,10 @@ private fun QuizBody(state: QuizUiState, q: QuizQuestionUi, noRuby: Boolean, act
     val jp = LocalJpTypography.current
     val showRuby = state.showRuby && !noRuby
     // 문항이 바뀌면 접근성 포커스를 진행 표시("3/10")로 옮긴다: "다음" 버튼이 사라져도 새 문항이 읽힌다(WCAG 2.4.3)
+    // 자동 생성 문항은 본문의 첫 노드인 라벨로(그 다음 쓸기가 지시문, ui-design 6.10 S13)
     val progressFocus = remember { FocusRequester() }
-    LaunchedEffect(q.id) { runCatching { progressFocus.requestFocus() } }
+    val labelFocus = remember { FocusRequester() }
+    LaunchedEffect(q.id) { runCatching { (if (q.generated) labelFocus else progressFocus).requestFocus() } }
     Column(modifier.fillMaxWidth()) {
         val exam = state.mode == QuizMode.EXAM
         Column(Modifier.fillMaxWidth().padding(horizontal = Spacing.lg, vertical = Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
@@ -188,11 +192,12 @@ private fun QuizBody(state: QuizUiState, q: QuizQuestionUi, noRuby: Boolean, act
             Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = Spacing.lg),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
+            if (q.generated) GeneratedLabel(Modifier.focusRequester(labelFocus))
             Instruction(q)
             q.passage?.let { p ->
                 PassageCard(p, showRuby)
             }
-            StemView(q.stem, showRuby)
+            QuestionStem(q, showRuby)
             val feedback = state.status == QuizStatus.FEEDBACK
             Column(Modifier.fillMaxWidth().selectableGroup(), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 q.choices.forEachIndexed { i, segs ->
@@ -204,7 +209,7 @@ private fun QuizBody(state: QuizUiState, q: QuizQuestionUi, noRuby: Boolean, act
                     }
                     ChoiceButton(
                         number = i + 1, segments = segs, showRuby = showRuby, look = look,
-                        chosen = i == state.chosenIndex,
+                        chosen = i == state.chosenIndex, korean = QuizTypeLabels.koreanChoices(q.type),
                         enabled = state.status == QuizStatus.ANSWERING && (exam || state.chosenIndex == null) && !state.saving,
                     ) { actions.onChoose(i) }
                 }
@@ -217,7 +222,7 @@ private fun QuizBody(state: QuizUiState, q: QuizQuestionUi, noRuby: Boolean, act
             }
             if (feedback) {
                 FeedbackLine(q, state.chosenIndex, showRuby)
-                ExplanationCard(q, state.chosenIndex, actions.onChipClick)
+                ExplanationCard(q, state.chosenIndex, actions.onChipClick, relatedWord(q, actions.onWord))
             }
             Box(Modifier.size(Spacing.sm))
         }
@@ -229,6 +234,30 @@ internal fun PassageCard(p: List<RubySegment>, showRuby: Boolean) {
     Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLow) {
         Box(Modifier.padding(Spacing.lg)) { RubyText(p, style = LocalJpTypography.current.bodyLarge, showRuby = showRuby) }
     }
+}
+
+/** 자동 생성 문항 라벨(ui-design 6.10 S13): 누를 수 없는 글자 상자. 칩 컴포넌트를 쓰지 않아 버튼·`Role`·물결이 없다. 포커스는 받는다(문항이 바뀔 때 한 번 읽힌다). */
+@Composable
+internal fun GeneratedLabel(modifier: Modifier = Modifier) {
+    Box(
+        modifier.testTag("quiz_generated_label").focusable().defaultMinSize(minHeight = 24.dp)
+            .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small).padding(horizontal = Spacing.md, vertical = Spacing.xs)
+            .semantics(mergeDescendants = true) {},
+        contentAlignment = Alignment.CenterStart,
+    ) { Text(stringResource(R.string.quiz_generated_label), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+}
+
+/** 자동 생성 해설의 "관련 단어 보기" 동작. 단어 하나(`targets = [vocabId]`)가 없으면 줄이 없다. */
+internal fun relatedWord(q: QuizQuestionUi, onWord: (String) -> Unit): (() -> Unit)? =
+    if (q.generated) q.targets.firstOrNull()?.let { id -> { onWord(id) } } else null
+
+/** 지문. 단어 고르기(`koreanStem`)는 한국어 뜻이라 `ko-KR` + 일본어 구간 `ja-JP`로 그리고 후리가나·밑줄·칸이 없다. */
+@Composable
+internal fun QuestionStem(q: QuizQuestionUi, showRuby: Boolean) {
+    if (QuizTypeLabels.koreanStem(q.type)) {
+        val text = remember(q.id) { JpSpans.annotate(q.stem.joinToString("") { it.base }) }
+        Text(text, Modifier.testTag("quiz_stem"), style = MaterialTheme.typography.titleLarge)
+    } else StemView(q.stem, showRuby)
 }
 
 /** 지시문: 한국어 문구 + `{대상}` 일본어 구간(ja-JP). 문항 target이 없으면 대상 자리를 비운다. */
@@ -297,7 +326,7 @@ enum class ChoiceLook { NORMAL, SELECTED, CORRECT, WRONG }
 /** 선택지(ui-design 5.4·5.5). 동작 수정자를 clearAndSetSemantics보다 바깥에 두어 Role·Selected·OnClick을 남긴다(4.3 5번). */
 @Composable
 fun ChoiceButton(
-    number: Int, segments: List<RubySegment>, showRuby: Boolean, look: ChoiceLook, chosen: Boolean, enabled: Boolean, onClick: () -> Unit,
+    number: Int, segments: List<RubySegment>, showRuby: Boolean, look: ChoiceLook, chosen: Boolean, enabled: Boolean, korean: Boolean = false, onClick: () -> Unit,
 ) {
     val cs = MaterialTheme.colorScheme
     val ext = LocalExtendedColors.current
@@ -316,11 +345,13 @@ fun ChoiceButton(
         ChoiceLook.WRONG -> stringResource(R.string.quiz_choice_wrong)
         else -> null
     }
-    val spoken = remember(segments, showRuby, numberLabel, readingLabel, suffix) {
+    val plain = segments.joinToString("") { it.base }
+    val spoken = remember(segments, showRuby, numberLabel, readingLabel, suffix, korean) {
         buildAnnotatedString {
             withStyle(KoSpan) { append(numberLabel) }
-            withStyle(JpSpan) { append(segments.joinToString("") { it.base }) }
-            if (showRuby && segments.any { it.ruby != null }) {
+            // 한국어 뜻 선택지는 한국어 음성으로, 뜻 안 일본어 구간만 일본어 음성으로 읽힌다
+            if (korean) append(JpSpans.annotate(plain)) else withStyle(JpSpan) { append(plain) }
+            if (!korean && showRuby && segments.any { it.ruby != null }) {
                 withStyle(KoSpan) { append(readingLabel) }
                 withStyle(JpSpan) { append(segments.joinToString("") { it.ruby ?: it.base }) }
             }
@@ -343,7 +374,8 @@ fun ChoiceButton(
                 contentAlignment = Alignment.Center,
             ) { Text("$number", style = MaterialTheme.typography.labelLarge) }
             Column(Modifier.weight(1f)) {
-                RubyText(segments, style = jp.bodyLarge, showRuby = showRuby)
+                if (korean) Text(remember(plain) { JpSpans.annotate(plain) }, style = MaterialTheme.typography.bodyLarge)
+                else RubyText(segments, style = jp.bodyLarge, showRuby = showRuby)
                 if (suffix != null) Text(suffix, style = MaterialTheme.typography.labelLarge)
             }
             when (look) {
@@ -364,10 +396,11 @@ internal fun FeedbackLine(q: QuizQuestionUi, chosen: Int?, showRuby: Boolean) {
     val head = stringResource(if (right) R.string.quiz_feedback_correct else R.string.quiz_feedback_wrong)
     val tail = stringResource(R.string.quiz_feedback_wrong_answer, q.answerIndex + 1)
     val answer = q.choices[q.answerIndex].joinToString("") { it.base }
-    val spoken: AnnotatedString = remember(head, tail, answer, right) {
+    val korean = QuizTypeLabels.koreanChoices(q.type)
+    val spoken: AnnotatedString = remember(head, tail, answer, right, korean) {
         buildAnnotatedString {
             withStyle(KoSpan) { append(head) }
-            if (!right) { withStyle(KoSpan) { append(tail) }; withStyle(JpSpan) { append(answer) } }
+            if (!right) { withStyle(KoSpan) { append(tail) }; if (korean) append(JpSpans.annotate(answer)) else withStyle(JpSpan) { append(answer) } }
         }
     }
     Row(
@@ -385,7 +418,7 @@ internal fun FeedbackLine(q: QuizQuestionUi, chosen: Int?, showRuby: Boolean) {
 /** 해설 카드(5.5): 정답 근거, 고른 오답의 이유를 맨 위로 한 오답별 이유, 출처 칩과 검토 중 표시. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun ExplanationCard(q: QuizQuestionUi, chosen: Int?, onChipClick: ((MeaningUi) -> Unit)?) {
+internal fun ExplanationCard(q: QuizQuestionUi, chosen: Int?, onChipClick: ((MeaningUi) -> Unit)?, onRelatedWord: (() -> Unit)? = null) {
     Surface(Modifier.fillMaxWidth().testTag("quiz_explanation"), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLow) {
         Column(Modifier.padding(Spacing.lg), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             Text(stringResource(R.string.quiz_expl_title), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium)
@@ -403,8 +436,10 @@ internal fun ExplanationCard(q: QuizQuestionUi, chosen: Int?, onChipClick: ((Mea
                     Text(JpSpans.annotate(q.whyWrongKo[i].orEmpty()), style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                ProvenanceChip(q.provenance, onChipClick)
+            if (onRelatedWord != null) RelatedWordRow(onRelatedWord)
+            // 칩도 검토 표시도 없으면 빈 줄을 남기지 않는다(자동 생성 해설)
+            if (q.provenance != null || q.needsReview) FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                q.provenance?.let { ProvenanceChip(it, onChipClick) }
                 if (q.needsReview) {
                     Text(
                         stringResource(R.string.quiz_review_chip),
@@ -415,5 +450,18 @@ internal fun ExplanationCard(q: QuizQuestionUi, chosen: Int?, onChipClick: ((Mea
                 }
             }
         }
+    }
+}
+
+/** 자동 생성 해설의 "관련 단어 보기"(ui-design 6.10 S13): 행 전체가 눌리고 오른쪽 chevron은 장식이다. */
+@Composable
+private fun RelatedWordRow(onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("quiz_related_word")
+            .clickable(onClickLabel = stringResource(R.string.quiz_related_word_click), role = Role.Button, onClick = onClick),
+        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(stringResource(R.string.quiz_related_word), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        Icon(painterResource(R.drawable.ic_chevron_right), null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
     }
 }

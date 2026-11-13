@@ -1,5 +1,5 @@
 {
-  "contentVersion": "vfcb49796cb02",
+  "contentVersion": "vbe8a7add8396",
   "kind": "release",
   "dbLicense": {
     "name": "CC BY-SA 4.0",
@@ -88,7 +88,7 @@
     {
       "id": "authored",
       "name": "이 앱 작성 콘텐츠",
-      "version": "vfcb49796cb02",
+      "version": "vbe8a7add8396",
       "attribution": "이 앱이 직접 작성한 콘텐츠",
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",

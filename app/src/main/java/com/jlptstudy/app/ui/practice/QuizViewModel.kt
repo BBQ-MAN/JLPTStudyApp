@@ -280,4 +280,5 @@ internal fun QuizContent.toUi(s: ShuffledQuestion): QuizQuestionUi = QuizQuestio
         val speech = ScriptSpeech.lines(ls)
         ls.mapIndexed { i, l -> ListeningLineUi(speech[i].voice, Furigana.parse(l.text), speech[i].text) }
     },
+    generated,
 )

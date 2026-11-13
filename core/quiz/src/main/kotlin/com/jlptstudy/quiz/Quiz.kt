@@ -12,7 +12,11 @@ enum class Section(val code: String) {
 }
 
 /** 섞기 전 문항. choices.size == 4, answerIndex in 0..3(원래 색인). 어기면 생성자에서 IllegalArgumentException. */
-data class QuizQuestion(val id: String, val section: Section, val type: String, val choices: List<String>, val answerIndex: Int) {
+data class QuizQuestion(
+    val id: String, val section: Section, val type: String, val choices: List<String>, val answerIndex: Int,
+    /** true: 자동 생성 문항 — 정답 자리를 생성기가 정했으므로 [Quiz.shuffle]이 순서를 바꾸지 않는다. */
+    val fixedOrder: Boolean = false,
+) {
     init {
         require(choices.size == 4) { "$id: choices.size ${choices.size} != 4" }
         require(answerIndex in 0..3) { "$id: answerIndex $answerIndex" }
@@ -49,7 +53,7 @@ data class Score(
 object Quiz {
     fun shuffle(question: QuizQuestion, attemptSeed: Long): ShuffledQuestion {
         val order = MutableList(question.choices.size) { it }
-        Collections.shuffle(order, Random(attemptSeed * 31 + question.id.hashCode()))
+        if (!question.fixedOrder) Collections.shuffle(order, Random(attemptSeed * 31 + question.id.hashCode()))
         return ShuffledQuestion(
             question.id, question.section, question.type,
             order.map { question.choices[it] }, order.indexOf(question.answerIndex), order.toList(),

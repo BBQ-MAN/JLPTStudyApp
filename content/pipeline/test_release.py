@@ -48,7 +48,7 @@ class ReleaseFlowTest(TempRoot):
     def test_refresh_twice_same_hashes_then_build_without_raw(self):
         self.assertEqual(self.refresh(), 0, self.log)
         first = self.snap_hashes()
-        self.assertEqual(set(first), {"S-01-2026-11-01.jsonl.gz", "S-02-2026-305_2026-11-01.jsonl.gz", "S-03-r20260714.jsonl.gz", "levels-S-06-b062d4e_2025-08-26.tsv", "sources.json", "LICENSE.md"})
+        self.assertEqual(set(first), {"S-01-2026-11-01.jsonl.gz", "S-02-2026-305_2026-11-01.jsonl.gz", "S-03-r20260714.jsonl.gz", "levels-S-06-b062d4e_2025-08-26.tsv", "S-01-2026-11-01-related.jsonl.gz", "sources.json", "LICENSE.md"})
         shutil.rmtree(self.p.raw)
         self.assertEqual(self.refresh(), 0, self.log)  # raw를 지우면 다시 받는다
         self.assertEqual(self.snap_hashes(), first)

@@ -10,6 +10,7 @@ import pl_authored as au
 import pl_grammar as gm
 import pl_listening as ls
 import pl_question as qs
+import pl_quizgen as qg
 from pl_common import CJK, Fail, jdump, latest_schema, load_manifest, read_jsonl, sha256_bytes, sha256_file, write_text
 from pl_snapshot import read_snapshot
 
@@ -26,6 +27,7 @@ class Dataset:
         self.spans, self.no_gloss, self.stale = [], [], []
         self.grammar, self.grammar_examples = [], []
         self.questions, self.exams, self.listening = [], [], []
+        self.jm_form, self.vocab_conflict, self.quizgen_why = [], [], {}  # quizgen.md 3.3. sample 빌드는 0행
 
 
 def add_input(ds, paths, p):
@@ -257,7 +259,7 @@ def release_dataset(paths, config, manifest):
     snap, idx, vocab, unmatched, ov = mapped(paths, config, manifest)
     from pl_snapshot import report_unmatched
     report_unmatched(paths, config, unmatched)
-    for f in list(snap["files"].values()) + [paths.snapshot / "sources.json"]:
+    for f in list(snap["files"].values()) + [snap["related_file"], paths.snapshot / "sources.json"]:
         add_input(ds, paths, f)
     for name in ("level-overrides.tsv", "reading-overrides.tsv", "written-overrides.tsv"):  # build 입력인 authored 덮어쓰기 전부
         if (paths.authored / name).exists():
@@ -298,6 +300,8 @@ def release_dataset(paths, config, manifest):
     ds.strokes = snap["strokes"]
     ds.sources = {s: {"version": snap["sources"][s]["version"], "files": snap["sources"][s]["files"], "snapshot": snap["hashes"][s]}
                   for s in sorted(snap["hashes"])}
+    ds.sources["S-01"]["related"] = snap["related_hash"]
+    qg.derive(ds, snap["entries"], snap["related"])
     add_grammar(ds, paths, config)
     add_questions(ds, paths, config)
     add_listening(ds, paths, config)
@@ -415,6 +419,8 @@ def build_db(paths, config, ds, out=print):
               ("kanji", sorted(kanji, key=lambda r: r["literal"])),
               ("vocab_kanji", vk),
               ("kanji_stroke", stroke_rows(ds, kanji)),
+              ("jm_form", ds.jm_form),
+              ("vocab_conflict", ds.vocab_conflict),
               ("grammar", ds.grammar),
               ("grammar_example", ds.grammar_examples),
               ("question", ds.questions),
@@ -434,8 +440,10 @@ def build_db(paths, config, ds, out=print):
         write_text(paths.report("strokes_count_mismatch.tsv", m), "".join(
             f"{k['literal']}\t{k['stroke_count']}\t{len(ds.strokes[k['literal']])}\n" for k in kanji
             if k["literal"] in have and k["stroke_count"] != len(ds.strokes[k["literal"]])))
+    if ds.kind == "release":
+        write_text(paths.report("quizgen_conflicts.tsv", m), qg.conflicts_tsv(ds.quizgen_why, {v["id"]: v["level"] for v in ds.vocab}))
     if ds.no_gloss:
         write_text(paths.report("no_gloss.tsv", m), "vocab_id\n" + "".join(f"{v}\n" for v in ds.no_gloss))
     write_text(paths.report("stale_gloss.tsv", m), "vocab_id\tgloss_enHash\tcurrent_enHash\n" + "".join("\t".join(s) + "\n" for s in ds.stale))
-    out(f"build: {len(ds.vocab)} vocab, {len(kanji)} kanji, {len(ds.grammar)} grammar, {len(ds.questions)} question, {len(ds.exams)} exam, {len(ds.listening)} listening, version {version}, {len(missing)} kanji missing, {len(ds.no_gloss)} without gloss")
+    out(f"build: {len(ds.vocab)} vocab, {len(kanji)} kanji, {len(ds.grammar)} grammar, {len(ds.questions)} question, {len(ds.exams)} exam, {len(ds.listening)} listening, {len(ds.jm_form)} jm_form, {len(ds.vocab_conflict)} vocab_conflict, version {version}, {len(missing)} kanji missing, {len(ds.no_gloss)} without gloss")
     return version, db

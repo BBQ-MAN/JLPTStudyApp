@@ -8,6 +8,7 @@ import com.jlptstudy.app.data.content.ContentRepository
 import com.jlptstudy.app.data.content.GrammarRepository
 import com.jlptstudy.app.data.content.NoGrammarRepository
 import com.jlptstudy.app.data.content.QuizContentRepository
+import com.jlptstudy.app.data.content.QuizGenRepository
 import com.jlptstudy.app.data.content.RoomContentRepository
 import com.jlptstudy.app.data.study.QuizRepository
 import com.jlptstudy.app.data.study.RoomStudyRepository
@@ -67,6 +68,10 @@ class AppContainer(
     var quizRepository: QuizRepository? = null
         private set
 
+    /** 자동 생성 연습 문제 저장소(시험용 가짜 저장소는 null). contentRepository와 같은 DB 연결·은행 캐시를 쓴다. */
+    var quizGenRepository: QuizGenRepository? = null
+        private set
+
     private val _theme = MutableStateFlow(ThemeMode.SYSTEM)
     /** user_settings.theme. MainActivity가 JlptTheme에 넘긴다. */
     val theme: StateFlow<ThemeMode> = _theme.asStateFlow()
@@ -90,7 +95,7 @@ class AppContainer(
     fun onboardingCompleted() { _state.update { if (it is AppState.Ready) AppState.Ready(needsOnboarding = false) else it } }
 
     /** 화면의 콘텐츠 읽기 실패: S90으로 보낸다. 재시도가 DB를 다시 열도록 캐시를 비운다. */
-    fun contentReadFailed() { openedContent = null; contentRepository = null; grammarRepository = null; quizContentRepository = null; _state.value = AppState.ContentDbFailed }
+    fun contentReadFailed() { openedContent = null; contentRepository = null; grammarRepository = null; quizContentRepository = null; quizGenRepository = null; _state.value = AppState.ContentDbFailed }
 
     // 열린 DB는 재시도 사이에 재사용한다(같은 파일을 또 열어 연결이 쌓이지 않게).
     private var openedContent: ContentRepository? = null
@@ -110,6 +115,7 @@ class AppContainer(
         grammarRepository = content as? GrammarRepository ?: NoGrammarRepository
         studyRepository = study
         quizContentRepository = content as? QuizContentRepository
+        quizGenRepository = (content as? RoomContentRepository)?.quizGen
         quizRepository = study as? QuizRepository
         if (themeJob == null) themeJob = scope.launch { study.settings().map { it.theme }.collect { _theme.value = it } }
         return AppState.Ready(needsOnboarding)

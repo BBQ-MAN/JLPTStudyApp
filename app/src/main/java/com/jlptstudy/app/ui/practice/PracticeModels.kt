@@ -14,6 +14,9 @@ data class PracticeTypeUi(val section: Section, val type: String, val count: Int
 data class ResumeExamUi(val attemptId: Long, val level: JlptLevel, val answered: Int, val total: Int, val elapsedMs: Long)
 data class ExamCardUi(val level: JlptLevel, val questionCount: Int, val limitMs: Long, val hasShortfall: Boolean)
 
+/** 자동 생성 유형 행(quizgen.md 6.3). type = GenType 코드, targets = 고른 급수에서 이 유형으로 만들 수 있는 단어 수. */
+data class GeneratedTypeUi(val type: String, val targets: Int, val enabled: Boolean)
+
 data class PracticeHomeUiState(
     val status: PracticeHomeStatus = PracticeHomeStatus.LOADING,
     val level: JlptLevel = JlptLevel.N5,
@@ -25,6 +28,7 @@ data class PracticeHomeUiState(
     val confirmAbandon: Boolean = false,
     val startFailed: Boolean = false,
     val abandonFailed: Boolean = false, // 계약 밖: finish 예외(포기 실패 스낵바)
+    val generated: List<GeneratedTypeUi> = emptyList(), // GenType 선언 순서 4행. 비면 S12 자동 생성 영역을 숨긴다(읽기 실패·생성 표가 없는 DB)
 )
 
 // S14 시작 화면. 라우트 ExamStart(level) — 시도 행이 아직 없다
@@ -54,8 +58,10 @@ data class QuizQuestionUi(
     val choices: List<List<RubySegment>>, // 섞은 순서
     val answerIndex: Int, // 섞은 뒤 색인
     val explanationKo: String, val whyWrongKo: List<String?>, // 섞은 순서, 정답 자리 null
-    val targets: List<String>, val provenance: MeaningUi, val needsReview: Boolean,
+    val targets: List<String>, val provenance: MeaningUi?, // null = 이 문항에 AI가 쓴 한국어가 없음 → 칩을 그리지 않는다
+    val needsReview: Boolean,
     val lines: List<ListeningLineUi>? = null, // 청해만(대본). 계약은 passage 뒤지만 기존 위치 인자 호출을 지키려고 끝에 둔다
+    val generated: Boolean = false, // 규칙으로 만든 문항(QG4가 "자동 생성 연습 문제" 라벨을 그린다)
 )
 
 data class QuizUiState(
