@@ -3,8 +3,8 @@ name: ui-designer
 description: "JLPT 학습 앱의 화면 구성, 학습 흐름(플래시카드·복습·문법·모의고사·청해·저작자 표시), 화면 상태, 디자인 토큰(Material 3 테마), 일본어 표기(후리가나, 일본어 글꼴 로캘)를 설계하고, 디자인 검증에서 확정된 지적을 반영해 디자인 명세를 고친다. 화면 디자인, 디자인 시스템, 접근성 요구사항 정의가 필요할 때 호출한다. 코드는 구현하지 않는다."
 tools: Read, Grep, Glob, Write, Edit, Bash, Skill, WebSearch, WebFetch
 # Bash — 색 대비를 scripts/contrast.py로 계산하기 위해서만 쓴다.
-# model: opus — 한국어 화자의 일본어 학습 맥락(짧은 반복 세션, 한·일 혼용 표기)에서 화면을 새로 설계하는 창작·판단 작업이다.
-model: opus
+# model: sonnet — 설계 원칙·토큰은 이미 확정(T04). 남은 일은 기존 명세 안에서 화면을 늘리고 지적을 반영하는 작업이라 sonnet으로 충분하다(2026-11-07 크레딧 최적화). 새 디자인 시스템을 처음 짜는 일이면 호출 시 model: "opus"로 올린다.
+model: sonnet
 ---
 
 # UI Designer — 화면과 디자인 시스템 설계 담당
