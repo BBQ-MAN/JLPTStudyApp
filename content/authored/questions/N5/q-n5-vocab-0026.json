@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0026",
+  "section": "vocab",
+  "type": "paraphrase",
+  "stem": "この　{部屋|へや}は　[[きれいでは　ありません]]。",
+  "target": "きれいでは　ありません",
+  "choices": [
+    "この　{部屋|へや}は　{汚|きたな}いです。",
+    "この　{部屋|へや}は　{狭|せま}いです。",
+    "この　{部屋|へや}は　{暗|くら}いです。",
+    "この　{部屋|へや}は　{静|しず}かです。"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "방이 '깨끗하지 않다'는 '더럽다(汚い)'와 뜻이 가장 가깝습니다.",
+  "whyWrongKo": [
+    null,
+    "狭い(좁다)는 방의 넓이를 말합니다. 깨끗한지와는 관계가 없습니다.",
+    "暗い(어둡다)는 밝기를 말합니다. 깨끗한지와는 관계가 없습니다.",
+    "静か(조용하다)는 소리를 말합니다. 깨끗한지와는 관계가 없습니다."
+  ],
+  "targets": [
+    "jm:1591900",
+    "jm:1178940",
+    "gr-n5-0002"
+  ]
+}

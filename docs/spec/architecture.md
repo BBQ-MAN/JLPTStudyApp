@@ -1,17 +1,17 @@
 # JLPT 학습 앱 — 아키텍처
 
-작성: 2026-11-02 · 작성자: android-architect · 입력: `docs/plan.md`, `docs/content/{sources.md, decisions.md, manifest.json}`, `docs/spec/ui-design.md`, `.claude/skills/{compose-app-dev, srs-scheduler, content-pipeline, jlpt-content-authoring, content-licensing}`, `gradle/libs.versions.toml`
+작성: 2026-11-02 · 갱신: 2026-11-03(T04, 9절 확정) · 작성자: android-architect · 입력: `docs/plan.md`, `docs/plan/next-tasks.md`, `docs/content/{sources.md, decisions.md, manifest.json}`, `docs/spec/ui-design.md`, `.claude/skills/{compose-app-dev, srs-scheduler, content-pipeline, jlpt-content-authoring, content-licensing}`, `gradle/libs.versions.toml`
 
-> 콘텐츠 상태: `manifest.json`의 자료가 모두 `unconfirmed`다. 원본을 내려받는 콘텐츠 마일스톤(M8 이후 실데이터)은 해당 자료가 `confirmed`가 되고 D-06이 정해질 때까지 진행할 수 없다. 이 조건은 `milestones.json`의 게이트 마일스톤(`G-…`, 10절)이 `dependsOn`으로 막는다. 그 전 마일스톤(SRS, 앱 골격, 샘플 콘텐츠 화면, 파이프라인 골격)은 막히지 않는다.
+> 콘텐츠 상태(2026-11-03, `manifest.json` 기준): S-01·S-02·S-03·S-06·S-11은 `confirmed`, S-04·S-05·S-07·S-09·S-10·S-12는 `unconfirmed`, S-08은 `excluded`다. 원본을 내려받는 콘텐츠 마일스톤은 해당 자료가 `confirmed`일 때만 진행하며, 이 조건은 `milestones.json`의 게이트 마일스톤(`G-…`, 10절)이 `dependsOn`으로 막는다. 현재 게이트 상태는 10절 끝 문단.
 
 ## 0. 결정 요약
 
 | 항목 | 결정 | 근거 절 |
 |------|------|---------|
-| 모듈 | `:app`, `:core:srs`, `:core:quiz`(현재 골격 유지), 파이프라인은 Gradle 밖 `content/pipeline/` | 1 |
+| 모듈 | `:app`, `:core:srs`, `:core:quiz`(`settings.gradle.kts`에 이미 포함, 소스 없음 — M18이 채움), 파이프라인은 Gradle 밖 `content/pipeline/` | 1, 9.2 |
 | SRS | FSRS-6, py-fsrs(MIT) v6.3.2를 `:core:srs`에 직접 이식. 외부 라이브러리 없음 | 2 |
 | 시간 | 저장은 UTC epoch ms, 학습일은 사용자 시간대 지역 시각 기준 + 경계 04:00(설정), 일 간격·경과 일수는 학습일 차이, 학습 단계는 `Duration` | 3 |
-| DB | 콘텐츠 DB(번들, 읽기 전용, CC BY-SA 4.0)와 학습 기록 DB(Room, 마이그레이션) 분리. 콘텐츠 DB 버전 번호는 미리 정함 | 4, 5 |
+| DB | 콘텐츠 DB(번들, 읽기 전용, CC BY-SA 4.0)와 학습 기록 DB(Room, 마이그레이션) 분리. 콘텐츠 DB는 2~4순위 테이블 6개를 **v2 한 번**에 넣는다(U-1 A). 학습 기록 DB v2는 테이블 2개 추가만(Migration(1,2)) | 4.2, 5, 9 |
 | 콘텐츠 ID | 어휘 `jm:<ent_seq>` / 직접 작성 `av-…`, 한자는 문자 자체, 직접 작성 콘텐츠는 고정 ID | 4.1 |
 | DB 보호 | 암호화·난독화·추가 조건 없음(L-01.nodrm). 평문 SQLite 에셋 | 4.6 |
 | 파이프라인 | Python 3 표준 라이브러리, `python3 -I`. 원본은 커밋한 스냅샷으로 판 고정 | 6, 6.7 |
@@ -30,7 +30,7 @@
 | 모듈 | 종류 | 패키지 | 의존 |
 |------|------|--------|------|
 | `:core:srs` | 순수 Kotlin JVM | `com.jlptstudy.srs` | kotlinx-serialization-json만 |
-| `:core:quiz` | 순수 Kotlin JVM | `com.jlptstudy.quiz` | 없음(3순위에서 채움) |
+| `:core:quiz` | 순수 Kotlin JVM | `com.jlptstudy.quiz` | 없음(테스트만 junit). 2026-11-03 현재 `settings.gradle.kts`의 `include`와 `core/quiz/build.gradle.kts`는 있고 `src/`는 없다. M18이 9.2 시그니처로 채운다 |
 | `:app` | Android | `com.jlptstudy.app` | `:core:srs`, `:core:quiz`, Compose, Room, Navigation |
 | `content/pipeline/` | Python 스크립트 | — | 표준 라이브러리 |
 
@@ -130,15 +130,15 @@ startOfStudyDay(d)  = LocalDate.ofEpochDay(d).atStartOfDay().plusMinutes(boundar
 
 ### 4.2 테이블(Room 엔티티 = 파이프라인 스키마의 원본)
 
-`ContentDatabase` 버전 번호는 미리 정한다. 콘텐츠 DB 버전을 올리는 마일스톤은 `dependsOn`으로 한 줄로 선다.
+`ContentDatabase` 버전은 2~4순위 테이블을 **한 번에** 올린다(U-1 A, 2026-11-03 잠정). 기능 마일스톤(M12~M25)은 버전을 올리지 않고, 이미 있는 빈 테이블을 채우거나 읽기만 한다. 그래서 기능 갈래끼리 스키마 JSON으로 부딪히지 않는다(11.4).
 
 | 버전 | 마일스톤 | 추가 테이블 |
 |------|----------|-------------|
-| 1 | M2 | 아래 표 전부 |
-| 2 | M12 | `kanji_stroke`(9.4) |
-| 3 | M14 | `grammar`, `grammar_example`(9.1) |
-| 4 | M19 | `question`, `exam_template`(9.2) |
-| 5 | M23 | `listening`(9.3) |
+| 1 | M2 | 아래 표 전부(`content_meta`, `vocab`, `vocab_meaning`, `kanji`, `vocab_kanji`, `retired`) |
+| 2 | T05a(엔티티·스키마 JSON) → T05b(파이프라인·에셋) | `kanji_stroke`(9.4), `grammar`, `grammar_example`(9.1), `question`, `exam_template`(9.2), `listening`(9.3) — 열은 9절 표가 정본 |
+| 3 | QG1 | `jm_form`, `vocab_conflict` — 자동 생성 문제 오답 배제용. 열·파생 규칙의 정본은 `docs/spec/quizgen.md` 3절 |
+
+v3(QG1, `jm_form`·`vocab_conflict`)까지 정했다. v4 이후는 정하지 않았다. 9절·quizgen.md 3절 표에 없는 열이 필요해지면 새 마일스톤에서 v4를 만들고 4.5 "버전을 올릴 때"를 따른다(콘텐츠 DB는 통째 교체라 마이그레이션이 없다).
 
 **출처 열 묶음 P**(직접 작성 콘텐츠 행 공통 — `grammar`·`question`·`listening`): `source_id TEXT NOT NULL`, `ko_source TEXT NOT NULL`, `ko_method TEXT NOT NULL`, `ko_review_status TEXT NOT NULL`, `ko_reviewed_at TEXT NULL`, `ko_reviewer_kind TEXT NULL`, `needs_review INTEGER NOT NULL`. `ko_*`는 `vocab_meaning`과 같은 이름·허용 값이고 그 행의 한국어 텍스트(설명·해설·번역) 전체의 출처다. 작성 파일의 `method`·`reviewStatus`·`reviewedAt`·`reviewerKind`·`needsReview`가 그대로 들어가고 `ko_source`는 `authored`다.
 
@@ -198,9 +198,9 @@ startOfStudyDay(d)  = LocalDate.ofEpochDay(d).atStartOfDay().plusMinutes(boundar
 
 **`retired`** — `id TEXT PK`, `retired_in TEXT NOT NULL`(content_version). 학습 기록이 가리키는 옛 ID를 화면에서 빼는 근거.
 
-2순위 이후 테이블(문법·예문·문항·청해·필순)은 9절 초안을 따라 위 버전 표의 마일스톤에서 엔티티를 추가하고 `ContentDatabase` 버전을 올린다. 콘텐츠 DB는 매번 통째로 교체하므로(4.5) 마이그레이션이 필요 없다. 대신 **버전을 올리는 마일스톤은 같은 마일스톤 안에서 번들 에셋을 다시 만든다**(4.5 "버전을 올릴 때").
+2순위 이후 테이블(필순·문법·예문·문항·모의고사 템플릿·청해)은 9절 표대로 **T05a 한 마일스톤에서 엔티티 6개를 모두 추가하고 `ContentDatabase` 버전을 1 → 2로 한 번만 올린다**. 처음에는 빈 테이블이다. 콘텐츠 DB는 매번 통째로 교체하므로(4.5) 마이그레이션이 필요 없다. 버전을 올리는 T05a가 같은 마일스톤 안에서 번들 에셋을 다시 만들고(4.5 "버전을 올릴 때", 파이프라인 코드 변경 없음), T05b가 파이프라인 쪽 검사·결정성을 확인한다. 그 뒤 기능 마일스톤은 행을 채울 때만 에셋을 다시 만든다(버전은 그대로 2).
 
-**쓰는 필드:** KANJIDIC2는 `literal`, `misc/stroke_count`, `misc/freq`, `ja_on`, `ja_kun`, `korean_h`만 쓴다(매니페스트 S-02 `usedFields`와 같음). JMdict는 `ent_seq`, `keb`, `reb`, 첫 sense `pos`, sense `misc`(`uk`), `stagk`·`stagr`, 영어 `gloss`만 쓴다. `ke_pri`·`re_pri`는 쓰지 않는다(매니페스트 S-01 `usedFields`와 같음).
+**쓰는 필드:** KANJIDIC2는 `literal`, `misc/stroke_count`, `misc/freq`, `ja_on`, `ja_kun`, `korean_h`만 쓴다(매니페스트 S-02 `usedFields`와 같음). JMdict는 `ent_seq`, `keb`, `reb`, 첫 sense `pos`, sense `misc`(`uk`), `stagk`·`stagr`, 영어 `gloss`만 쓴다(QG1부터 `sense/xref`와 급수 목록 밖 동형·동음 항목의 `keb`·`reb`도 — 자동 생성 문제 배제 표 파생용, 원문은 번들하지 않음, quizgen.md 3.2·3.5). `ke_pri`·`re_pri`는 쓰지 않는다. 이 목록은 매니페스트 S-01 `usedFields`·sources.md S-01.used(`sense/stagk`·`sense/stagr` 포함)와 같다(11.3-5 완료).
 
 ### 4.3 한자 급수(파생)
 
@@ -229,7 +229,7 @@ startOfStudyDay(d)  = LocalDate.ofEpochDay(d).atStartOfDay().plusMinutes(boundar
 - 앱 시작 때 `AppContainer`가 두 DB를 `Dispatchers.IO`에서 실제로 연다(`openHelper.writableDatabase`). 실패하면 `AppState.ContentDbFailed`/`RecordDbFailed`(7절, 화면 S90). "다시 시도"는 같은 열기를 다시 한다. 학습 기록 DB 실패 때 기록을 지우는 경로를 두지 않는다.
 - DAO는 `@Query SELECT`만 둔다.
 - 학습 기록과 콘텐츠는 다른 DB라 SQL 조인하지 않는다(`ATTACH`는 Room 밖이라 쓰지 않는다). **바인드 변수 한도:** minSdk 26 기기의 SQLite는 쿼리당 변수 999개가 한도이고 Room은 `IN (:list)`를 나눠 보내지 않는다. 그래서 (1) ID 목록으로 조회하는 DAO 호출(`cardContents`, `states`)은 저장소가 **900개 단위로 나눠** 부르고, (2) "이미 카드가 있는 ID 제외"는 SQL에 넘기지 않고 메모리에서 한다(8.2 `newCardOrder`). 없거나 `retired`인 ID는 결과에서 뺀다(학습 기록은 지우지 않는다). 홈 수치와 복습 대기열이 쓰는 기한 카드 집합도 이 규칙을 거친 한 함수(8.2 `SessionCards.load`)로만 만든다.
-- **버전을 올릴 때:** `ContentDatabase` 버전을 올리는 마일스톤은 같은 마일스톤에서 (1) 새 스키마 JSON을 내보내고, (2) 현재 에셋과 같은 `kind`로 `python3 -I content/pipeline/build.py`(스냅샷 이후 단계, 6.2)를 돌려 `content.db`를 다시 만들어 에셋에 넣고 `content.db.sha256`을 갱신하고, (3) 번들 DB를 `createFromAsset`으로 여는 Robolectric 테스트를 통과시킨다. 에셋의 `user_version`이 옛 버전으로 남으면 Room이 열기에 실패한다(마이그레이션 없음).
+- **버전을 올릴 때(지금 계획에서는 T05a의 1 → 2 한 번뿐):** `ContentDatabase` 버전을 올리는 마일스톤은 같은 마일스톤에서 (1) 새 스키마 JSON을 내보내고, (2) 현재 에셋과 같은 `kind`로 `python3 -I content/pipeline/build.py`(스냅샷 이후 단계, 6.2)를 돌려 `content.db`를 다시 만들어 에셋에 넣고 `content.db.sha256`을 갱신하고, (3) 번들 DB를 `createFromAsset`으로 여는 Robolectric 테스트를 통과시킨다. 에셋의 `user_version`이 옛 버전으로 남으면 Room이 열기에 실패한다(마이그레이션 없음).
 
 ### 4.6 라이선스 반영(D-01, L-01, N-02)
 
@@ -241,7 +241,7 @@ startOfStudyDay(d)  = LocalDate.ofEpochDay(d).atStartOfDay().plusMinutes(boundar
 
 ## 5. 학습 기록 DB(Room)
 
-`StudyDatabase` 버전 1, 파일 이름 `study.db`, `exportSchema = true`(`app/schemas/`), 릴리스에서 `fallbackToDestructiveMigration` 금지. 스키마를 바꾸는 마일스톤은 `Migration`과 Robolectric 마이그레이션 테스트를 함께 낸다(M19가 첫 사례: v1→v2).
+`StudyDatabase` 버전 1(T06에서 2, 9.2.4), 파일 이름 `study.db`, `exportSchema = true`(`app/schemas/`), `fallbackToDestructiveMigration*` 호출 금지(릴리스·디버그 모두). 스키마를 바꾸는 마일스톤은 `Migration`과 `MigrationTestHelper` Robolectric 마이그레이션 테스트를 함께 낸다(T06이 첫 사례: v1→v2, 9.2.4). 아래 v1 표 세 테이블은 v2에서도 바뀌지 않는다.
 
 **`card_state`**
 | 열 | 타입 | 내용 |
@@ -384,7 +384,7 @@ Python 3 표준 라이브러리, 실행은 `python3 -I`. 디렉터리는 `conten
 | 뜻 행 | `vocab_meaning`의 `ko_*` 필수 열이 비었거나 허용 값 밖, `ko_review_status != 'unreviewed'`인데 `ko_reviewed_at`이 비었음, 뜻 행이 없는 `vocab` |
 | 출처 열 | `grammar`·`question`·`listening` 행의 출처 열 묶음 P(4.2)가 비었거나 허용 값 밖, `ko_review_status != 'unreviewed'`인데 `ko_reviewed_at`이 비었음 |
 | 저작자 표시 | `attribution.json`에 DB의 `source_id`·`level_source_id`가 빠짐, S-01·S-02를 쓰는데 그 항목 `links`가 비었음(S-01.docs), `attribution_fallback.xml`이 `attribution.json`으로 만든 값과 다름, `notices[].body`·`firstNotice.body`에 채우지 않은 `{…}` 자리가 남음, `meaningSourceTexts`에 6.6의 키 7개 중 하나라도 빠짐, `grammar` 또는 `question` 행이 있는데 `notices`에 N-11 없음, `listening` 행이 있는데 N-12 없음, `release` 빌드에서 `sources[]`(`authored` 제외)의 `attribution`·`licenseUrl`·`modifications` 중 하나라도 null·빈 문자열(값은 analyst가 매니페스트에 채운다 — 7절 `SourceUi`가 non-null) |
-| 앱 자산 | `release` 빌드인데 매니페스트에서 `scope`가 `app-asset`으로 시작하는 자료(S-11 Material Symbols 등, 파이프라인이 받지 않고 손으로 `res/`에 넣는 자료)가 `confirmed` 아님 |
+| 앱 자산 | `release` 빌드인데 매니페스트에서 `scope`가 `app-asset` 또는 `generated-asset`으로 시작하는 자료(S-11 Material Symbols, S-12 앱 아이콘 생성 이미지 등, 파이프라인이 받지 않고 손으로 `res/`에 넣는 자료)가 `confirmed` 아님. `generated-asset`까지 넓히는 것은 T13(G-S12 뒤, 10절) |
 | 스냅샷 | `content_meta.sources`의 스냅샷 해시가 `content/snapshot/` 파일과 다름 |
 | 크기 | 6.3 예산 초과 |
 
@@ -418,7 +418,7 @@ Python 3 표준 라이브러리, 실행은 `python3 -I`. 디렉터리는 `conten
 ```
 
 - `sources`는 DB에 실제로 쓰인 `source_id`·`level_source_id`의 자료만, 모두 `confirmed`여야 한다(검사). `authored`는 "이 앱 작성 콘텐츠"로 고정 항목.
-- **`notices`는 파이프라인이 본문을 완성한다.** 항목은 `{id, title, body}`뿐이고 `showWhen` 같은 조건 필드는 두지 않는다. ui-design 9.2의 고지 1~4(N-09, N-10, N-11, N-12)를 `content/notices.ko.json`(문구 틀)으로 만들며 `{levelListName}`·`{modelNames}`·`{reviewPolicy}` 자리와 N-10의 "`ko_source`별 문장 중 DB에 있는 종류만" 이어 붙이기도 빌드 때 파이프라인이 한다. 넣을지 여부도 빌드 때 판정한다: N-11은 `grammar` 또는 `question` 행이 DB에 있을 때(문법을 처음 적재하는 M15부터), N-12는 `listening` 행이 있을 때(D-04 결정 뒤, M24)만 넣는다. 앱은 `notices`를 받은 순서 그대로 보이고 문장을 조립하지 않는다. **콘텐츠 DB 라이선스(N-08)는 `notices`에 넣지 않고 `dbLicense`에만 둔다.**
+- **`notices`는 파이프라인이 본문을 완성한다.** 항목은 `{id, title, body}`뿐이고 `showWhen` 같은 조건 필드는 두지 않는다. ui-design 9.2의 고지 1~4(N-09, N-10, N-11, N-12)를 `content/notices.ko.json`(문구 틀)으로 만들며 `{levelListName}`·`{modelNames}`·`{reviewPolicy}` 자리와 N-10의 "`ko_source`별 문장 중 DB에 있는 종류만" 이어 붙이기도 빌드 때 파이프라인이 한다. 넣을지 여부도 빌드 때 판정한다: N-11은 `grammar` 또는 `question` 행이 DB에 있을 때(문법을 처음 적재하는 M15부터), N-12는 `listening` 행이 있을 때(D-04 결정 뒤, M24)만 넣는다. N-09의 **문법 급수 문장**(ui-design 9.2 고지 1·sources.md N-09.not-official, UI-U12 A)은 `content/notices.ko.json`의 `notices.N-09.grammarPrefix` 키 값이고, `grammar` 행이 있을 때만 N-09 본문 **앞에** 붙인다(본문과 사이는 ui-design 9.2 문구대로). 없으면 붙이지 않는다 — 본문 안에 지울 자리를 두지 않는다(M15부터, 새 고지 ID 없음). 앱은 `notices`를 받은 순서 그대로 보이고 문장을 조립하지 않는다. **콘텐츠 DB 라이선스(N-08)는 `notices`에 넣지 않고 `dbLicense`에만 둔다.**
 - 앱이 DB에서 세는 것은 N-10 아래 **검수 집계 줄 하나**뿐이다(`ContentRepository.meaningReviewCounts(): ReviewCounts`). `ko_source` 종류는 세지 않는다(본문에 이미 반영됨). 집계 줄의 틀("한국어 뜻 {n}개 — …", ui-design 8절)은 출처 문구가 아니라 앱 문자열 리소스다.
 - `modelNames`: 파이프라인이 DB `ko_method`(`llm:<모델>@<날짜>`)에서 모은 중복 없는 목록(정렬). 앱은 이 값을 그대로 쓰고 DB에서 다시 모으지 않는다.
 - `links`·`extraCredits`는 매니페스트 자료 항목의 같은 이름 필드를 **그대로** 옮긴다(파이프라인이 번역·가공하지 않는다). 화면은 `extraCredits[].text`를 원문 그대로 보인다(한글이 있으면 `ko-KR`, 없으면 `en` 로캘). 그래서 S-02 한국어 음 크레딧의 표시 문구는 매니페스트 S-02 `extraCredits[0].text` 값 자체인 "한국어 음: Charles Muller 제공(KANJIDIC2 경유)"(`ko-KR`)이며, 문구를 바꾸려면 analyst가 매니페스트를 고친다. S-02 `attribution` 원문에는 한국어 음 문장이 없다.
@@ -437,7 +437,7 @@ Python 3 표준 라이브러리, 실행은 `python3 -I`. 디렉터리는 `conten
 
   키 선택과 `{model}` 채우기는 칩 문구와 같은 객체 `ProvenanceLabel`의 `sheetText(meaning: MeaningUi, texts: Map<String, String>): String` 한 곳에서 한다(키 7개 전부 단위 테스트). 문장 자체는 ui-design 5.7이 정하고 `content/notices.ko.json`에 둔다.
 - 최소 표시: 파이프라인이 같은 입력으로 `app/src/main/res/values/attribution_fallback.xml`(문자열 하나 `attribution_fallback`: **DB에 쓰인 자료**의 `attribution` 원문 + `licenseUrl` + "콘텐츠 DB: {dbLicense.name} {dbLicense.url}")을 만든다. 특정 자료(S-01)를 고정으로 넣지 않으며, 샘플 DB(`authored`만)에서도 생성된다. 자료가 `confirmed`인지는 생성 단계가 아니라 `release` 빌드의 검사(6.5 "종류"·"저작자 표시")가 판정한다. 앱은 `attribution.json`을 읽지 못하면 이것만 보인다(ui-design 9.4, S09 실패 상태 문구도 이것).
-- 앱 쪽 라이선스(`app/src/main/assets/licenses/`, 손으로 커밋)가 **S-11(Material Symbols)과 의존 라이브러리의 고지 경로**다: `py-fsrs.txt`(MIT 전문, 2.1), `apache-2.0.txt`(Apache-2.0 전문 — S-11과 AndroidX 등 Apache-2.0 라이브러리 공용), `libraries.json`(`[{"name","license","url","distributed"}]` — `gradle/libs.versions.toml`의 `[libraries]` 항목마다 한 줄, 시험 전용은 `distributed: false`, 그리고 S-11 Material Symbols 한 줄). 라이브러리는 sources.md 행을 두지 않고 `libraries.json`으로만 기록한다. 아이콘 파일 이름은 ui-design 3.5와 같다: 채움 0은 `res/drawable/ic_ms_<이름>.xml`, 채움 1 변형은 `ic_ms_<이름>_fill.xml`. 단위 테스트가 (1) `libs.versions.toml`의 `[libraries]` 키가 모두 `libraries.json`에 있는지, (2) `ic_ms_*.xml` 파일마다 앞의 `ic_ms_`와 끝의 `.xml`을 떼고, 남은 이름이 `_fill`로 끝나면 그것도 뗀 기본 이름이 매니페스트 S-11 `usedFields`(기본 이름 배열)에 있는지 확인한다. `_fill` 파일은 같은 기본 이름의 `ic_ms_<이름>.xml`이 없어도 된다. S-11은 fetch를 거치지 않으므로 "confirmed 아니면 받지 않는다"는 안전장치가 닿지 않는다. 그래서 개발(M2~M7)은 S-11 `unconfirmed`로도 진행하되, `release` 빌드 검사 "앱 자산"(6.5)과 게이트 `G-S11`(10절)이 출시 DB 빌드 전에 확정을 요구한다. S-11이 끝내 확정되지 않으면 아이콘을 다른 확정 자료로 바꾸는 마일스톤을 새로 만든다.
+- 앱 쪽 라이선스(`app/src/main/assets/licenses/`, 손으로 커밋)가 **S-11(Material Symbols)과 의존 라이브러리의 고지 경로**다: `py-fsrs.txt`(MIT 전문, 2.1), `apache-2.0.txt`(Apache-2.0 전문 — S-11과 AndroidX 등 Apache-2.0 라이브러리 공용), `libraries.json`(`[{"key","name","license","url","distributed","fullText"}]` — `gradle/libs.versions.toml`의 `[libraries]` 항목마다 한 줄(`key` = 카탈로그 키), 시험 전용은 `distributed: false`, 그리고 S-11 Material Symbols 한 줄(`key` `material-symbols`)·py-fsrs 한 줄. `fullText`는 같은 폴더의 라이선스 전문 파일 이름(`apache-2.0.txt`·`py-fsrs.txt`)이고 `distributed: true` 줄에만 있으며, `AttributionRepository`가 이 값을 `LicenseUi.fullTextAsset`에, 그 파일 내용을 `LicenseUi.fullText`에 넣는다(키가 없으면 둘 다 null이고 전문 카드에 나오지 않는다). S-11의 표시 문구("Material Symbols © Google, Apache License 2.0")는 배포처가 요구하지 않으므로(sources.md S-11.attribution) 따로 키를 두지 않고 `name`·`license`·`fullText`로 보인다). 라이브러리는 sources.md 행을 두지 않고 `libraries.json`으로만 기록한다. 아이콘 파일 이름은 ui-design 3.5와 같다: 채움 0은 `res/drawable/ic_ms_<이름>.xml`, 채움 1 변형은 `ic_ms_<이름>_fill.xml`. 단위 테스트가 (1) `libs.versions.toml`의 `[libraries]` 키가 모두 `libraries.json`에 있는지, (2) `ic_ms_*.xml` 파일마다 앞의 `ic_ms_`와 끝의 `.xml`을 떼고, 남은 이름이 `_fill`로 끝나면 그것도 뗀 기본 이름이 매니페스트 S-11 `usedFields`(기본 이름 배열)에 있는지 확인한다. `_fill` 파일은 같은 기본 이름의 `ic_ms_<이름>.xml`이 없어도 된다. S-11은 fetch를 거치지 않으므로 "confirmed 아니면 받지 않는다"는 안전장치가 닿지 않는다. 그래서 개발(M2~M7)은 S-11 `unconfirmed`로도 진행하되, `release` 빌드 검사 "앱 자산"(6.5)과 게이트 `G-S11`(10절)이 출시 DB 빌드 전에 확정을 요구한다. S-11이 끝내 확정되지 않으면 아이콘을 다른 확정 자료로 바꾸는 마일스톤을 새로 만든다.
 
 ### 6.7 원본 고정(스냅샷)
 
@@ -457,23 +457,36 @@ JMdict·KANJIDIC2는 같은 URL이 매일, Tatoeba는 매주 덮어써지므로 
   - `S-01-<version>.jsonl.gz`: 급수 목록 행에 채택되었거나 unmatched 후보인 JMdict 항목만(급수 목록의 **모든 급수**, 그래서 N4 이후 확장도 다시 받지 않는다). 필드는 `ent_seq`, `keb`·`reb` 목록, 첫 sense 품사, sense별 `misc`의 `uk` 여부, `stagk`·`stagr`(있을 때만), 영어 gloss만.
   - `S-02-<version>.jsonl.gz`: 위 항목들의 `keb`에 나오는 문자의 KANJIDIC2 4.2 필드만.
   - `levels-<levelSource>-<version>.tsv`: 급수 목록 행(`LevelRow`). 공개 저장소에 커밋하지 않기로 하면(decisions.md D-08, 미정) 이 파일 대신 방식 B — 원본 사본을 저장소 밖 고정 위치(릴리스 첨부)에 판별로 두고 매니페스트 `pinning.method = "archive"`, `pinning.pinnedCopy` = 그 사본 URL로 적는다(`downloadUrl`·`files[].url`은 원 URL 그대로).
-  - `S-03-<version>.jsonl.gz`(M13): DB 한자의 `kvg:StrokePaths` 경로만(`kvg:StrokeNumbers`는 읽지 않는다. 획 번호는 앱이 계산한다, 9.4).
+  - `S-03-<version>.jsonl.gz`(M13): S-02 스냅샷 한자 중 KanjiVG에 있는 것(모든 급수 — S-01·S-02와 같은 범위라 N3 이후 확장도 다시 받지 않는다. DB 한자는 그 부분집합이고 빌드가 DB에 있는 한자만 `kanji_stroke`에 넣는다)의 `kvg:StrokePaths` 경로만(`kvg:StrokeNumbers`는 읽지 않는다. 획 번호는 앱이 계산한다, 9.4).
   - `S-04-<version>.jsonl.gz`(Tatoeba 예문을 처음 쓰는 마일스톤, S-04 `confirmed` 뒤 — 지금 마일스톤 목록에는 없다): DB에 넣는 문장 행만(`id`, `lang`, `text`, `username`, 문장별 라이선스, jpn–kor 연결). 매주 덮어써지는 원 URL과 무관하게 다시 빌드할 수 있게 한다. 이 마일스톤을 만들 때 refresh-snapshot 대상에 S-04를 더한다.
-  - `LICENSE.md`: 자료별 저작자 표시 문구·라이선스 URI·"원 자료에서 일부 필드만 뽑음"이라는 변경 내용(CC BY-SA 4.0 재배포 조건).
+  - `LICENSE.md`: 자료별 저작자 표시 문구·라이선스 URI·"원 자료에서 일부 필드만 뽑음"이라는 변경 내용. 재배포 조건은 **자료마다 그 자료의 라이선스**를 따른다(S-01·S-02 CC BY-SA 4.0, S-03 KanjiVG CC BY-SA 3.0 등 — 매니페스트 `license`·`licenseUrl` 그대로). 한 라이선스로 묶어 적지 않는다.
 - 스냅샷은 결정적이다: 행은 키 순서로 정렬, JSON 키 정렬, gzip `mtime=0`. 같은 원본으로 두 번 만들면 sha256이 같다.
 - 빌드(6.2 `build.py`)는 스냅샷만 읽는다. `check`·다시 빌드·새 작업 공간·다른 컴퓨터에서 fetch가 필요 없다. 스냅샷을 바꾸는 것(D-07)은 콘텐츠 갱신 작업이며 ID 안정성 검사(6.5)와 stale gloss 보고를 거친다.
+
+### 6.8 검수 도구(T07, U-4 A)
+
+`build.py`의 하위 명령 셋과 검사 하나. 표준 라이브러리만, 네트워크 없음. 대상(`--target`)은 `ko-gloss/N<급>`(`content/ko-gloss/N<급>.jsonl`의 행), `grammar/N<급>`, `questions/N<급>`, `listening/N<급>`(`content/authored/<종류>/N<급>/*.json` 파일 하나 = 행 하나).
+
+| 명령 | 입력 → 출력 | 규칙 |
+|------|-------------|------|
+| `review-sample --target T --ratio R --seed S` | 대상 행 → `_workspace/review/<T의 /를 _로>-<S>.ids`(ID 한 줄씩) | 행을 ID로 정렬한 뒤 `random.Random(S).sample`로 `ceil(행 수 × R)`개. 같은 입력·S → 같은 파일(바이트 동일). R은 0 < R ≤ 1 |
+| `review-sheet --target T --ids F` | → 같은 이름의 `.tsv`·`.html` | 열: `id`, `ja`(일본어: 어휘 `written`/`reading`, 문법 `title`, 문항 `stem`, 청해 `lines` 이은 것), `ko`(한국어 필드 전부, ` / `로 이음), `source`(`koSource`·`method`·`sources`), `reviewStatus`, 그리고 사람이 채우는 빈 열 `verdict`(`ok`/`fix`), `note`, `reviewer`(`human`/`agent`). HTML은 같은 내용의 표(`lang="ja"`·`lang="ko"` 속성) |
+| `review-apply --target T --sheet F.tsv --date YYYY-MM-DD [--batch-sampled]` | 시트 → 원본 파일(`ko-gloss` jsonl 또는 `authored` json) | `verdict`가 있는 행만 `reviewStatus = reviewed`, `reviewedAt = --date`, `reviewerKind = 그 행 reviewer`로 고친다. **`reviewer`가 빈 행은 고치지 않는다**(`human`을 추정해 쓰지 않는다). `verdict = fix`면 원본 텍스트는 바꾸지 않고 `_workspace/review/<…>-fix.tsv`에 남긴다(고치는 일은 작성자 몫). `--batch-sampled`면 표본 밖 행 중 `reviewStatus == unreviewed`인 것만 `sampled`(`reviewedAt` 같음, `reviewerKind` 표본의 값)로 둔다. 다른 필드·행 순서·JSON 키 순서는 그대로 |
+| `authored` 단계 유사 검사 | `content/authored/{grammar,questions,listening}` | 같은 종류 안 두 항목의 일본어 본문(문법 `examples[].ja`, 문항 `stem`+`passage`, 청해 `lines[].text`, 루비·`[[…]]` 표기를 떼고 공백 제거)의 `difflib.SequenceMatcher.ratio() >= 0.9`이면 `WARN: similar <id1> <id2> <ratio>` 한 줄(실패 아님). 같은 문장이 정확히 같으면(1.0) 같은 줄을 `FAIL: authored duplicate <id1> <id2>`로 바꾼다 |
+
+`reviewerKind`·`reviewStatus` 허용 값은 4.2·6.4와 같다. 화면은 이 값대로 "AI 검수"/"사람 검수"를 보인다(U-4 A — 사람 검수가 없으면 "AI 검수" 그대로).
 
 ## 7. 앱 화면 구조와 UI 상태 모델
 
 내비게이션: `NavigationSuiteScaffold`(하단 탭 ↔ 큰 화면 레일) 목적지 `홈`(Home), `사전`(Dictionary, 단어·한자 두 탭), `설정`(Settings). 2순위 이후 `문법`·`연습`이 더해진다(구현 전에는 숨김). 전체 화면 라우트: `LevelSelect`(S01, 첫 실행), `Review`(S03, 끝나면 S04 완료 화면), `VocabDetail(id)`(S06), `KanjiDetail(literal)`(S07), `About(anchor: String? = null)`(S09 "출처와 라이선스" — 설정 행에서 한 번, 홈 상단 메뉴 "정보"에서 두 번, S90의 "출처 보기"), `AppError`(S90). 라우트는 `@Serializable` 객체·data class(Navigation Compose 2.10.2 타입 안전 라우트).
 
 - **위치 인자:** `About.anchor`는 고지 ID(`N-09` 등) 또는 자료 ID(`S-03` 등)다. 화면이 LOADED가 되면 그 카드로 스크롤하고, 그런 카드가 없거나 `null`이면 맨 위다(ui-design 5.9·5.11·6.6·6.7.1의 "S09의 해당 고지·자료 카드로"). 설정 탭 목적지는 `Settings(openLevelPicker: Boolean = false)`이고 `true`로 오면 학습 급수 `LevelPicker` 하단 시트를 연 채로 시작한다(홈 `NO_LEVEL_SELECTED`의 "급수 고르기"). 탭을 직접 누르면 인자는 기본값이다.
-- **2순위 이후 목적지:** `문법` 탭은 M14, `연습` 탭(S12)은 M19에서 보이게 하고, 청해 진입(S12의 청해 영역)은 M23에서 더한다.
+- **2순위 이후 목적지:** `문법` 탭은 M14, `연습` 탭(S12)은 M19b에서 보이게 하고, 청해 진입(S12의 청해 영역)은 M23에서 더한다. 라우트: `GrammarDetail(id: String)`(S11, M14), `ExamStart(level: JlptLevel)`(S14 시작 화면, M19c), `Quiz(attemptId: Long)`(S13·S14, M19b·M19c), `QuizResult(attemptId: Long)`(S15, M19d), `Listening(attemptId: Long)`(S16, M23). `ExamStart`만 시도를 만들기 **전** 화면이다(9.2.6 `ExamStartUiState`): 그 화면의 "시작"이 `startAttempt`를 부르고 `Quiz(attemptId)`로 바꿔 간다(`ExamStart`는 백 스택에서 뺀다). 나머지는 시도를 만든 뒤(9.2.6 `QuizRepository.startAttempt`) 그 ID로 이동하므로 프로세스가 죽어도 라우트 인자로 다시 연다. `ExamStart`는 저장한 것이 없으므로 다시 열면 세트를 새로 만든다. 탭은 `Grammar`·`Practice` 목적지(인자 없음).
 - **시작:** `AppState.Opening` 동안에는 `NavHost`를 만들지 않고 전체 화면 `StatusScreen` 로딩(300 ms가 지나면 "학습 콘텐츠를 준비하고 있습니다" — 첫 실행의 에셋 복사가 여기서 일어난다, 4.5)을 그린다. `Ready(needsOnboarding = true)`면 시작 라우트 `LevelSelect`, `Ready(false)`면 홈. `ContentDbFailed`·`RecordDbFailed`면 **같은 `NavHost`**를 시작 라우트 `AppError`로 만들고, 그 그래프에 `About`이 있어 S90의 "출처 보기"로 간다(탭 목적지는 그리지 않는다). 그래서 S01의 `LevelStatus.PREPARING`은 에셋 복사가 아니라 `levelCounts()` 계산 중이다.
 
 화면 상태의 종류는 ui-design 13.1을 따른다. 데이터 필드 이름은 이 문서를 따른다. 모든 화면 상태는 `data class XxxUiState` + 화면별 상태 enum, `StateFlow`를 `stateIn(viewModelScope, WhileSubscribed(5_000), 초기값)`.
 
-일본어 텍스트: 테마의 `JpTypography`(스타일 묶음, `localeList = LocaleList("ja-JP")`, `LocalJpTypography`로 제공)·`JpSpan`(미리 만든 `SpanStyle`)과 `JpText`만 쓴다. 섞인 문장은 `JpSpans.annotate`(4.4) 또는 `buildAnnotatedString` + `JpSpan`. **낭독 문구:** 일본어가 섞이는 접근성 문구(카드 앞·뒷면 낭독, 정답·오답 알림, 후리가나 노드의 ", 읽기 …")는 `contentDescription`이 아니라 `Modifier.semantics { text = <AnnotatedString, 일본어 구간에 JpSpan> }`(필요하면 `clearAndSetSemantics`)로 만들고 `liveRegion`도 그 노드에 건다. `contentDescription`·`onClickLabel`·`stateDescription`·`announceForAccessibility`는 String이라 로캘을 담지 못하므로 일본어를 넣지 않는다.
+일본어 텍스트: 테마의 `JpTypography`(스타일 묶음, `localeList = LocaleList("ja-JP")`, `LocalJpTypography`로 제공)·`JpSpan`(미리 만든 `SpanStyle`)과 `JpText`만 쓴다. 섞인 문장은 `JpSpans.annotate`(4.4) 또는 `buildAnnotatedString` + `JpSpan`. **낭독 문구:** 일본어가 섞이는 접근성 문구(카드 앞·뒷면 낭독, 정답·오답 알림, 후리가나 노드의 ", 읽기 …")는 `contentDescription`이 아니라 `Modifier.semantics { text = <AnnotatedString, 일본어 구간에 JpSpan> }`(필요하면 `clearAndSetSemantics`)로 만들고 `liveRegion`도 그 노드에 건다. `contentDescription`·`onClickLabel`·`stateDescription`·`announceForAccessibility`는 String이라 로캘을 담지 못하므로 일본어를 넣지 않는다. **`clearAndSetSemantics`와 동작:** `clearAndSetSemantics`는 같은 노드에서 체인상 그보다 안쪽(뒤)에 있는 수정자와 모든 자식의 시맨틱(`role`·`selected`·`toggleableState`·`stateDescription`·`onClick`)을 지운다. 그래서 동작이 있는 노드(선택지 행·토글·버튼)는 (a) `selectable`·`toggleable`·`clickable`을 `clearAndSetSemantics`보다 **바깥(체인 앞)**에 두거나, (b) 블록 안에서 `role`·`selected`(또는 `toggleableState`)·`stateDescription`·`onClick(label)`을 다시 선언한다(기존 `ReviewScreen.kt` 후리가나 토글이 (b)). 지워지는 자식(`RadioButton` 등)의 시맨틱에 기대지 않는다. 테스트는 `Text`의 `JpSpan`과 함께 `Role`·`Selected`·`OnClick`이 그 노드에 있는지 본다(M19b).
 
 ```kotlin
 enum class JlptLevel(val n: Int) { N5(5), N4(4), N3(3), N2(2), N1(1) }
@@ -575,7 +588,11 @@ data class VocabDetailUiState(val status: DetailStatus = DetailStatus.LOADING, v
     val reading: String = "", val ruby: List<RubySegment> = emptyList(), val level: JlptLevel? = null,
     val pos: List<String> = emptyList(), val meanings: List<MeaningUi> = emptyList(),
     val kanji: List<String> = emptyList(), val cardStates: List<CardStateSummary> = emptyList())
+enum class CardProgress { NEW, LEARNING, REVIEW }   // ui-design 6.6 "새 카드 / 학습 중 / 다음 복습 {날짜}"
+data class CardStateSummary(val kind: CardKind, val progress: CardProgress,
+    val dueAtEpochMs: Long? = null)                 // REVIEW일 때만 쓴다(UTC epoch ms, 날짜 표시는 3절 학습일 규칙)
 data class KanjiDetailUiState(val status: DetailStatus = DetailStatus.LOADING, val literal: String = "",
+    val level: JlptLevel? = null,                   // 머리 급수 칩 "N5 단어에 쓰인 한자 · 비공식"(ui-design 6.7, 4.3 파생 급수). null = 칩 숨김
     val strokeCount: Int = 0, val on: List<String> = emptyList(), val kun: List<String> = emptyList(),
     val koreanReadings: List<String> = emptyList(), val words: List<WordRef> = emptyList(),
     val strokes: List<String>? = null) // null = 필순 데이터 없음 → 절 숨김(S-03 확정 전)
@@ -607,7 +624,8 @@ data class SourceUi(val id: String, val name: String, val version: String?, val 
 data class AttributionData(val contentVersion: String, val kind: String, val dbLicense: LinkUi, val levelListName: String?,
     val modelNames: List<String>, val reviewPolicy: String?, val sources: List<SourceUi>, val notices: List<NoticeUi>,
     val firstNotice: NoticeUi?, val meaningSourceTexts: Map<String, String>)          // attribution.json(6.6)을 그대로 옮긴 값
-data class LicenseUi(val name: String, val license: String, val url: String?, val fullTextAsset: String?) // assets/licenses/
+data class LicenseUi(val name: String, val license: String, val url: String?, val fullTextAsset: String?, // libraries.json fullText(6.6)
+    val fullText: String? = null)                                              // assets/licenses/<fullTextAsset> 내용
 data class ReviewCounts(val total: Int, val human: Int, val agent: Int, val sampled: Int, val unreviewed: Int, val reviewerUnrecorded: Int)
 data class AboutUiState(val status: AboutStatus = AboutStatus.LOADING, val contentVersion: String = "",
     val dbLicense: LinkUi? = null, val notices: List<NoticeUi> = emptyList(), val sources: List<SourceUi> = emptyList(),
@@ -751,55 +769,478 @@ interface AttributionRepository {
     suspend fun load(): AttributionData             // assets/content/attribution.json. 읽기·파싱 실패는 예외(M5에서 만든다)
     suspend fun openSourceLicenses(): List<LicenseUi> // assets/licenses/(M7에서 만든다)
 }
-interface Speaker {                                               // 4순위, D-04와 무관하게 이 인터페이스 뒤
+// 패키지 com.jlptstudy.app.speech(9.3). 4순위, D-04와 무관하게 이 인터페이스 뒤. 2026-11-03 확정(9.3.2).
+enum class Voice { MALE, FEMALE, NARRATOR }          // 대본 lines[].speaker "M" / "F" / "N"
+data class SpeechLine(val text: String, val voice: Voice) // text = 읽을 문자열(ttsText 또는 루비를 뗀 본문, 9.3.1)
+interface Speaker {
     val state: StateFlow<SpeakerState>
-    fun speak(utteranceId: String, text: String, rate: Float = 1.0f) // rate: 1.0 = 보통, ui-design 5.8 토글은 0.8f/1.0f.
-                                                                  // 기기 TTS는 setSpeechRate(rate), 사전 생성 음성은 재생기 속도.
-                                                                  // Ready → Playing(utteranceId) → 끝나거나 stop() → Ready
-    fun stop()
+    /** lines를 순서대로 읽는다. Ready·Playing에서만 동작(Playing이면 앞 재생을 끊고 새로 시작), 그 밖의 상태에서는 아무것도 하지 않는다.
+     *  rate: 1.0 = 보통, ui-design 5.8 토글은 0.8f/1.0f. 기기 TTS는 setSpeechRate(rate), 사전 생성 음성은 재생기 속도.
+     *  Ready → Playing(utteranceId) → 마지막 줄이 끝나거나 stop() → Ready. 재생 중 엔진 오류 → Error. */
+    fun speak(utteranceId: String, lines: List<SpeechLine>, rate: Float = 1.0f)
+    fun stop()                                                    // Playing이면 Ready로. 다른 상태는 그대로
     fun shutdown()                                                // 이 인스턴스만 해제. 이후 재사용하지 않는다
 }
 sealed interface SpeakerState {
-    data object Initializing : SpeakerState  // 10초 안에 초기화가 끝나지 않으면 구현이 Error로 바꾼다
+    data object Initializing : SpeakerState  // 엔진 연결 중. 10초 안에 끝나지 않으면 구현이 Error로 바꾼다
     data object Ready : SpeakerState
     data class Playing(val utteranceId: String) : SpeakerState
-    data object MissingJapaneseData : SpeakerState
-    data object NoEngine : SpeakerState
-    data object Error : SpeakerState
+    data object MissingJapaneseData : SpeakerState // setLanguage(Locale.JAPAN)이 LANG_MISSING_DATA 또는 LANG_NOT_SUPPORTED
+    data object NoEngine : SpeakerState            // 설치된 TTS 엔진 0개(TextToSpeech.engines 비었음) 또는 onInit ERROR이면서 엔진 0개
+    data object Error : SpeakerState               // 초기화 시간 초과, 엔진이 있는데 onInit ERROR, 재생 중 onError
 }
 // AppContainer.speakerFactory: () -> Speaker. 청해 ViewModel이 생성 때 하나 만들고 onCleared에서 그것만 shutdown.
+// 다시 시도(Error)·설치·설정 후 돌아옴(ON_START에서 MissingJapaneseData·NoEngine·Error, 9.3.2): ViewModel이 지금 인스턴스를 shutdown하고 speakerFactory()로 새로 만든다.
+// 인터페이스에 retry·init을 두지 않는다.
 // AudioFileMissing(ui-design 5.8)은 D-04 B(사전 생성 음성) 구현이 생길 때 더한다.
 ```
 
-## 9. 2~4순위 초안(해당 마일스톤 착수 때 확정)
+## 9. 2~4순위 계약(2026-11-03 확정, U-1 A)
+
+이 절의 표·시그니처가 정본이다. 마일스톤 착수 때 다시 정하지 않는다. 바꿔야 하면 이 문서를 먼저 고치고 변경 이력에 남긴다.
+
+### 9.0 공통(콘텐츠 DB v2)
+
+- **엔티티:** T05a가 `data/content/ContentEntities.kt`에 `KanjiStrokeEntity`, `GrammarEntity`, `GrammarExampleEntity`, `QuestionEntity`, `ExamTemplateEntity`, `ListeningEntity`를 더하고 `@Database(entities = [...], version = 2)`에 넣는다. 스키마 JSON은 `app/schemas/com.jlptstudy.app.data.content.ContentDatabase/2.json`.
+- **타입 대응:** Kotlin `String` → `TEXT NOT NULL`, `String?` → `TEXT`(NULL 허용), `Int` → `INTEGER NOT NULL`, `Boolean` → `INTEGER NOT NULL`(0/1). 콘텐츠 DB 엔티티에는 `@ColumnInfo(defaultValue)`를 두지 않는다(파이프라인이 모든 열을 쓴다). 열 이름은 아래 표의 snake_case(`@ColumnInfo(name = …)`), Kotlin 속성은 camelCase. 인덱스는 표에 적은 것만 둔다(`@Entity(indices = [Index(…)])`, 이름은 Room 기본값).
+- **`level`:** `vocab.level`과 같은 정수 5..1. 작성 파일의 `"level": "N5"` → 5.
+- **`sort_key`:** 문항·청해는 ID 끝 4자리 번호(`q-n5-vocab-0040` → 40). 문법은 9.1.
+- **`*_json` 열:** UTF-8 JSON 텍스트. 키는 작성 파일의 camelCase 그대로. 파이프라인은 `json.dumps(v, ensure_ascii=False, sort_keys=True, separators=(",", ":"))`로 쓴다(결정적). 앱은 `kotlinx-serialization-json`(`:app`에 이미 있음)으로 `ignoreUnknownKeys = true`로 읽는다. 파싱에 실패한 행은 그 항목만 없는 것으로 다룬다(목록에서 빠짐, 상세는 `RETIRED`). 앱이 죽지 않는다.
+- **필드 종류:** "일본어 필드"는 루비 `{…|…}`와 대상 구간 `[[…]]`를 쓸 수 있다(4.4). "한국어 필드"는 둘 다 쓸 수 없다(4.4, `authored` 단계 FAIL).
+- **출처 열 묶음 P(4.2):** `grammar`·`question`·`listening`의 끝 7열. `source_id`는 `authored`(외부 문장을 쓰면 그 자료 ID). `ko_source`는 `authored`.
+- **작성 파일의 `status`:** `retired`는 DB에 넣지 않고 ID를 `retired` 표에 남긴다. `draft`·`reviewed`는 넣는다(검수 상태는 P가 화면에 보인다).
+- **배포 ID 목록:** `content/ids/<kind>/grammar.txt`, `question.txt`, `listening.txt`. 각 종류의 행을 처음 적재하는 마일스톤(M15·M20·M24)이 만든다. `kanji_stroke`는 `kanji.txt`의 문자가 키이고, `exam_template`은 급수가 키라 목록을 두지 않는다.
+- **DAO:** SELECT만(4.5). T05a는 테이블마다 `count…(): Int` 하나만 만든다. 화면용 조회는 각 기능 마일스톤이 더한다.
+- **빈 테이블:** T05a·T05b 뒤 에셋에는 여섯 테이블이 0행으로 있다. 앱은 0행을 "콘텐츠 없음"(탭 숨김·절 숨김·`EMPTY`)으로 다룬다. 파이프라인 검사(6.5 "출처 열", N-11·N-12)는 행이 있을 때만 적용된다.
 
 ### 9.1 문법(2순위)
 
 - 직접 작성 파일 `content/authored/grammar/N<급>/<id>.json`: 공통 필드(`id`, `level`, `status`, `needsReview`, `sources`) + 출처 필드(`method`: `llm:<모델>@<YYYY-MM-DD>` / `human` — 사람이 쓰지 않았으면 `human`으로 적지 않는다, `reviewStatus`, `reviewedAt`, `reviewerKind` — 6.4와 같은 값) + `title`(일본어 형식, 예 `〜てください`), `meaningKo`, `explanationKo`(마크다운 문단, 일본어 구간은 4.4 규칙, **루비 표기 없음**), `connections`(`[{"posKo": "동사", "form": "て形", "example": "{食|た}べて"}]` — ui-design 6.9 접속 표의 3열 품사(ko)/형태(ja)/예(ja)와 1:1. `posKo`는 한국어 필드, `form`·`example`은 일본어 필드라 루비 허용), `examples`(3개 이상, `[{"ja": "…[[{後|あと}で]]…", "ko": "…"}]` — `ja`만 루비 허용, 각 `ja`에 문법 형식 부분을 `[[…]]`로 **1개 이상** 표시(4.4, 카드 앞면 밑줄)), `contrasts`(선택, `[{"grammarId": "gr-n5-0013", "pair": [{"ja": "…", "ko": "…"}, {"ja": "…", "ko": "…"}]}]` — ui-design 6.9 "비슷한 문법"(예문 쌍). `pair[0]`은 이 문법, `pair[1]`은 `grammarId` 문법의 예문, `ja`는 루비·`[[…]]` 허용, `ko`는 한국어 필드).
 - `authored` 검사(9.1 몫): `examples[].ja`마다 `[[…]]` 짝이 맞고 1개 이상, `contrasts[].grammarId`가 같은 빌드의 grammar ID에 있고 자기 자신이 아님, `pair`가 정확히 2개, `connections[]`에 세 필드가 모두 있음. 어기면 `FAIL: authored <id> <이유>`.
-- 콘텐츠 DB(v3, M14): `grammar(id PK, level, sort_key, title, meaning_ko, explanation_ko, connections_json, contrasts_json TEXT NOT NULL, + 출처 열 묶음 P)` — `connections_json`은 `[{posKo, form, example}]`, `contrasts_json`은 `[{grammarId, pair:[{ja,ko},{ja,ko}]}]`(없으면 `[]`) 그대로. P(4.2)의 `ko_*`는 설명·예문 번역·비교 번역 전체의 출처다. `grammar_example(grammar_id, ord, ja, ko, source_id, source_ref)`. Tatoeba 문장(S-04)을 쓰면 `source_id = S-04`, `source_ref` = 문장 ID, `license`·`author` 열 추가(L-03.tatoeba-row) — S-04 `confirmed` 전에는 쓰지 않는다.
-- 화면: S11 상세의 `ProvenanceChip`은 grammar 행의 `ko_*`로 만든 `MeaningUi`를 `ProvenanceLabel.of`에 넘긴다. `needs_review = 1`이면 "설명 검토 중" 칩(ui-design 6.9).
-- 카드 종류 `gr:<id>`, UI 모델 `ReviewCardUi.Grammar`(7절). 켬/끔은 `user_settings.grammar_cards_enabled`(v1에 있음).
+- 작성 파일 `examples[]`의 `ja`·`ko`는 직접 쓴 문장이다. 외부 문장(S-04 Tatoeba)은 S-04가 `confirmed`가 될 때까지 쓰지 않는다. 쓰게 되면 그 예문에 `"source": "S-04", "ref": "<문장 ID>", "author": "…", "license": "…"`를 더한다(열은 v2에 이미 있다). 메모(S-04를 쓰는 마일스톤을 만들 때 정한다): S09 Tatoeba 카드(ui-design 9.2-3)는 라이선스 두 개(CC BY 2.0 FR, CC0 1.0)와 "예문 작성자 보기" 목록을 요구하므로, 그때 7절 `SourceUi`에 추가 라이선스 목록(`extraLicenses: List<LinkUi>`)을 더하고 작성자 목록은 `grammar_example`의 `source_id = 'S-04'` 행 `author`·`license`를 파이프라인이 모아 `attribution.json`에 넣을지 앱이 DB에서 읽을지 정한다. 지금은 S-04 마일스톤이 없어 계약을 두지 않는다.
 
-### 9.2 문항·모의고사(3순위)
+**`grammar`**(콘텐츠 DB v2)
+| 열 | 타입 | 필드 | 내용 |
+|----|------|------|------|
+| `id` | TEXT PK | | `gr-n<급>-<4자리>` |
+| `level` | INTEGER NOT NULL | | 9.0 |
+| `sort_key` | INTEGER NOT NULL | | 아래 |
+| `title` | TEXT NOT NULL | 일본어(루비 없음) | 문법 형식, 예 `〜てください` |
+| `meaning_ko` | TEXT NOT NULL | 한국어 | 대응 표현 |
+| `explanation_ko` | TEXT NOT NULL | 한국어 | 문단을 `\n\n`으로 나눈 본문. 카드 뒷면 `summaryKo`는 첫 문단 |
+| `connections_json` | TEXT NOT NULL | `posKo` 한국어, `form`·`example` 일본어 | `[{"posKo","form","example"}]`, 1개 이상 |
+| `contrasts_json` | TEXT NOT NULL | `pair[].ja` 일본어, `pair[].ko` 한국어 | `[{"grammarId","pair":[{"ja","ko"},{"ja","ko"}]}]`, 없으면 `[]` |
+| `source_id`, `ko_source`, `ko_method`, `ko_review_status`, `ko_reviewed_at`(NULL), `ko_reviewer_kind`(NULL), `needs_review` | P(4.2) | | `ko_*`는 설명·예문 번역·비교 번역 전체의 출처 |
+인덱스: `(level, sort_key)`
+
+`sort_key`(새 카드 도입 순서, 8.2 `newCardOrder`는 `level desc, sort_key, kind vr→vp→kr→gr, id`): 급수 안 문법을 ID 번호 오름차순으로 0부터 센 순번 `i`, 그 빌드의 같은 급수 `vocab` 행 수 `V`, 문법 수 `G`일 때 `sort_key = floor(i × V / G)`(V = 0이면 `i`). 문법 카드가 어휘 도입 순서 사이에 고르게 섞이고, 같은 `sort_key`에서는 어휘·한자 뒤에 온다. 급수에 어휘가 늘면(N4 확장 등) 값이 바뀔 수 있으나 학습 기록은 카드 ID로 가리키므로 영향은 새 카드 순서뿐이다(AR-U13).
+
+**`grammar_example`**
+| 열 | 타입 | 필드 | 내용 |
+|----|------|------|------|
+| `grammar_id`, `ord` | TEXT, INTEGER, PK(둘) | | `ord`는 0부터 작성 파일 `examples` 순서. 카드 앞면은 `ord = 0` |
+| `ja` | TEXT NOT NULL | 일본어 | `[[…]]` 1개 이상 |
+| `ko` | TEXT NOT NULL | 한국어 | 번역 |
+| `source_id` | TEXT NOT NULL | | `authored` / `S-04` |
+| `source_ref` | TEXT NULL | | S-04 문장 ID |
+| `author` | TEXT NULL | | S-04 `username`(L-03.tatoeba-row) |
+| `license` | TEXT NULL | | S-04 문장별 라이선스 |
+검사(M15): `source_id = authored`이면 `source_ref`·`author`·`license`가 모두 NULL, `S-04`이면 셋 다 NOT NULL이고 S-04가 `confirmed`. 인덱스는 PK만.
+
+**`:app` 계약(M14·M17)**
+
+```kotlin
+// data/content/GrammarRepository.kt
+data class GrammarRow(val id: String, val level: JlptLevel, val title: String, val meaningKo: String)
+data class ConnectionUi(val posKo: String, val form: List<RubySegment>, val example: List<RubySegment>)
+data class ExampleUi(val ja: List<RubySegment>, val ko: String, val sourceId: String,
+    val sourceRef: String?, val author: String?, val license: String?)          // 출처 줄(ui-design 5.11)
+data class ContrastUi(val grammarId: String, val title: String, val mine: ExampleUi, val other: ExampleUi) // pair[0], pair[1]
+data class GrammarDetailUi(val id: String, val level: JlptLevel, val title: String, val meaningKo: String,
+    val explanationKo: String, val connections: List<ConnectionUi>, val examples: List<ExampleUi>,
+    val contrasts: List<ContrastUi>, val provenance: MeaningUi, val needsReview: Boolean)
+interface GrammarRepository {
+    suspend fun list(levels: Set<JlptLevel>): List<GrammarRow>   // level desc, sort_key. 빈 집합 = 번들 급수 전부
+    suspend fun detail(id: String): GrammarDetailUi?             // 없음·retired·JSON 깨짐 → null. contrasts의 grammarId가 번들에 없으면 그 항목만 뺀다
+}
+// S10
+enum class GrammarListStatus { LOADING, LOADED, EMPTY }          // EMPTY = 고른 급수의 문법 0(ui-design 7절 S10 "급수에 문법 없음")
+data class GrammarListUiState(val status: GrammarListStatus = GrammarListStatus.LOADING,
+    val levels: Set<JlptLevel> = emptySet(),                     // 초기값 규칙은 BrowseUiState와 같음(7절)
+    val rows: List<GrammarRow> = emptyList())
+// S11
+data class GrammarDetailUiState(val status: DetailStatus = DetailStatus.LOADING, val detail: GrammarDetailUi? = null)
+```
+
+- 화면: S11의 `ProvenanceChip`은 `GrammarDetailUi.provenance`(grammar 행 `ko_*`)를 `ProvenanceLabel.of`에 넘긴다. `needsReview`(= `needs_review = 1`)면 "설명 검토 중" 칩(ui-design 6.9). 문법 탭(`Grammar`)은 M14부터 늘 보이고(ui-design 1.2 "구현된 순위의 목적지"), `grammar` 행이 없으면 S10 `EMPTY`다. 연습 탭(`Practice`)도 같은 규칙(M19b부터, 행이 없으면 S12 `EMPTY`).
+- 카드 종류 `gr:<id>`, UI 모델 `ReviewCardUi.Grammar`(7절, `example` = `grammar_example` `ord = 0`의 `ja`, `exampleKo` = 그 `ko`). 켬/끔은 `user_settings.grammar_cards_enabled`(v1에 있음). 설정의 문법 스위치는 `grammar` 행이 있을 때만 보인다(M17).
+
+### 9.2 문항·모의고사·학습 기록 DB v2(3순위)
+
+#### 9.2.1 시험 구성 근거
 
 - 시험 구성 근거: 주최 측 안내 [JLPT Test Sections and Test Times](https://www.jlpt.jp/e/guideline/testsections.html)(확인 2026-11-02): N5 언어지식(문자·어휘) 20분 / 언어지식(문법)·독해 40분 / 청해 30분, N4 25/55/35, N3 30/70/40, N2 언어지식·독해 105 / 청해 50, N1 110 / 55. 페이지는 "The time allotted for each section may change."라고 밝힌다. 영역별 문제 유형·문항 수는 이 문서에서 확인하지 않았다 — 문항 작성 마일스톤(M21)에서 같은 사이트의 급수별 안내를 열어 모의고사 템플릿(`content/authored/exams/N<급>.json`, 출처 URL·확인일 포함)으로 작성하고, 앱은 템플릿을 데이터로 읽는다. 앱에 "실제 시험과 다를 수 있음"(N-11과 함께)을 보인다.
-- 문항 파일 `content/authored/questions/N<급>/<id>.json`: 공통 필드 + 출처 필드(9.1과 같은 `method`, `reviewStatus`, `reviewedAt`, `reviewerKind`) + `section`(`vocab`/`grammar`/`reading`/`listening`), `type`(jlpt-content-authoring 5절 유형 이름), `stem`, `passage`(선택), `choices`(4개), `answerIndex`(0..3), `explanationKo`, `whyWrongKo`(오답별), `targets`(관련 어휘·문법 ID — 화면 S15 "관련 단어·문법 보기"용), `target`(선택, 일본어 필드, 루비 없음 — ui-design 6.10 지시문의 `{대상}`에 넣는 글자).
+- 모의고사 템플릿 파일 `content/authored/exams/N<급>.json`(M21): `{"level": "N5", "sourceUrl": "https://www.jlpt.jp/…", "checkedAt": "YYYY-MM-DD", "sections": [{"id": "vocab", "titleKo": "언어지식(문자·어휘)", "minutes": 20, "parts": [{"section": "vocab", "type": "kanji-reading", "count": 7}, …]}, …]}`. `sections` 순서 = 시험 순서. 한 영역(`sections[]`)이 여러 `section`의 `parts`를 가질 수 있다(N5 "언어지식(문법)·독해"는 `grammar`·`reading` parts). 문항 수·시간은 `sourceUrl` 페이지에서 확인한 값만 쓰고, 확인하지 못한 값은 채우지 않고 보고서에 `uncertain`으로 남긴다(사용자 확인). `parts[]` 중 하나라도 `count`가 없으면 파이프라인은 그 급수의 `exam_template` 행을 쓰지 않고 `exam: N<급> template not built` 줄을 남긴다(앱은 행 없음 = `examTemplate` null = 모의고사 카드 없음).
+- 문항 수 결정(2026-11-07, 잠정 A): jlpt.jp 안내에 유형별 문항 수가 없으므로 `parts[].count`에는 앱이 정한 연습용 문항 수를 채우고, 템플릿 최상위 `countNote`에 "공식 값이 아님"을 적는다(`countNote`는 `template_json`에 들어가지 않는다). 문자·어휘·문법·독해 count는 유형별 문항 풀 개수 이하로 잡고(N5: 7/5/6/3, 9/4/4, 3/2/1), 청해(7/6/5/6)는 풀이 없어 앱이 shortfall로 처리한다. 공식 문항 수를 확인하면 바꾼다.
+
+#### 9.2.2 문항 작성 파일과 유형 코드
+
+- 문항 파일 `content/authored/questions/N<급>/<id>.json`: 공통 필드 + 출처 필드(9.1과 같은 `method`, `reviewStatus`, `reviewedAt`, `reviewerKind`) + `section`(`vocab`/`grammar`/`reading` — 청해는 `question`이 아니라 `listening` 테이블, 9.3), `type`(아래 코드), `stem`(일본어), `passage`(선택, 일본어), `choices`(일본어 4개), `answerIndex`(0..3), `explanationKo`(한국어), `whyWrongKo`(한국어 4칸 배열, `answerIndex` 자리는 `null`, 나머지는 빈 문자열이 아님), `targets`(관련 어휘·한자·문법 ID 배열 — 화면 S15 "관련 단어·문법 보기"용, 없으면 `[]`), `target`(선택, 일본어 필드, 루비 없음 — ui-design 6.10 지시문의 `{대상}`에 넣는 글자). ID `q-n<급>-<section>-<4자리>`.
+- **유형 코드(`type`, DB·작성 파일 공통, 앱 표시 이름은 `ui/practice/QuizTypeLabels.kt` 한 곳에서 ui-design 6.10 이름으로):**
+
+| `section` | 유형(화면 이름) → `type` |
+|-----------|--------------------------|
+| `vocab` | 한자 읽기 `kanji-reading`, 표기 `orthography`, 단어 형성 `word-formation`, 문맥 규정 `context`, 유의 표현 `paraphrase`, 용법 `usage` |
+| `grammar` | 문법 형식 판단 `grammar-form`, 문장 배열 `sentence-order`, 글의 문법 `text-grammar` |
+| `reading` | 단문 `short`, 중문 `mid`, 장문 `long`, 통합 이해 `integrated`, 주장 이해 `thematic`, 정보 검색 `info-search` |
+| `listening`(9.3) | 과제 이해 `task`, 포인트 이해 `point`, 개요 이해 `summary`, 발화 표현 `utterance`, 즉시 응답 `quick-response`, 통합 이해 `integrated` |
+
+표 밖 `type`은 `authored` 단계가 `FAIL: authored <id> type`으로 멈춘다.
 - 대상 구간 규칙(`authored` 검사): 유형 **한자 읽기·표기·유의 표현**은 `stem`(없으면 `passage`)에 `[[…]]`가 정확히 1개, `target`이 필수이고 그 구간 base 글자를 이은 문자열과 같다. **한자 읽기** 문항의 `[[…]]` 안에는 루비를 쓰지 않는다(정답 노출). **용법**은 `target`이 필수이고 `[[…]]`는 없어도 된다. 그 밖의 유형은 `target`이 없고 `[[…]]`는 0개 이상(짝만 검사). `targets`(ID 목록)와 `target`(지시문 글자)은 다른 필드다.
-- 콘텐츠 DB(v4, M19): `question(id PK, level, section, type, sort_key, stem, passage NULL, target NULL, choices_json, answer_index, explanation_ko, why_wrong_ko_json, targets_json, + 출처 열 묶음 P)`, `exam_template(level PK, template_json, source_url, checked_at)`. 화면 S15 해설 카드(5.5)에 P로 만든 `MeaningUi`의 `ProvenanceChip`을 붙인다(ui-design 5.7 — AI가 쓴 해설을 검수 상태 없이 보이지 않는다).
-- **문장 배열**도 4지선다다: `stem`에 빈칸 넷과 `★` 자리를 두고, `choices`는 조각 넷, `answerIndex`는 ★ 자리에 들어갈 조각(실제 시험 형식과 같은 채점). 전체 순서 채점 필드는 두지 않는다(ui-design 6.10과 같음).
-- `:core:quiz`: `fun score(attempt: Attempt): Score`(영역별 정답 수·비율, 척도 점수 없음), `fun shuffle(question, seed): Question`(정답 색인 함께 이동, 시드 결정적), `fun buildSet(pool, template, seed): List<QuestionId>`.
-- 학습 기록 DB v2(M19): `quiz_attempt(id PK 자동, exam_id TEXT NULL, seed INTEGER NOT NULL, question_order_json TEXT NOT NULL, current_index INTEGER NOT NULL DEFAULT 0, elapsed_ms INTEGER NOT NULL DEFAULT 0, started_at_epoch_ms, finished_at_epoch_ms NULL)`, `quiz_answer(attempt_id, question_id, chosen_index, correct, answered_at_epoch_ms, script_shown INTEGER NOT NULL DEFAULT 0)`. `chosen_index`는 **섞기 전 원래 선택지 색인**이다. `script_shown`은 청해 문항을 대본이 펼쳐진 상태에서 답했는지("대본으로 풂", ui-design 6.11. 청해가 아니면 0). 재개는 `seed`로 같은 섞기를 다시 만들고 `current_index`·`elapsed_ms`에서 이어 간다(백그라운드로 가면 경과 시간을 저장하고 멈춤, UI-U05 A). v1→v2 `Migration` + 테스트.
+- **빈칸 표기(일본어 필드 `stem`·`passage`):** 빈칸 하나 = `＿＿`(U+FF3F 두 개), ★ 칸 하나 = `＿★＿`(U+FF3F U+2605 U+FF3F). 이 두 토큰 말고는 `＿`·`★`를 본문에 쓰지 않고, 루비 base·`[[…]]` 안에 두지 않는다. 화면은 `Furigana.parse` 뒤 `ui/practice/QuizStem.kt`의 `fun split(segments: List<RubySegment>): List<StemPart>`(`sealed interface StemPart { Text(segment), Blank, StarBlank }`) 한 곳에서 토큰을 칸으로 바꾼다. `authored` 검사: 문장 배열은 `＿＿` 3개 + `＿★＿` 1개(정확히), 문맥 규정·문법 형식 판단·단어 형성·글의 문법은 `＿＿` 1개 이상·`＿★＿` 0개, 그 밖의 유형은 둘 다 0개. 어기면 `FAIL: authored <id> blank`.
+- **문장 배열**도 4지선다다: `stem`에 빈칸 넷(위 표기)을 두고, `choices`는 조각 넷, `answerIndex`는 ★ 자리에 들어갈 조각(실제 시험 형식과 같은 채점). 전체 순서 채점 필드는 두지 않는다(ui-design 6.10과 같음).
+- 독해 지문 하나에 문항이 여럿이면 각 문항 파일에 같은 `passage`를 넣는다(shortcut: 지문 중복 저장, 독해 지문이 크기 예산의 10%를 넘으면 `passage` 테이블로 나누는 v3를 만든다).
+
+#### 9.2.3 콘텐츠 DB v2: `question`, `exam_template`
+
+**`question`**
+| 열 | 타입 | 필드 | 내용 |
+|----|------|------|------|
+| `id` | TEXT PK | | `q-n<급>-<section>-<4자리>` |
+| `level` | INTEGER NOT NULL | | 9.0 |
+| `section` | TEXT NOT NULL | | `vocab` / `grammar` / `reading` |
+| `type` | TEXT NOT NULL | | 9.2.2 코드 |
+| `sort_key` | INTEGER NOT NULL | | ID 끝 4자리 번호 |
+| `stem` | TEXT NOT NULL | 일본어 | 루비·`[[…]]`·`★` |
+| `passage` | TEXT NULL | 일본어 | |
+| `target` | TEXT NULL | 일본어(루비 없음) | 지시문 `{대상}` |
+| `choices_json` | TEXT NOT NULL | 일본어 | 문자열 4개 배열, 원래 순서 |
+| `answer_index` | INTEGER NOT NULL | | 0..3, 원래 색인 |
+| `explanation_ko` | TEXT NOT NULL | 한국어 | |
+| `why_wrong_ko_json` | TEXT NOT NULL | 한국어 | 4칸 배열, 정답 자리 `null` |
+| `targets_json` | TEXT NOT NULL | | ID 배열, 없으면 `[]` |
+| P 7열 | | | 4.2 |
+인덱스: `(level, section, type, sort_key)`
+
+**`exam_template`**
+| 열 | 타입 | 내용 |
+|----|------|------|
+| `level` | INTEGER PK | 5..1 |
+| `template_json` | TEXT NOT NULL | 작성 파일의 `sections` 배열만(`{"sections":[…]}`) |
+| `source_url` | TEXT NOT NULL | 작성 파일 `sourceUrl`(jlpt.jp) |
+| `checked_at` | TEXT NOT NULL | `YYYY-MM-DD` |
+| `source_id` | TEXT NOT NULL | `authored`(구성은 공식 안내를 보고 직접 적은 사실 정보) |
+
+화면 S15 해설 카드(5.5)에 P로 만든 `MeaningUi`의 `ProvenanceChip`을 붙인다(ui-design 5.7 — AI가 쓴 해설을 검수 상태 없이 보이지 않는다).
+
+#### 9.2.4 학습 기록 DB v2(T06)
+
+`StudyDatabase` 버전 1 → 2. v1 세 테이블(5절)은 열·인덱스를 하나도 바꾸지 않고, 테이블 두 개만 더한다. 외래 키는 두지 않는다(삭제는 저장소가 한 트랜잭션으로 한다).
+
+**`quiz_attempt`**
+| 열 | 타입 | 내용 |
+|----|------|------|
+| `id` | INTEGER PK AUTOINCREMENT NOT NULL | `@PrimaryKey(autoGenerate = true) val id: Long = 0` |
+| `exam_id` | TEXT NULL | 모의고사 `exam-n<급>`(예 `exam-n5`, `exam_template.level`과 대응), 연습·청해는 NULL |
+| `seed` | INTEGER NOT NULL | `Long`. `Quiz.buildSet`·`Quiz.shuffle` 시드 |
+| `question_order_json` | TEXT NOT NULL | 문항 ID JSON 배열(`q-…`·`ls-…`), 보이는 순서 = `buildSet` 결과 |
+| `current_index` | INTEGER NOT NULL DEFAULT 0 | 보던 문항 순번 |
+| `elapsed_ms` | INTEGER NOT NULL DEFAULT 0 | 모의고사 경과 시간(포그라운드에서만 늘린다, UI-U05 A). 연습·청해는 0 |
+| `started_at_epoch_ms` | INTEGER NOT NULL | |
+| `finished_at_epoch_ms` | INTEGER NULL | 모의고사 제출, 연습·청해의 마지막 문항 뒤 "다음" 또는 이탈 시각 |
+인덱스 없음(행 수가 적고, 조회는 `id`와 "미완료 모의고사" 하나뿐).
+
+**`quiz_answer`**
+| 열 | 타입 | 내용 |
+|----|------|------|
+| `attempt_id`, `question_id` | INTEGER, TEXT, PK(둘) | 같은 문항을 다시 고르면 덮어쓴다(모의고사 제출 전 답 바꾸기) |
+| `chosen_index` | INTEGER NOT NULL | 0..3, **섞기 전 원래 선택지 색인** |
+| `correct` | INTEGER NOT NULL | 0/1. 저장 때 `chosen_index == answer_index` |
+| `answered_at_epoch_ms` | INTEGER NOT NULL | |
+| `script_shown` | INTEGER NOT NULL DEFAULT 0 | 청해 문항에서 **답하기 전에 대본을 한 번이라도 펼쳤으면** 1("대본으로 풂", ui-design 6.11, UI-U13 A). 답하는 순간 접혀 있어도 1이다. 펼친 적이 없으면 0. 청해가 아니면 0 |
+미응답 문항은 행이 없다. 미응답 수 = `question_order_json` 길이 − 그 시도의 답 행 수(콘텐츠에서 사라진 ID는 양쪽에서 뺀다).
+
+엔티티는 `data/study/StudyEntities.kt`에 `QuizAttemptEntity`, `QuizAnswerEntity`. DEFAULT 열은 `@ColumnInfo(defaultValue = "0")`. 스키마 JSON `app/schemas/com.jlptstudy.app.data.study.StudyDatabase/2.json`.
+
+**Migration(1, 2) 계약**
+- 파일 `data/study/StudyMigrations.kt`의 `val MIGRATION_1_2 = object : Migration(1, 2) { override fun migrate(db: SupportSQLiteDatabase) { … } }`(지금 `StudyDatabase.open`이 쓰는 SupportSQLite 경로와 같은 API). 본문은 `2.json`의 두 테이블 `createSql`을 `${TABLE_NAME}`만 실제 이름으로 바꾼 **문자열 그대로** `execSQL`한다(상수·엔티티 참조 금지 — 나중 스키마가 바뀌어도 이 Migration은 v2를 만들어야 한다). 기존 테이블에 `ALTER`·`DROP`·`UPDATE`를 하지 않는다.
+- `StudyDatabase.open`의 빌더에 `.addMigrations(MIGRATION_1_2)`. `fallbackToDestructiveMigration`·`fallbackToDestructiveMigrationFrom`·`fallbackToDestructiveMigrationOnDowngrade` 호출 금지(`grep -rnF "fallbackToDestructiveMigration(" app/src` 0건 — 주석의 "fallbackToDestructiveMigration을"은 괄호가 없어 걸리지 않는다). 마이그레이션이 실패하면 지금처럼 `RecordDbFailed`(S90)로 가고 파일은 지우지 않는다.
+
+**마이그레이션 테스트 장치(T06, 이후 v3도 같은 장치에 더한다)**
+- 의존: 카탈로그에 `androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }`(같은 Room 2.8.5. Google Maven `room-testing` 메타데이터에서 2.8.5가 latest·release임을 확인, 2026-11-03), `testImplementation`. `assets/licenses/libraries.json`에 `distributed: false` 행을 더한다(M7 단위 테스트가 카탈로그 키 전부를 요구). `InstrumentationRegistry`는 Robolectric이 끌어오는 `androidx.test:monitor`에서 온다. 컴파일되지 않을 때만 `androidx.test:core`를 더하고, 그 버전은 공식 릴리스 노트에서 확인해 날짜와 함께 이 줄에 적는다.
+- 스키마 에셋: `MigrationTestHelper`는 테스트 에셋의 `com.jlptstudy.app.data.study.StudyDatabase/<버전>.json`을 읽는다. Room Gradle 플러그인이 local unit test 에셋에 `schemas/`를 넣지 않으면 `android { sourceSets { getByName("test").assets.srcDir("$projectDir/schemas") } }` 한 줄을 더한다(넣어 주면 더하지 않고 보고서에 그 사실을 적는다 — 같은 경로를 두 번 넣으면 에셋 병합이 충돌한다).
+- 픽스처 `app/src/test/resources/migration/study_v1_fixture.sql`: `StudyDatabase/1.json` 열 그대로의 `INSERT`문. `card_state` 4행 이상(`phase` 1·2·3 모두, `kind` `vr`·`vp`·`kr`, `step` NULL과 값, `stability`·`difficulty` REAL, `last_review_at_epoch_ms` NULL 한 행), `review_log` 6행 이상(`undone` 0과 1, `state_before_json`·`state_after_json`은 실제 `CardState` JSON), `user_settings` `id = 1` 한 행(기본값과 다른 값: `day_boundary_minutes` 300, `new_cards_per_day` 25, `extra_new_cards_study_day` 값 있음, `theme` `dark`, `onboarding_done` 1, `listening_script_first` 1).
+- 테스트 `app/src/test/java/com/jlptstudy/app/data/study/StudyMigrationTest.kt`(Robolectric, `@get:Rule val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(), StudyDatabase::class.java)`):
+  1. `helper.createDatabase(NAME, 1)`에 픽스처를 실행하고, 세 테이블마다 행 수와 체크섬(`SELECT * FROM <t> ORDER BY <PK>`의 각 열을 SQLite `quote()`로 문자열화해 `|`로 잇고 행을 `\n`으로 이은 SHA-256)을 구한다.
+  2. `helper.runMigrationsAndValidate(NAME, 2, true, MIGRATION_1_2)` 뒤 세 테이블의 행 수·체크섬이 1과 같다. `quiz_attempt`·`quiz_answer`가 0행으로 있다. `script_shown`을 빼고 `quiz_answer`에 `INSERT`하면 그 행의 `script_shown`이 0이다.
+  3. 같은 파일을 `Room.databaseBuilder(…, StudyDatabase::class.java, NAME).addMigrations(MIGRATION_1_2)`로 열어 `StudyRepository.settings().first()`가 픽스처 값과 같고, `states(픽스처 card_id들)`이 픽스처 행과 같다.
+  4. `addMigrations` 없이 v1 파일을 v2로 열면 예외가 난다(파괴적 대체 경로가 없음을 확인).
+
+#### 9.2.5 `:core:quiz`(M18)
+
+```kotlin
+package com.jlptstudy.quiz
+
+enum class Section(val code: String) { VOCAB("vocab"), GRAMMAR("grammar"), READING("reading"), LISTENING("listening");
+    companion object { fun of(code: String): Section } }          // 모르는 코드는 IllegalArgumentException
+
+/** 섞기 전 문항. choices.size == 4, answerIndex in 0..3(원래 색인). 어기면 생성자에서 IllegalArgumentException. */
+data class QuizQuestion(val id: String, val section: Section, val type: String, val choices: List<String>, val answerIndex: Int)
+
+/** 보이는 순서. originalIndexOf[shown] = 원래 색인. answerIndex는 섞은 뒤 색인. */
+data class ShuffledQuestion(val id: String, val section: Section, val type: String,
+    val choices: List<String>, val answerIndex: Int, val originalIndexOf: List<Int>) {
+    fun toOriginal(shownIndex: Int): Int = originalIndexOf[shownIndex]
+    fun toShown(originalIndex: Int): Int = originalIndexOf.indexOf(originalIndex)
+}
+
+data class ExamPart(val section: Section, val type: String, val count: Int)
+data class ExamSection(val id: String, val titleKo: String, val minutes: Int, val parts: List<ExamPart>)
+data class ExamTemplate(val level: Int, val sections: List<ExamSection>)
+data class PoolItem(val id: String, val section: Section, val type: String)
+data class Shortfall(val section: Section, val type: String, val required: Int, val available: Int)
+data class BuiltSet(val questionIds: List<String>, val shortfalls: List<Shortfall>)
+
+/** 채점 입력. 색인은 모두 원래 색인. chosenIndex == null이면 미응답(오답으로 센다). 콘텐츠에서 빠진 문항은 넣지 않는다(9.2.6 QuizSessionLoader). */
+data class AnswerInput(val questionId: String, val section: Section, val type: String, val answerIndex: Int, val chosenIndex: Int?)
+data class SectionScore(val section: Section, val correct: Int, val total: Int) // 비율 표시(반올림)는 화면이 correct/total로(ui-design 6.10)
+/** 모의고사 영역 점수. 키는 템플릿 sections[].id(예 N5 "언어지식(문법)·독해"는 grammar·reading parts를 합친 한 영역). */
+data class ExamSectionScore(val sectionId: String, val titleKo: String, val correct: Int, val total: Int)
+data class Score(val sections: List<SectionScore>, val examSections: List<ExamSectionScore>,
+    val correct: Int, val total: Int, val unanswered: Int)
+// Score·SectionScore·ExamSectionScore에 척도 점수·합격 판정·예상 점수 필드를 두지 않는다.
+
+object Quiz {
+    /** java.util.Random(attemptSeed * 31 + id.hashCode())로 java.util.Collections.shuffle(원래 색인 목록). 같은 (id, attemptSeed) → 같은 순서. */
+    fun shuffle(question: QuizQuestion, attemptSeed: Long): ShuffledQuestion
+    /** template.sections → parts 순서대로, 각 part마다 pool에서 (section, type)이 같은 항목을 id로 정렬한 뒤 Random(seed)로 섞어 앞에서 count개.
+     *  모자라면 있는 만큼 넣고 shortfalls에 담는다(예외 없음). 한 ID는 결과에 한 번만. excluded 영역의 parts는 건너뛰고 shortfall에도 넣지 않는다. */
+    fun buildSet(pool: List<PoolItem>, template: ExamTemplate, seed: Long, excluded: Set<Section> = emptySet()): BuiltSet
+    /** sections는 Section 선언 순서, total > 0인 영역만(문항 section 코드가 키 — 연습·청해 결과용).
+     *  template != null이면 examSections를 template.sections 순서로 채운다: 문항의 (section, type)이 들어 있는 part의 sections[].id에 센다.
+     *  어느 part에도 없는 문항은 examSections에서 빠지고 sections에는 남는다. excluded로 뺀 영역(청해)과 total 0인 영역은 examSections에 없다. template == null이면 examSections는 빈 목록. */
+    fun score(answers: List<AnswerInput>, template: ExamTemplate? = null): Score
+}
+```
+
+- **화면이 쓰는 키(ui-design 6.10 S14·S15):** 모의고사(`QuizMode.EXAM`)는 `examSections`(템플릿 영역 `id`·`titleKo`)를 보이고, 연습·청해는 `sections`(문항 `section` 코드, 표시 이름은 `QuizTypeLabels`)를 보인다.
+
+- 연습(S13)·청해(S16)는 parts 하나짜리 `ExamTemplate(level, listOf(ExamSection("practice", "", 0, listOf(ExamPart(section, type, PRACTICE_SIZE)))))`로 `buildSet`을 부른다(별도 함수를 두지 않는다). `PRACTICE_SIZE = 10`(UI-U08 A)은 `:app`의 `ui/practice/PracticeConfig.kt` 상수 하나. 시드는 `Clock` 시각에서 만든 `Long`이고 `quiz_attempt.seed`에 저장된다. 연습·청해 시도는 `exam_id = NULL`, 모의고사만 `exam-n<급>`.
+- 모의고사는 `excluded = setOf(Section.LISTENING)`로 부른다(AR-U11 A: 청해 영역 제외. 바꾸면 이 인자만 뺀다).
+- `:core:quiz`는 의존이 없다(JSON 파싱은 `:app`이 한다). 시스템 시계·난수 기본 시드를 쓰지 않는다(시드는 호출자가 `Clock`에서 만든다).
+
+#### 9.2.6 `:app` 저장소와 UI 상태(M19a~M19d)
+
+```kotlin
+// data/content/QuizContentRepository.kt — question + listening 행을 한 모양으로
+data class ListeningLine(val speaker: String, val text: String, val ttsText: String?)   // speaker "M"/"F"/"N", 원문 표기
+data class QuizContent(val id: String, val level: JlptLevel, val section: Section, val type: String,
+    val stem: String,                 // question.stem / listening.question(원문 표기)
+    val passage: String?, val target: String?,
+    val lines: List<ListeningLine>?,  // listening만
+    val choices: List<String>, val answerIndex: Int, val explanationKo: String, val whyWrongKo: List<String?>,
+    val targets: List<String>, val provenance: MeaningUi, val needsReview: Boolean)
+interface QuizContentRepository {
+    suspend fun pool(level: JlptLevel): List<PoolItem>                  // question + listening의 (id, section, type)
+    suspend fun contents(ids: List<String>): Map<String, QuizContent>   // 900개씩, q-·ls- 모두. 없음·retired·JSON 깨짐은 빠짐
+    suspend fun examTemplate(level: JlptLevel): ExamTemplate?           // 행 없으면 null, template_json이 깨졌으면 예외
+    suspend fun examLevels(): Set<JlptLevel>
+}
+
+// data/study/QuizRepository.kt — 모든 쓰기는 실패 시 예외(8.2 규칙)
+data class QuizAttemptRecord(val id: Long, val examId: String?, val seed: Long, val questionOrder: List<String>,
+    val currentIndex: Int, val elapsedMs: Long, val startedAtEpochMs: Long, val finishedAtEpochMs: Long?)
+data class QuizAnswerRecord(val attemptId: Long, val questionId: String, val chosenIndex: Int, // 원래 색인
+    val correct: Boolean, val answeredAtEpochMs: Long, val scriptShown: Boolean)
+interface QuizRepository {
+    /** examId != null이면 같은 트랜잭션에서 다른 미완료 모의고사의 finished_at을 startedAt으로 채운다(답은 남김, AR-U14 A). 미완료 모의고사는 늘 0~1개. */
+    suspend fun startAttempt(examId: String?, seed: Long, questionOrder: List<String>, startedAtEpochMs: Long): Long
+    suspend fun saveAnswer(answer: QuizAnswerRecord)                // (attempt_id, question_id) upsert, 고를 때마다 즉시
+    suspend fun saveProgress(attemptId: Long, currentIndex: Int, elapsedMs: Long) // 문항 이동·ON_STOP마다
+    suspend fun finish(attemptId: Long, finishedAtEpochMs: Long)
+    suspend fun attempt(attemptId: Long): QuizAttemptRecord?
+    suspend fun answers(attemptId: Long): List<QuizAnswerRecord>
+    suspend fun unfinishedExam(): QuizAttemptRecord?                 // exam_id IS NOT NULL AND finished_at IS NULL(0~1개)
+}
+// 포기(S12 "포기하기", S12 "포기하고 새로 시작")는 행을 지우지 않는다: 포기 = finish(attemptId, now)(ui-design 7절 S12).
+// "포기하고 새로 시작"은 finish를 따로 부르지 않고 ExamStart(level)로 간다. 그 화면의 "시작"이 startAttempt(examId = …)를 한 번 부르고
+// 저장소가 같은 트랜잭션에서 이전 시도를 닫는다. 시작 화면에서 뒤로 가면 이전 시도는 그대로 미완료로 남는다.
+// 그래서 "미완료 모의고사는 한 번에 하나"는 저장소(startAttempt)가 지키고, 화면은 그 전에 확인 대화상자만 띄운다.
+// 연습·청해 시도(exam_id NULL)는 이 규칙과 무관하다. 시도·답 삭제 함수는 두지 않는다.
+// shortcut: 포기한 모의고사와 제출한 모의고사를 행으로 구분하지 않는다(둘 다 finished_at만). 지난 시도 목록 화면이 생기면 v3에 종료 사유 열을 더한다.
+```
+`AppContainer`에 `grammarRepository`, `quizContentRepository`, `quizRepository`를 더한다(각 첫 사용 마일스톤 M14·M19a에서).
+
+**시도 불러오기 한 곳(`data/QuizSessionLoader.kt`, M19a).** Quiz·QuizResult·Listening ViewModel은 시도를 이 함수로만 읽는다(8.2 `SessionCards`와 같은 이유 — 빠진 문항 처리를 한 곳에).
+
+```kotlin
+data class AttemptMeta(val mode: QuizMode, val level: JlptLevel, val section: Section?, val type: String?) // EXAM이면 section·type null
+data class LoadedAttempt(val record: QuizAttemptRecord, val meta: AttemptMeta?,  // meta == null: 남은 문항이 0이라 정할 수 없음
+    val items: List<QuizContent>,           // question_order 순서, 콘텐츠에서 빠진 ID는 제외
+    val answers: Map<String, QuizAnswerRecord>, // questionId → 답(items에 있는 것만)
+    val retiredCount: Int)                  // questionOrder.size − items.size
+class QuizSessionLoader(private val quiz: QuizRepository, private val content: QuizContentRepository) {
+    suspend fun load(attemptId: Long): LoadedAttempt?   // 시도 행이 없으면 null
+}
+```
+- **급수·모드·유형(13.3 #4):** `quiz_attempt`에 열을 더하지 않고 유도한다. `mode` = `examId != null`이면 `EXAM`, 아니면 첫 항목이 `listening` 행(`lines != null`)이면 `LISTENING`, 그 밖은 `PRACTICE`. `level` = `EXAM`이면 `examId`(`exam-n<급>`)의 숫자, 아니면 첫 항목의 `level`. `section`·`type` = `EXAM`이 아니면 첫 항목의 값(연습·청해 시도는 한 유형만 담는다). 남은 항목이 0이면 `EXAM`만 `examId`로 정하고 나머지는 `meta = null`. S12 이어서 풀기 카드의 급수는 `unfinishedExam().examId`에서 같은 규칙으로 읽는다.
+- **빠진 문항(13.3 #8):** `QuizSessionLoader`가 `items`·`answers`에서 빼고 `retiredCount`로 센다. `Quiz.score`에는 남은 문항의 `AnswerInput`만 넘긴다(`score`는 빠진 문항을 모른다). `total`·미응답 수·분모는 남은 문항 기준이다.
+
+재개(M19c): `load(id)`의 `items`·`record.seed`로 `Quiz.shuffle(q, seed)`를 다시 해 같은 선택지 순서를 만들고, `currentIndex`·`elapsedMs`에서 잇는다(`currentIndex`가 빠진 문항을 가리키면 그 다음 남은 문항). `answers`의 `chosenIndex`(원래 색인)는 `toShown`으로 바꿔 보인다. 경과 시간은 주입한 `Clock`으로 ON_START~ON_STOP 동안만 더하고 ON_STOP에서 `saveProgress`. 기준 시간 `limitMs` = 템플릿 `sections[].minutes` 합(청해 영역 제외, AR-U11) × 60,000. 넘어도 자동 제출하지 않는다(UI-U07 A).
+
+```kotlin
+// S12 연습 홈
+enum class PracticeHomeStatus { LOADING, LOADED, EMPTY }           // EMPTY = 고른 급수의 문항·청해 0("아직 문제가 없습니다")
+data class PracticeTypeUi(val section: Section, val type: String, val count: Int) // count > 0인 유형만, Section 순 → 9.2.2 표 순
+data class ResumeExamUi(val attemptId: Long, val level: JlptLevel, val answered: Int, val total: Int, val elapsedMs: Long)
+data class PracticeHomeUiState(
+    val status: PracticeHomeStatus = PracticeHomeStatus.LOADING,
+    val level: JlptLevel = JlptLevel.N5,          // 처음: target_levels 중 문항이 있는 가장 쉬운 급수
+    val levels: List<JlptLevel> = emptyList(),     // 문항이 있는 급수(급수 칩)
+    val types: List<PracticeTypeUi> = emptyList(), // 청해 유형은 M23부터 들어온다
+    val exam: ExamCardUi? = null,                  // 고른 급수의 exam_template. null = 그 급수 모의고사 없음
+    val resume: ResumeExamUi? = null,              // unfinishedExam()
+    val confirmReplace: ResumeExamUi? = null,      // 미완료가 있는데 "시작"을 누름 → "풀던 모의고사가 있습니다" 대화상자
+    val confirmAbandon: Boolean = false,           // "포기하기" 확인 대화상자
+    val startFailed: Boolean = false,              // startAttempt·buildSet 예외(ui-design 7절 "시작 실패")
+    )                                    // "공식 아님"·N-11 요약 줄은 문자열 리소스로 늘 보인다(ui-design 6.10, 에셋 실패와 무관). notice 필드 없음(2026-11-03)
+data class ExamCardUi(val level: JlptLevel, val questionCount: Int, // buildSet 결과 수(청해 제외, shortfall 반영)
+    val limitMs: Long, val hasShortfall: Boolean)
+// S12 "시작"(미완료 없음) 또는 confirmReplace의 "포기하고 새로 시작" → ExamStart(level). "이어서 풀기"는 이 화면을 건너뛰고 Quiz(attemptId)
+// S14 시작 화면(M19c). 라우트 ExamStart(level) — 시도 행이 아직 없다
+enum class ExamStartStatus { LOADING, LOADED, EMPTY, FAILED }
+// EMPTY = 템플릿 없음 또는 buildSet 결과 0(방어용, S12가 모의고사 카드를 숨기므로 정상 경로에는 없음)
+// FAILED = 불러오기 실패(examTemplate·pool 예외 — template_json 깨짐 등, buildSet 예외). 화면 StatusScreen, "다시 시도" = 불러오기(load) 재실행. 시도 행은 만들지 않는다
+data class ExamSectionLine(val titleKo: String,        // 템플릿 sections[].titleKo, sections 순서. parts가 모두 listening인 영역은 뺀다(UI-U09 A)
+    val count: Int,                                     // 그 영역에서 buildSet이 실제로 고른 수(shortfall 반영)
+    val minutes: Int)                                   // 템플릿 sections[].minutes
+data class ExamStartUiState(
+    val status: ExamStartStatus = ExamStartStatus.LOADING,
+    val level: JlptLevel = JlptLevel.N5,
+    val sections: List<ExamSectionLine> = emptyList(),
+    val total: Int = 0,                                 // sections[].count 합 = BuiltSet.questionIds.size
+    val limitMs: Long = 0,                              // 9.2.6 "재개"의 limitMs 규칙(청해 영역 제외)
+    val hasShortfall: Boolean = false,                  // BuiltSet.shortfalls가 비지 않음
+    val starting: Boolean = false,                      // startAttempt 중. "시작" 비활성(두 번 눌러 시도 둘 생성 방지)
+    val startFailed: Boolean = false)                   // startAttempt 예외만(ui-design 7절 "시작 실패" — 화면 그대로·스낵바 "다시 시도" = startAttempt 재시도). 이때 시도 행은 없다(트랜잭션)
+// ExamStartViewModel: 열 때 examTemplate(level)·pool(level)로 seed 하나를 정해 buildSet(…, excluded = {LISTENING})을 한 번 하고,
+// "시작"은 그 BuiltSet(같은 seed·questionIds)으로 startAttempt(examId = "exam-n<급>", …)를 부른 뒤 Quiz(attemptId)로 간다.
+// S13 연습 · S14 모의고사(한 화면, mode로 나눔). 라우트 Quiz(attemptId)
+enum class QuizMode { PRACTICE, EXAM, LISTENING }  // LISTENING은 S16·S15에서만(AttemptMeta.mode)
+enum class QuizStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, CONFIRM_EXIT, CONFIRM_SUBMIT, SUBMITTED }
+// EMPTY: 남은 문항 0(세트가 빔·재개할 문항 없음) / ANSWERING: 문항 표시(EXAM은 고른 뒤에도 여기) / FEEDBACK: PRACTICE에서 고른 직후(5.5) /
+// CONFIRM_EXIT: EXAM 이탈 대화상자 / CONFIRM_SUBMIT: 미응답 > 0인 제출 대화상자 / SUBMITTED: QuizResult(attemptId)로 이동.
+// PRACTICE 이탈은 확인 없이 finish 후 S12. "기준 시간 지남"은 상태가 아니라 elapsedMs > limitMs로 화면이 판정
+data class ListeningLineUi(val voice: Voice, val text: List<RubySegment>, val speakText: String) // speakText 규칙 9.3.1
+data class QuizQuestionUi(val id: String, val section: Section, val type: String,
+    val target: String?,                              // 지시문 {대상}
+    val stem: List<RubySegment>, val passage: List<RubySegment>?,
+    val lines: List<ListeningLineUi>?,                // 청해만(대본)
+    val choices: List<List<RubySegment>>,             // 섞은 순서
+    val answerIndex: Int,                             // 섞은 뒤 색인
+    val explanationKo: String, val whyWrongKo: List<String?>, // 섞은 순서, 정답 자리 null
+    val targets: List<String>, val provenance: MeaningUi, val needsReview: Boolean)
+data class QuizUiState(
+    val status: QuizStatus = QuizStatus.LOADING, val mode: QuizMode = QuizMode.PRACTICE,
+    val attemptId: Long = 0, val index: Int = 0, val total: Int = 0,
+    val question: QuizQuestionUi? = null,
+    val chosenIndex: Int? = null,                     // 이 문항에서 고른 섞은 뒤 색인
+    val answeredIndices: Set<Int> = emptySet(),       // 답한 문항 순번(S14 번호 줄)
+    val sectionStarts: List<Int> = emptyList(),       // EXAM: 템플릿 영역마다 첫 문항 순번(번호 줄 구분)
+    val elapsedMs: Long = 0, val limitMs: Long? = null, // EXAM만. limitMs는 9.2.6 "재개" 규칙
+    val unansweredCount: Int = 0,
+    val saving: Boolean = false,                      // 저장 300 ms 초과 시 화면이 선택지 비활성(ui-design 3.6과 같은 기준)
+    val saveFailed: Boolean = false)                  // saveAnswer·finish 예외. "다시 시도"는 같은 답(같은 제출)을 다시 저장, 저장 전에는 다음으로 가지 않음
+// S15 결과. 라우트 QuizResult(attemptId) — 연습·모의고사·청해 공통. 해설 보기는 하위 라우트가 아니라 이 라우트 안 상태(reviewIndex)
+enum class QuizResultStatus { LOADING, LOADED, EMPTY }  // EMPTY = 남은 문항 0(채점할 문항 없음)
+enum class ResultFilter { WRONG, ALL }
+data class QuizReviewItemUi(val index: Int, val question: QuizQuestionUi, val chosenIndex: Int?, // 섞은 뒤 색인, null = 미응답
+    val correct: Boolean, val scriptShown: Boolean)
+data class QuizResultUiState(val status: QuizResultStatus = QuizResultStatus.LOADING, val mode: QuizMode = QuizMode.PRACTICE,
+    val level: JlptLevel? = null, val type: String? = null,      // 연습·청해 제목 "{유형} 연습"(이름은 QuizTypeLabels), EXAM은 null
+    val score: Score? = null,                         // :core:quiz Score 그대로(EXAM은 examSections를 보임, 9.2.5)
+    val elapsedMs: Long? = null, val limitMs: Long? = null,      // EXAM만(참고 표시)
+    val scriptShownCount: Int = 0,                    // LISTENING: script_shown = 1 답 수
+    val retiredCount: Int = 0,                        // LoadedAttempt.retiredCount
+    val filter: ResultFilter = ResultFilter.WRONG,
+    val items: List<QuizReviewItemUi> = emptyList(),  // 남은 문항 전부, 보인 순서(필터는 화면이 적용)
+    val reviewIndex: Int? = null)                     // null = 목록, 값 = 그 items 순번의 해설 보기. 시스템 뒤로는 null로 되돌린다(BackHandler)
+```
+- **해설 보기(13.3 #2):** `QuizResult` 라우트 안의 상태 `reviewIndex`다. 하위 라우트를 두지 않는다(결과 계산을 다시 하지 않고, 해설에서 뒤로 가면 같은 스크롤 위치의 목록으로 돌아온다). 프로세스 재시작 뒤에는 `SavedStateHandle`에 둔 `reviewIndex`로 복원한다.
 
 ### 9.3 청해(4순위)
 
-- 대본 파일 `content/authored/listening/N<급>/<id>.json`: 공통 필드 + `type`, `lines`(`[{"speaker": "M"|"F"|"N", "text": "…", "ttsText": "…(선택)"}]`), `question`, `choices`, `answerIndex`, `explanationKo`. 콘텐츠 DB v5(M23).
-- 재생은 `Speaker` 뒤. 첫 구현은 기기 `TextToSpeech(Locale.JAPAN)`(D-04의 A/C 어느 쪽이든 필요한 부분). 엔진에 연결하려면 매니페스트 `<queries>` `TTS_SERVICE` 선언이 필요하다(5.1, M22). 일본어 데이터 설치(`ACTION_INSTALL_TTS_DATA`)·TTS 설정 열기(`com.android.settings.TTS_SETTINGS`)는 `startExternal`(7절)로 부르고 예외를 잡는다.
-- DB(v5, M23): `listening(id PK, level, sort_key, type, lines_json, question, choices_json, answer_index, explanation_ko, + 출처 열 묶음 P)`. 작성 파일에는 9.1과 같은 출처 필드(`method`, `reviewStatus`, `reviewedAt`, `reviewerKind`)가 있다. 화면 S16 해설 카드에 P로 만든 `MeaningUi`의 `ProvenanceChip`을 붙인다(ui-design 5.7). 사전 생성 음성(B)이 채택되면 같은 인터페이스의 다른 구현과 `assets/` 음성 허용 검사 변경을 새 마일스톤으로 추가한다. 그 전까지 `check.sh`는 음성 파일을 금지한다.
+#### 9.3.1 대본 파일과 `listening` 테이블
+
+- 대본 파일 `content/authored/listening/N<급>/<id>.json`: 공통 필드 + 출처 필드(9.1과 같은 `method`, `reviewStatus`, `reviewedAt`, `reviewerKind`) + `type`(9.2.2 `listening` 코드), `lines`(`[{"speaker": "M"|"F"|"N", "text": "…", "ttsText": "…(선택)"}]` — `text`는 일본어 필드(루비 허용, `[[…]]` 금지), `ttsText`는 가나·한자 평문(루비·`[[…]]` 금지)), `question`(선택, 일본어 필드 — 루비 허용·`[[…]]` 금지, 화면에 보이는 질문. 즉시 응답처럼 질문 글이 없는 유형은 생략하고 화면은 그 줄을 숨긴다), `choices`(일본어 4개), `answerIndex`, `explanationKo`, `whyWrongKo`(9.2.2와 같은 4칸 배열), `targets`(없으면 `[]`). ID `ls-n<급>-<4자리>`.
+- **읽는 문자열(`SpeechLine.text`):** 줄마다 `ttsText`가 있으면 그것, 없으면 `Furigana.parse(text)`의 `base`만 이은 문자열(루비 읽기를 쓰지 않는다 — 한자가 TTS의 형태소 단서다. 잘못 읽는 곳은 작성자가 `ttsText`로 고친다). `question`은 재생하지 않는다. 질문을 들려주려면 작성자가 `lines`에 `N` 줄로 넣는다. 변환은 `ui/listening/ScriptSpeech.kt`의 `object ScriptSpeech { fun lines(lines: List<ListeningLine>): List<SpeechLine> }` 한 곳(speaker `M`/`F`/`N` → `Voice.MALE`/`FEMALE`/`NARRATOR`)이다. `utteranceId`는 문항 ID(`ls-…`). 문항 하나의 대본 전체를 `speak` 한 번에 넘긴다.
+- **줄 사이 쉼:** `Speaker` 구현 몫이다. `DeviceTtsSpeaker`는 줄 사이에 `playSilentUtterance(LINE_GAP_MS = 400, QUEUE_ADD, …)`를 넣는다(9.3.2). 화면·`ScriptSpeech`는 쉼을 넣지 않는다.
+
+**`listening`**
+| 열 | 타입 | 필드 | 내용 |
+|----|------|------|------|
+| `id` | TEXT PK | | `ls-n<급>-<4자리>` |
+| `level` | INTEGER NOT NULL | | 9.0 |
+| `sort_key` | INTEGER NOT NULL | | ID 끝 4자리 번호 |
+| `type` | TEXT NOT NULL | | 9.2.2 `listening` 코드 |
+| `lines_json` | TEXT NOT NULL | `text` 일본어 | `[{"speaker","text","ttsText"?}]`, 1줄 이상. `ttsText` 없으면 키 생략 |
+| `question` | TEXT NULL | 일본어(루비 허용, `[[…]]` 금지) | 질문 글이 없으면 NULL(빈 문자열로 쓰지 않는다). `QuizContent.stem`은 NULL이면 `""`, 화면은 빈 `stem`이면 질문 줄을 숨긴다 |
+| `choices_json` | TEXT NOT NULL | 일본어 | 4개 |
+| `answer_index` | INTEGER NOT NULL | | 0..3 |
+| `explanation_ko` | TEXT NOT NULL | 한국어 | |
+| `why_wrong_ko_json` | TEXT NOT NULL | 한국어 | 4칸, 정답 자리 `null` |
+| `targets_json` | TEXT NOT NULL | | ID 배열 |
+| P 7열 | | | 4.2 |
+인덱스: `(level, type, sort_key)`
+
+화면 S16 해설 카드에 P로 만든 `MeaningUi`의 `ProvenanceChip`을 붙인다(ui-design 5.7). 사전 생성 음성(D-04 B)이 채택되면 같은 인터페이스의 다른 구현과 `assets/` 음성 허용 검사 변경을 새 마일스톤으로 추가한다. 그 전까지 `check.sh`는 음성 파일을 금지한다.
+
+#### 9.3.2 `Speaker` 구현(M22, `com.jlptstudy.app.speech`)
+
+- 인터페이스·상태는 8.2(이 절에서 확정). 구현 `DeviceTtsSpeaker(context: Context, scope: CoroutineScope, initTimeoutMs: Long = 10_000)`는 `TextToSpeech(context, listener)`(기본 엔진)를 만든다. 엔진에 연결하려면 매니페스트 `<queries>` `TTS_SERVICE` 선언이 필요하다(5.1). 권한은 더하지 않는다.
+- 상태 전이: 생성 → `Initializing`. `onInit(SUCCESS)` 뒤 `setLanguage(Locale.JAPAN)`이 `LANG_MISSING_DATA`·`LANG_NOT_SUPPORTED`면 `MissingJapaneseData`, 아니면 `Ready`. `onInit(ERROR)`이면 `engines`가 비었을 때 `NoEngine`, 아니면 `Error`. `initTimeoutMs` 안에 `onInit`이 없으면 `Error`(시간은 `scope`의 가상 시간으로 테스트).
+- `speak(id, lines, rate)`: `setSpeechRate(rate)`를 먼저 부르고, 줄마다 `setPitch(voice별 상수)` 뒤 `speak(text, 첫 줄 QUEUE_FLUSH·나머지 QUEUE_ADD, null, "$id#$i")`, 줄 사이(마지막 줄 뒤 제외)에 `playSilentUtterance(400, QUEUE_ADD, "$id#gap$i")`. 상태 `Playing(id)`. 마지막 줄의 `onDone` → `Ready`, `stop()` → `tts.stop()` 후 `Ready`, `onError` → `Error`. 화자별 피치 상수 `MALE 0.85f`, `FEMALE 1.15f`, `NARRATOR 1.0f`(AR-U12 A, 실기기 확인 항목). 기기의 성별 음성(`Voice`) 선택은 하지 않는다.
+- 일본어 데이터 설치(`TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA`)·TTS 설정 열기(`com.android.settings.TTS_SETTINGS`)는 `startExternal`(7절)로 부르고 `false`면 화면이 안내 문구를 보인다. 미리 판정해 버튼을 숨기지 않는다.
+- **설치 뒤 재확인(13.3 #11):** `Speaker`에 `recheck()`를 두지 않는다. 청해 ViewModel이 ON_START에서 `speaker.state`가 `MissingJapaneseData`·`NoEngine`·`Error`면 지금 인스턴스를 `shutdown()`하고 `speakerFactory()`로 새로 만든다(설치·설정 화면에서 돌아오면 ON_START가 온다. ON_RESUME은 쓰지 않는다 — ON_STOP의 `stop()`과 짝을 맞춘다). `Error`의 "다시 시도" 버튼도 같은 경로다.
+- 청해 ViewModel은 재생 버튼을 누르면 TalkBack(`AccessibilityManager.isTouchExplorationEnabled`)이 켜져 있을 때 1,000 ms 뒤, 꺼져 있으면 즉시 `speak`한다. 화면을 떠나거나 ON_STOP이면 `stop()`. 자동 재생하지 않는다(ui-design 5.8).
+
+#### 9.3.3 S16 UI 상태(M23)
+
+```kotlin
+// 라우트 Listening(attemptId). 시도는 QuizRepository.startAttempt(examId = null, …), 끝나면 QuizResult(attemptId)(S15)
+enum class ListeningStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, SUBMITTED } // EMPTY = 남은 문항 0
+data class ListeningUiState(
+    val status: ListeningStatus = ListeningStatus.LOADING,
+    val attemptId: Long = 0, val index: Int = 0, val total: Int = 0,
+    val question: QuizQuestionUi? = null,              // lines != null(9.2.6). stem이 비면 질문 줄 숨김
+    val chosenIndex: Int? = null,
+    val scriptOpen: Boolean = false,                   // 지금 대본이 펼쳐져 있는가(listening_script_first, NoEngine, 사용자가 펼침)
+    val scriptSeen: Boolean = false,                   // 이 문항에서 답하기 전에 한 번이라도 펼쳤는가 → quiz_answer.script_shown(UI-U13 A). 문항이 바뀌면 false로
+    val speaker: SpeakerState = SpeakerState.Initializing,
+    val rate: Float = 1.0f,                            // 0.8f / 1.0f. 저장하지 않는다(화면을 다시 열면 1.0f)
+    val audioNotice: NoticeUi? = null,                 // attribution.json notices의 N-12. null이면 줄 숨김
+    val externalOpenFailed: Boolean = false,           // 설치·설정 인텐트를 열 앱이 없음 → 안내 문구
+    val saving: Boolean = false,
+    val saveFailed: Boolean = false)
+```
+- `scriptOpen`이 처음부터 참인 경우: `user_settings.listening_script_first = 1`, 또는 `speaker`가 `NoEngine`(D-04 B 이후 `AudioFileMissing` 포함). `scriptOpen`이 한 번이라도 참이 되면 그 문항의 `scriptSeen = true`이고, 답을 고를 때 `scriptSeen`을 `quiz_answer.script_shown`에 쓴다(답하는 순간 접혀 있어도 1, UI-U13 A).
+- 청해 연습 한 회는 고른 유형의 `ls-` 항목 최대 `PRACTICE_SIZE`개(9.2.5와 같은 `buildSet`).
 
 ### 9.4 필순(KanjiVG, S-03 확정 시)
 
-`kanji_stroke(literal PK, paths_json TEXT NOT NULL, source_id 'S-03')`(콘텐츠 DB v2, M12) — main 묶음 SVG의 `kvg:StrokePaths_*` 경로 `d` 문자열을 획 순서대로 담는다. 부수·요소 속성과 `kvg:StrokeNumbers_*`(획 번호 글자·위치)는 읽지 않는다. 화면의 획 번호(ui-design 6.7.1)는 앱이 각 경로의 순서(번호)와 시작점(`d`의 첫 `M`)에서 계산한다. 화면은 `paths_json`을 `PathParser`로 그린다. 데이터가 없으면 절을 숨긴다.
+**`kanji_stroke`**(콘텐츠 DB v2. 엔티티 T05a, 화면 M12, 데이터 M13)
+| 열 | 타입 | 내용 |
+|----|------|------|
+| `literal` | TEXT PK | `kanji.literal`에 있는 문자만(검사) |
+| `paths_json` | TEXT NOT NULL | JSON 문자열 배열, 획 순서. 원소는 KanjiVG main 묶음 SVG의 `kvg:StrokePaths_<코드포인트>` 안 `<path id="kvg:<코드포인트>-s<n>">`의 `d` 그대로, `n` 오름차순. 좌표계는 KanjiVG `viewBox="0 0 109 109"`(파이프라인은 다른 viewBox를 만나면 `FAIL: parse S-03 viewBox <문자>`) |
+| `source_id` | TEXT NOT NULL | `S-03`(합성 픽스처·샘플은 `authored`) |
+인덱스는 PK만.
+
+- 부수·요소 속성(`kvg:element`, `kvg:radical` 등)과 `kvg:StrokeNumbers_*`(획 번호 글자·위치)는 읽지 않는다. 화면의 획 번호(ui-design 6.7.1)는 앱이 각 경로의 순번(1부터)과 시작점(`d`의 첫 `M`/`m` 좌표)에서 계산한다(`ui/detail/StrokeGeometry.kt`의 `fun start(d: String): Pair<Float, Float>?`, 해석 실패면 그 번호만 생략).
+- KanjiVG에 없는 한자는 행을 만들지 않고 `_workspace/03_content-engineer_M13_strokes_missing.tsv`(문자)에 남긴다. 그래서 릴리스 DB `kanji_stroke` 행 수 = `kanji` 행 수 − 그 파일 행 수.
+- 앱: `ContentRepository.kanji(literal)`가 `kanji_stroke`를 함께 읽어 `KanjiDetailUiState.strokes: List<String>?`(7절, 이미 있음)를 채운다. 행 없음·`paths_json` JSON 파싱 실패·**경로 하나라도 해석 실패**(각 `d`를 `PathParser.createPathFromPathData`로 미리 해석해 예외가 나면) → `null`(절 숨김, 앱이 죽지 않음). 판정은 저장소 한 곳에서 하고 화면은 `strokes == null`만 본다(13.3 #13). 그래서 `StrokeOrder`가 받는 경로는 모두 해석되는 것이다. M12가 `KanjiDetailUiState`에 `strokeSourceName: String? = null`(attribution.json `sources`의 `S-03` `name`, 없으면 출처 줄 숨김)을 더한다.
+- 그리기는 `ui/detail/StrokeOrder.kt` 컴포저블 하나가 `androidx.core.graphics.PathParser.createPathFromPathData(d)`로 한다(`androidx.core`는 이미 쓰는 의존. 새 라이브러리 없음). 재생 상태 `enum class StrokePlayback { IDLE, PLAYING, DONE }`(ui-design 6.7.1의 "획 순서대로 보기"/"멈추기"/"다시 보기")는 화면 안 `rememberSaveable` 상태이고 UiState에 두지 않는다. 획 400 ms·간격 150 ms는 ui-design 6.7.1 값.
+- 크기: KanjiVG `d`는 한자당 약 1~2 KB라 N5 411자는 1 MiB 미만, N5~N1(약 2,100자)도 6.3 예산(12 MiB) 안으로 본다. M13이 실제 크기를 보고서에 적는다.
 
 ## 10. 콘텐츠 마일스톤의 선행 조건(게이트 마일스톤)
 
@@ -807,15 +1248,16 @@ sealed interface SpeakerState {
 
 | 게이트 | 조건(확인 방법) | 기다리는 마일스톤 |
 |--------|------------------|-------------------|
-| `G-D06` | `docs/content/manifest.json`에서 S-01·S-02와 D-06에서 고른 급수 목록 자료가 `status == "confirmed"`이고 세 자료 모두 `pinning.method`가 있음(6.7), `docs/content/decisions.md` D-06이 **결정** | M8 → M9 → M10 → M11, M13, M26 |
-| `G-D03` | decisions.md D-03이 **결정** | M11, M26 |
+| `G-D06` | `docs/content/manifest.json`에서 S-01·S-02와 D-06에서 고른 급수 목록 자료가 `status == "confirmed"`이고 세 자료 모두 `pinning.method`가 있음(6.7), `docs/content/decisions.md` D-06이 **결정** | M8 → M9 → M10 → M11, M13, M26a → M26b |
+| `G-D03` | decisions.md D-03이 **결정** | M11, M26a |
 | `G-S03` | manifest S-03이 `confirmed` | M13 |
 | `G-D04` | decisions.md D-04가 **결정** | M24 → M25 |
-| `G-S11` | manifest S-11(Material Symbols, `scope` `app-asset`)이 `confirmed`이고 license·attribution·version이 sources.md에서 확정 | M10(첫 release DB 빌드) → M11, M13, M26 |
+| `G-S11` | manifest S-11(Material Symbols, `scope` `app-asset`)이 `confirmed`이고 license·attribution·version이 sources.md에서 확정 | M10(첫 release DB 빌드) → M11, M13, M26a |
+| `G-S12` | manifest S-12(앱 아이콘 생성 이미지, `scope` `generated-asset`)가 `confirmed`이고 sources.md S-12 **핵심 행**(`S-12.origin`, `S-12.terms-which`, `S-12.terms-consumer`와 `S-12.terms-business` 중 `terms-which`가 고른 한 행, `S-12.attribution`)이 모두 `확정`이며 0절 상태 요약 행·확인일이 manifest와 같음. `S-12.copyright`(법률 판단)는 핵심 행이 아니다 — 상태 `사용자 결정`이고 decisions.md D-09로 대신한다. `S-12.similarity`·`S-12.used`는 참고 행 | T13 (공개 출시만 막는다, AR-U15) |
 
-현재 막힌 사슬: M8·M9(G-D06), M10(G-D06 사슬 + G-S11), M11·M26(G-D06·G-S11 사슬 + G-D03), M13(G-S03 + M10을 거쳐 G-D06·G-S11), M24·M25(G-D04). 막히지 않는 것: M1~M7(샘플 DB로 MVP 화면 전부 — S-11 아이콘은 `unconfirmed`인 채 개발에 쓴다), M12, M14~M23.
+2026-11-03 현재: G-D06·G-D03·G-S03·G-D04·G-S11은 `done`(잠정 채택 포함)이라 이 게이트들로 막힌 마일스톤은 없다. G-S12만 `needs-decision`(analyst가 S-12 핵심 행을 확인하고 사용자가 D-09를 정할 때까지)이고 T13만 기다리게 한다(AR-U15: 개발·T09는 막지 않고 **공개 출시만** 막는다 — next-tasks 5절 "공개 출시"). 그 밖의 2~4순위 마일스톤은 11.4 선행 표대로 풀린다.
 
-fetch가 `confirmed` 아닌 자료를 받지 않으므로(6.2) 게이트가 잘못 풀려도 원본은 들어오지 않는다. 손으로 `res/`에 넣는 앱 자산(S-11)은 fetch를 거치지 않으므로 이 안전장치 대신 `release` 빌드 검사 "앱 자산"(6.5)이 막는다.
+fetch가 `confirmed` 아닌 자료를 받지 않으므로(6.2) 게이트가 잘못 풀려도 원본은 들어오지 않는다. 손으로 `res/`에 넣는 앱 자산(S-11, S-12)은 fetch를 거치지 않으므로 이 안전장치 대신 `release` 빌드 검사 "앱 자산"(6.5)이 막는다. S-12까지 잡도록 검사를 넓히는 T13(옛 이름 T11 — next-tasks의 T11 "출시 준비"와 겹쳐 바꿈)은 G-S12 뒤에 둔다(먼저 넓히면 S-12 확인 전까지 T05b·M15 등 모든 release DB 빌드가 멈춘다). G-S12·T13이 `done`이 되기 전에는 앱을 공개 배포하지 않는다(출시 준비 next-tasks T11의 조건). 개발 마일스톤(T09 포함)은 G-S12·T13에 의존하지 않는다.
 
 ## 11. 문서 사이 대조(2026-11-02 design-review 후속 정리)
 
@@ -865,24 +1307,147 @@ fetch가 `confirmed` 아닌 자료를 받지 않으므로(6.2) 게이트가 잘�
 31. 13.1 Review 행에 **`newCardsLeftAfterSession`**(7절)을 더한다. 13.1 MockExam/Practice 행의 S12 "이어서 풀기"·"포기하기"는 M19 범위다.
 32. 12절 3순위 행에 S12·S15 이름 **`practice_home`**(유형 목록, N-11 줄), **`practice_home_resume`**("이어서 풀기" 카드), **`quiz_result`**(S15)를 더한다(M19 완료 조건이 이 이름).
 
+2026-11-03 T04(9절 확정) 후속 — ui-designer가 맞출 이름:
+
+33. 6.9.1 "초안 — 착수 때 확정" 표기를 지운다. 상태 모델은 7절 `ReviewCardUi.Grammar` 그대로(`example` = `grammar_example` `ord = 0`).
+34. 13.1에 행을 더한다(이름은 9절 그대로): GrammarList(S10) `GrammarListUiState(status: GrammarListStatus { LOADING, LOADED, EMPTY }, levels, rows: List<GrammarRow(id, level, title, meaningKo)>)`, GrammarDetail(S11) `GrammarDetailUiState(status: DetailStatus, detail: GrammarDetailUi?)`(`connections: List<ConnectionUi(posKo, form, example)>`, `examples: List<ExampleUi(ja, ko, sourceId, sourceRef, author, license)>`, `contrasts: List<ContrastUi(grammarId, title, mine, other)>`, `provenance`, `needsReview`), Practice(S12) `PracticeHomeUiState(status: PracticeHomeStatus { LOADING, LOADED, EMPTY }, level, levels, types: List<PracticeTypeUi(section, type, count)>, exam: ExamCardUi?, resume: ResumeExamUi?, confirmReplace, confirmAbandon, startFailed)`, Quiz(S13·S14) `QuizUiState(status: QuizStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, CONFIRM_EXIT, CONFIRM_SUBMIT, SUBMITTED }, mode: QuizMode { PRACTICE, EXAM, LISTENING }, …, sectionStarts, limitMs, saving, saveFailed)`, QuizResult(S15) `QuizResultUiState(status: QuizResultStatus { LOADING, LOADED, EMPTY }, mode, level, type, score: Score?, elapsedMs, limitMs, scriptShownCount, retiredCount, filter: ResultFilter { WRONG, ALL }, items: List<QuizReviewItemUi>, reviewIndex)`, Listening(S16) `ListeningUiState(status: ListeningStatus { LOADING, EMPTY, ANSWERING, FEEDBACK, SUBMITTED }, …, scriptOpen, scriptSeen, speaker: SpeakerState, rate, audioNotice, externalOpenFailed, saving, saveFailed)` (2026-11-03 2차 갱신, 13.3 대응은 11.6). 13.1 MockExam 행의 "타입 이름은 M19 착수 때 architecture.md가 정한다"를 이 이름으로 바꾼다. ui-design 7절 상태와의 대응: S13 "문항" = `ANSWERING`, "피드백" = `FEEDBACK`, S14 "진행 중 이탈" = `CONFIRM_EXIT`, "제출 전 미응답" = `CONFIRM_SUBMIT`.
+35. 5.8·6.11·13.1 Playback: `Speaker.speak(utteranceId, text, rate)` → **`Speaker.speak(utteranceId, lines: List<SpeechLine>, rate)`**(`SpeechLine(text, voice: Voice { MALE, FEMALE, NARRATOR })`, 8.2). 화자 구분은 피치 차이(AR-U12 A)이고 대본 화자 표시("M:"/"F:"/"내레이션")는 그대로.
+36. 6.10 S12·S14: 모의고사에 **청해 영역이 없다**(AR-U11 A). 모의고사 시작 화면에 "청해 영역은 포함하지 않습니다" 같은 한 줄을 정한다(문구는 ui-design). S15 영역 이름은 `Section`(`vocab` 문자·어휘, `grammar` 문법, `reading` 독해, `listening` 청해)이고 비율 반올림 규칙을 6.10에 적는다(`SectionScore`는 `correct`·`total`만 준다).
+37. 6.10 S12: 미완료 모의고사가 있는데 새 모의고사를 시작하면 이전 시도를 닫는다(AR-U14 A, 답은 남음). 그 전에 보일 확인 대화상자 문구를 정한다(예: "진행 중인 모의고사를 끝내고 새로 시작할까요?").
+38. 6.10 S13·6.11 S16: 연습 한 회 문항 수 `PRACTICE_SIZE = 10`(9.2.5). 유형 이름은 9.2.2 코드표와 1:1이고 표시는 `ui/practice/QuizTypeLabels.kt` 한 곳. 청해 결과도 S15(`QuizResult(attemptId)`)로 가며 `QuizReviewItemUi.scriptShown`이 "대본으로 풂" 표시다.
+39. 6.11: `question`(화면 질문)은 재생하지 않는다. 읽는 것은 `lines`뿐이다(9.3.1).
+40. 6.7.1: 출처 줄 문구는 `KanjiDetailUiState.strokeSourceName`(attribution.json S-03 `name`). 재생 상태 이름 `StrokePlayback { IDLE, PLAYING, DONE }`(화면 안 상태).
+41. 12절: M19a~M19d·M23 스크린샷 이름은 지금 목록(`practice_home`, `practice_home_resume`, `practice_choice`, `practice_feedback`(+`_font200`), `mock_exam_nav`, `quiz_result`, `listening_*` 6종)을 그대로 쓴다. 모의고사 대화상자 두 개에 이름을 더한다: **`mock_exam_confirm_exit`**, **`mock_exam_confirm_submit`**(M19c).
+
+2026-11-03 설계 검증 후속 — ui-designer가 맞출 것:
+
+42. 4.3·11.1: `clearAndSetSemantics` 노드의 동작 규칙(7절 "낭독 문구" 끝 — 동작 수정자를 바깥에 두거나 블록 안에서 `role`·`selected`·`stateDescription`·`onClick(label)`을 다시 선언)을 적는다. 선택지 행의 `Role.RadioButton`·"선택됨"은 이 규칙으로 남긴다.
+43. 12절 `_font200` 추가 목록에 **`level_loaded`**, **`settings_loaded`**, **`done_loaded`**, **`kanji_detail_loaded`**, **`error_content_db`**, **`app_opening`**을 더한다(T12 완료 조건이 이 이름).
+44. 13.1 PracticeHome 행에서 `notice: NoticeUi?`를 지우고 13.3 #1을 "해소"로 옮긴다(9.2.6: N-11 요약 줄은 문자열 리소스, notice 필드 없음). 6.10 S12 4번의 notice 필드 언급도 같게.
+45. 13.1에 ExamStart 행을 더한다: `ExamStartUiState(status: ExamStartStatus { LOADING, LOADED, EMPTY, FAILED }, level, sections: List<ExamSectionLine(titleKo, count, minutes)>, total, limitMs, hasShortfall, starting, startFailed)`, 라우트 `ExamStart(level)`(7절). 7절 S14 "시작 화면" 행의 대응이 이것이다. 7절 S12 `confirmReplace`의 "새로 시작"은 `startAttempt`를 직접 부르지 않고 `ExamStart(level)`로 가며, `startAttempt`는 시작 화면의 "시작"에서 한 번 불린다(9.2.6).
+46. 6.7 S07 머리 급수 칩은 `KanjiDetailUiState.level`, 6.6 "학습 상태" 절은 `CardStateSummary(kind, progress: CardProgress { NEW, LEARNING, REVIEW }, dueAtEpochMs)`(7절)이라고 적는다.
+
 ### 11.3 analyst(content-licensing)에게 넘길 것(매니페스트·sources.md는 이 문서가 고치지 않는다)
 
 1. **판 고정(6.7):** 완료(2026-11-02). 매니페스트 `pinning.method`: S-01·S-02·S-03·S-04 `snapshot`(`pinnedCopy: "content/snapshot/"`), S-06 `url`.
 2. **급수 목록·S-04 스냅샷 공개 커밋(6.7):** 미정 — decisions.md **D-08**(사용자 결정)을 따른다. 커밋하지 않기로 정하면 해당 자료 `pinning.method`를 `archive`로 바꾸고 `pinnedCopy`에 사본 URL을 적는다(6.7 방식 B).
 3. **S-02 한국어 음 크레딧 문구:** 완료. 매니페스트 S-02 `extraCredits[0].text` = "한국어 음: Charles Muller 제공(KANJIDIC2 경유)"(6.6).
 4. **S-09 `extraCredits`:** 완료(Waller 크레딧).
-5. **S-01 `usedFields`:** 완료.
-6. **S-11:** `usedFields`·고지 경로·파일 이름은 완료(기본 이름 배열 24개, `assets/licenses/`, `ic_ms_<이름>.xml`·`ic_ms_<이름>_fill.xml`, 6.6). **남은 일:** license-verify로 S-11 license·attribution·version을 확정해 `status`를 정한다. 확정되면 게이트 `G-S11`(10절)이 풀리고, 확정 전에는 `release` 빌드 검사 "앱 자산"(6.5)이 FAIL이다.
+5. **S-01 `usedFields`:** 완료(2026-11-03). 4.2·6.3·6.7이 쓰는 `sense/stagk`·`sense/stagr`가 매니페스트 S-01 `usedFields`와 sources.md S-01.used에 들어갔다.
+6. **S-11:** 완료(2026-11-02 manifest `confirmed`, `G-S11` done). `usedFields`·고지 경로·파일 이름은 6.6 그대로(기본 이름 배열 24개, `assets/licenses/`, `ic_ms_<이름>.xml`·`ic_ms_<이름>_fill.xml`). sources.md S-11 머리말의 "architect 반영 대기"는 6.5 "앱 자산"·10절 `G-S11`로 반영됐으므로 지운다.
 7. **AndroidX 등 라이브러리:** sources.md 행을 만들지 않는다. `assets/licenses/libraries.json`(6.6)이 기록이다. 이전 요청("AndroidX 출처 행")은 철회.
 8. **S-03 `usedFields`·sources.md S-03.used:** 설계는 `kvg:StrokePaths`만 쓰고 획 번호는 앱이 경로 순서·시작점에서 계산한다(6.7·9.4). "stroke order numbers(`kvg:StrokeNumbers_*`)"를 빼거나 "앱이 경로 순서에서 계산"으로 고치고, S-03.used의 "미확정(앱 사용 여부는 설계 단계 결정)"을 이 결정으로 바꾼다.
 9. **sources.md S-02.excluded:** "architecture.md 4.3 U-04" → "architecture.md 4.3 **AR-U04**".
 10. **D-06 후보의 빈 값(S-05·S-09):** release 빌드는 쓰인 자료의 `attribution`·`licenseUrl`·`modifications`가 비면 FAIL이다(6.5). S-05(CC BY, 버전 미상)를 고르면 표시할 라이선스 URL을 sources.md L-04.waller에 정해 매니페스트 `licenseUrl`에 적고, S-09를 고르면 `attribution`·`modifications`를 채운다. 확정 전 값 채우기는 G-D06 확인 항목이다.
 
+11. **N-09 문구에 문법 급수 문장 추가(UI-U12 A, ui-design 13.3 #14):** 문법 콘텐츠가 있는 빌드에서 N-09 본문에 "문법 항목의 급수도 이 앱이 정한 것으로 공식 분류가 아닙니다"에 해당하는 문장을 덧붙인다. analyst가 sources.md N-09 문구와 `content/notices.ko.json`의 `notices.N-09.grammarPrefix` 키(문법 행이 있을 때만 본문 앞에 붙는 문장, 6.6)를 정한다. 넣을지 판정은 파이프라인이 빌드 때 한다(6.6 규칙, 새 고지 ID 없음, 앵커는 `About(anchor = "N-09")`). 파이프라인 반영은 M15.
+12. **S-12(앱 아이콘 생성 이미지, 2026-11-03 설계 검증):** 매니페스트에만 있고 sources.md에 없다(Q1). sources.md에 S-12 절과 0절 상태 요약 행을 더하고, 생성 도구(OpenAI) 이용 약관의 생성물 권리 조항을 원 출처에서 인용해 license·status를 적는다. `scope`는 `generated-asset`으로 시작하는 지금 값을 유지한다(6.5 "앱 자산" 판정 기준). 확정되면 `G-S12`(10절)가 풀린다. 확정할 수 없으면 아이콘을 확정 자료로 바꾸는 마일스톤을 새로 만든다.
+13. **sources.md N-12 상태:** "D-04(미정)"·"D-04 결정 대기"를 decisions.md D-04 잠정 채택(기기 TTS)·`G-D04` done에 맞춰 고친다.
+
 ### 11.4 milestones.json에 반영한 것
 
 ui-design 12·13.3이 요구한 테스트·스크린샷 이름을 M4·M5·M6·M12·M17 완료 조건에 넣었다(M4: 입력 무시 300 ms 양방향, 앞·뒷면 표제어 위치, `review_front_recall`·`review_back_word_font200`·`review_front_word_light_land_font200`·`review_back_word_light_land_font200`, 간격 미리보기 5분 30초 → 6분 / M5: `home_sample_banner` / M6: `dict_no_content_for_filter`·`dict_kanji_font200` / M12: 6.7.1 동작·TalkBack·`kanji_detail_strokes`(+`_font200`) / M17: `review_front_grammar`·`review_back_grammar`·`settings_with_grammar`). 이번 정리로 바뀐 계약(문법 출처 열, `listening_script_first`, `quiz_answer.script_shown`, `meaningSourceTexts` 키, `notices` 파이프라인 완성, `pinning.method`, 한국어 필드 루비 금지)도 M2·M3·M7·M14·M15·M16·M19·M23·G-D06에 반영했다. 출처·검수 칩의 하단 시트는 `attribution.json`(`AttributionRepository`)과 About 라우트가 필요해 M7로 옮기고 M7 `dependsOn`에 M4를 더했다.
 
+**2026-11-03 마일스톤 재구성(T04, U-1 A·U-7 변경).** 근거 `docs/plan/next-tasks.md` 3·4절, `docs/content/decisions.md` U-1~U-7.
+
+| 무엇 | 바뀐 것 |
+|------|---------|
+| 새 마일스톤 | T05a(콘텐츠 DB v2 엔티티·2.json·에셋 1회 재생성), T05b(파이프라인 v2 검사·결정성), T06(학습 기록 DB v2 마이그레이션 + 테스트 장치, opus), T07(검수 도구 6.8), T09(MVP low 지적·린트, 마지막), T10(EDRDG 재빌드 연습, M26b 뒤) |
+| 나눔 | M19 → M19a(데이터 계층)·M19b(S12·S13)·M19c(S14, opus)·M19d(S15). M26 → M26a(N4 뜻 생성)·M26b(표본 검수·릴리스 빌드) |
+| 빠진 조건 | M12·M14·M19*·M23의 "ContentDatabase 버전을 올림/vN", "PRAGMA user_version N" → T05a·T05b로 옮기고 선행으로 둠. 기능 마일스톤은 `ContentDatabase/` 에 새 스키마 JSON을 만들지 않는다(완료 조건) |
+| 실기기 | U-7 변경: 개발 중 실기기 단계를 돌리지 않는다. 실기기 항목은 각 마일스톤 완료 조건에 "실기기 확인(unverified): …"로 남겨 `awaiting-device`가 되게 한다. DEV-1·DEV-2·DEV-3은 마일스톤이 아니다(11.5) |
+| 선행 | 아래 표 |
+| 바뀐 계약 | `Speaker.speak(…, lines, rate)`(8.2), `:core:quiz` 시그니처(9.2.5), 청해 결과를 S15로(그래서 M23 ← M19d, next-tasks의 M19b보다 하나 뒤), 모의고사 청해 제외(AR-U11) |
+
+| ID | 담당 | dependsOn |
+|----|------|-----------|
+| T05a | feature-engineer | M2, M3 |
+| T05b | content-engineer | T05a |
+| T06 | feature-engineer(opus) | M2 |
+| T07 | content-engineer | M3 |
+| M12 | feature-engineer | M6, T05b |
+| M13 | content-engineer | M12, M10, G-S03 |
+| M14 | feature-engineer | M2, T05b |
+| M15 | content-engineer | T05b |
+| M16 | jlpt-content-author | M15, T07 |
+| M17 | feature-engineer | M14, M4 |
+| M18 | feature-engineer(opus) | 없음 |
+| M19a | feature-engineer | M18, T05b, T06 |
+| M19b | feature-engineer | M19a |
+| M19c | feature-engineer(opus) | M19b |
+| M19d | feature-engineer | M19c |
+| M20 | content-engineer | T05b |
+| M21 | jlpt-content-author | M20, T07 |
+| M22 | feature-engineer | M2 |
+| M23 | feature-engineer | M22, M19d, T05b |
+| M24 | content-engineer | T05b, G-D04 |
+| M25 | jlpt-content-author | M24 (U-7: DEV-2를 선행으로 두지 않는다) |
+| M26a | jlpt-content-author | M11, G-D03 |
+| M26b | jlpt-content-author | M26a, T07 |
+| T09 | feature-engineer | M12, M17, M23, T12, T14 (G-S12·T13에 의존하지 않는다, AR-U15) |
+| T10 | content-engineer | M26b |
+| G-S12 | (게이트) | 없음 |
+| T13 | content-engineer | M3, G-S12 (옛 T11. 6.5 "앱 자산"을 `generated-asset`까지. 공개 출시 전 조건, AR-U15) |
+| T12 | feature-engineer | M2, M4, M5, M6, T14 (MVP 화면 `_font200` 보강. T14의 새 스테퍼·시트로 찍으려고 T14 뒤) |
+| T14 | feature-engineer | M4, M5, M6 (2026-11-03 design-review: S03 카드 알림 `review_card` liveRegion, S01·S08 `NumberStepper`, 하루 시작 시각 시트, S05 IME 인셋 — ui-design 4.3·6.5·6.8·11.1·12) |
+
+**병렬 갈래(next-tasks 4절).** T05b가 끝나면 갈래끼리는 서로 다른 파일을 건드린다. 동시에 2개까지만 돌린다(CLAUDE.local.md). 갈래마다 로컬 브랜치와 worktree를 쓴다(U-6 A, push·main 병합은 사용자 확인 뒤).
+
+| 갈래 | 담당 | 파일 | 순서(갈래 안은 한 줄) |
+|------|------|------|----------------------|
+| A 앱 화면 | feature-engineer | `app/src/main/java/com/jlptstudy/app/ui/{detail,grammar,practice,listening}/`, `nav/`, `AppContainer.kt`, `data/content/*Repository.kt` | T14 → T12 → M12 → M14 → M17 → M19a → M19b → M19c → M19d → M23 → T09(T14·T12는 MVP 화면 `ui/{review,settings,level,browse,components}/`라 다른 갈래 A 작업과 순서만 지키면 된다) |
+| B 파이프라인 | content-engineer | `content/pipeline/`, `content/notices.ko.json` | T05b → T07 → M15 → M20 → M24 → M13(G-S03 뒤) → T10(M26b 뒤) |
+| C 콘텐츠 작성 | jlpt-content-author | `content/authored/{grammar,questions,exams,listening}/`, `content/ko-gloss/N4.jsonl` | M16·M21·M25·M26a는 디렉터리가 달라 서로 병렬. 각자 형식 검사기(갈래 B의 M15·M20·M24)와 T07 뒤. M26b는 M26a 뒤 |
+| D 순수 모듈 | feature-engineer | `core/quiz/`(M18), `app/src/main/java/com/jlptstudy/app/speech/`(M22), `data/study/`(T06) | 지금 바로. M18·M22·T06은 서로 파일이 겹치지 않는다. T05a는 `data/content/`라 T06과 동시에 해도 된다 |
+
+**공유 파일 충돌 규칙.**
+1. **`app/src/main/assets/content/content.db`·`content.db.sha256`·`attribution.json`, `res/values/attribution_fallback.xml`:** 콘텐츠를 바꾸는 갈래(B·C, T05a)는 모두 이 파일을 다시 만든다. 병합 때 이 파일의 충돌은 손으로 고르지 않는다. 병합한 브랜치에서 `python3 -I content/pipeline/build.py`를 한 번 더 돌려 다시 만들고(빌드는 결정적, 6.7) `content/pipeline/check.sh`와 `verify.sh`로 확인한 뒤 그 결과를 커밋한다. 스키마 JSON(`ContentDatabase/2.json`)은 T05a 뒤 바뀌지 않으므로 충돌하지 않는다. 바뀌면(v3) 그 마일스톤 동안 갈래 A·B를 병렬로 돌리지 않는다.
+2. **`AppContainer.kt`, `nav/`(라우트·NavHost·탭 목록), `ContentDao.kt`, `StudyDao.kt`:** 갈래 A 안에서만 순서대로 고친다. 갈래 D의 T06은 `StudyDao.kt`·`StudyDatabase.kt`·`StudyEntities.kt`를, M22는 `AppContainer.kt`의 `speakerFactory` 한 줄을 고친다. 그래서 **T06은 M19a 전에, M22는 M23 전에 갈래 A로 병합**하고, 갈래 A가 그 파일을 고치는 동안 T06·M22를 다시 열지 않는다.
+3. **`gradle/libs.versions.toml`·`app/build.gradle.kts`·`assets/licenses/libraries.json`:** T06(room-testing)만 바꾼다. 다른 마일스톤이 의존을 더하면 같은 날 다른 갈래와 병합 순서를 정한다(카탈로그 키와 libraries.json은 한 쌍으로 바꾼다 — M7 테스트).
+4. **`content/ids/<kind>/*.txt`:** 종류별 파일이 달라(M15 `grammar.txt`, M20 `question.txt`, M24 `listening.txt`, M26b `vocab.txt`·`kanji.txt`) 충돌하지 않는다. 같은 파일을 두 갈래가 고치면 합집합으로 병합하고 `check.sh`의 ID 소실 검사로 확인한다.
+5. **`docs/spec/*`:** 마일스톤 구현은 고치지 않는다. 계약을 바꿔야 하면 architect가 이 문서를 먼저 고친다.
+
 설계 검증(2차) 반영: `<queries>` TTS_SERVICE(M22), 외부 인텐트 예외 처리(M7·M22·M23), 게이트 `G-S11`(M10 `dependsOn`)과 "앱 자산" 검사(M3), grammar `contrasts_json`·`connections` 3필드(M14·M15), `[[…]]` 대상 구간·문항 `target`(M2·M15·M16·M20), 출처 열 묶음 P(M19·M20·M23·M24), N-11을 M15로(M15·M20), `SessionCards`(M4·M5·M17), About의 ContentDbFailed 동작·`About(anchor)`(M7), Opening 화면(M2), `Settings(openLevelPicker)`(M5), `Speaker.speak(rate)`(M22·M23), `AttributionRepository.load`를 M5로(M5, M7 `dependsOn` M5), M19 S12·연습 탭·S13·S14·스크린샷 이름, M23 S12 청해 진입·N-12 줄·1초 지연·이탈 정지.
+
+### 11.5 실기기 확인(U-7 변경: 개발 종료 후 일괄)
+
+개발 중에는 실기기 단계를 돌리지 않는다. 각 마일스톤의 "실기기 확인(unverified): …" 항목은 그 마일스톤을 `awaiting-device`로 두고(의존 마일스톤은 진행 가능), **개발 종료 후 일괄 실기기 체크리스트**로 한 번에 확인한다. 체크리스트는 다음을 모은 것이다(마일스톤으로 만들지 않는다).
+
+- DEV-1(옛 이름): M2 일본식 자형(直·骨·角), M4 TalkBack 일본어 낭독·강제 종료 뒤 기록 유지.
+- DEV-2(옛 이름): M22 일본어 음성 재생, 일본어 음성 없음 → `MissingJapaneseData` 설치 안내, 화면을 나갔다 들어와도 재생.
+- DEV-3(옛 이름): M19d·M23·M25(그리고 M12)의 `unverified` 항목.
+- 기기 후보: Galaxy Z Fold8(Android 17), Fold5(Android 16)(decisions.md U-7). 결과는 `_workspace/04_device_results.md`에 기기 이름·Android 버전과 함께 적고, 항목이 모두 "통과"인 마일스톤을 `done`으로 바꾼다.
+- 위험(decisions.md U-7): DEV-2가 실패하면 청해 대본(M25)을 쓴 뒤에 D-04를 다시 판단한다. 대본은 기기 TTS·사전 생성 음성 모두에 쓰이므로 손실은 작다. AR-U05(글꼴)가 실패하면 글꼴 번들 마일스톤과 S-10 확인이 추가된다.
+
+### 11.6 ui-design 13.3 "architecture.md와 맞출 이름" 답(2026-11-03)
+
+| # | 확정 답 | 절 |
+|---|---------|----|
+| 1 | S12~S16 이름은 9.2.6·9.3.3 그대로(`PracticeHomeUiState`·`PracticeHomeStatus`, `QuizUiState`·`QuizStatus`·`QuizMode`, `QuizResultUiState`·`QuizResultStatus`·`ResultFilter`, `ListeningUiState`·`ListeningStatus`). ui-design의 "제안 이름"(`PracticeStatus`, `QUESTION`, `QuestionUi`, `ResultRow` 등)은 이 이름으로 바꾼다 | 9.2.6, 9.3.3 |
+| 2 | 해설 보기는 `QuizResult` 라우트 안 상태 `reviewIndex: Int?`. 하위 라우트 없음 | 9.2.6 |
+| 3 | 연습 세트 = parts 하나짜리 템플릿으로 `Quiz.buildSet`, `PRACTICE_SIZE = 10`(`ui/practice/PracticeConfig.kt`). 연습·청해 시도는 `exam_id = NULL` | 9.2.5 |
+| 4 | 열을 더하지 않고 `QuizSessionLoader`의 `AttemptMeta(mode, level, section, type)`로 유도(`exam_id`, 첫 남은 항목) | 9.2.6 |
+| 5 | 포기 = `QuizRepository.finish(attemptId, now)`(행 삭제 없음, `abandon` 함수 없음). "미완료 모의고사 하나"는 `startAttempt(examId != null)`가 같은 트랜잭션에서 이전 시도를 닫아 저장소가 지킨다 | 9.2.6 |
+| 6 | `Score`는 둘 다 준다: `sections`(문항 `section` 코드, 연습·청해용), `examSections`(템플릿 `sections[].id`·`titleKo`, 모의고사용). `score(answers, template)` | 9.2.5 |
+| 7 | 빈칸 `＿＿`, ★ 칸 `＿★＿`(전각 밑줄). 화면은 `ui/practice/QuizStem.kt` `split`으로 칸을 만든다. 유형별 개수는 `authored` 검사 | 9.2.2 |
+| 8 | 빠진 문항은 `QuizSessionLoader`가 빼고 `retiredCount = questionOrder.size − items.size`. `score`에는 남은 문항만 넘긴다 | 9.2.6 |
+| 9 | 청해 `question`: 일본어 필드, 루비 허용, `[[…]]` 금지, **NULL 허용**(없으면 줄 숨김) | 9.3.1 |
+| 10 | 변환은 `ui/listening/ScriptSpeech.lines()` 한 곳, `utteranceId` = 문항 ID, 대본 전체를 `speak` 한 번에. 줄 사이 400 ms 쉼은 `Speaker` 구현(`playSilentUtterance`) 몫. 재생 글자는 ui-design 가정과 같다(`ttsText ?: 루비 base`) | 9.3.1, 9.3.2 |
+| 11 | `recheck()` 없음. ON_START에서 상태가 `MissingJapaneseData`·`NoEngine`·`Error`면 `shutdown()` 후 `speakerFactory()`로 새로 만든다(ON_RESUME 아님) | 9.3.2 |
+| 12 | UI-U13 A 채택: `script_shown` = 답하기 전에 한 번이라도 펼쳤으면 1. 상태 필드 `ListeningUiState.scriptSeen` | 9.2.4, 9.3.3 |
+| 13 | 경로 해석 실패는 저장소(`ContentRepository.kanji`)가 판정해 `strokes = null`. 화면은 판정하지 않는다 | 9.4 |
+| 14 | analyst 몫(N-09 문구·`notices.ko.json` 틀), 11.3-11. 파이프라인 반영은 M15 | 11.3 |
+
+**milestones.json 후속(이 문서와 맞추려면 고쳐야 할 완료 조건) — 반영함(2026-11-03, M18·M19a·M19b·M19c·M19d·M20·M21·M22·M23·M24·T05a):**
+- M18: `AnswerInput`에 `type`, `Score`에 `examSections`, `score(answers, template)`. 리플렉션 테스트의 필드 목록이 `sections·examSections·correct·total·unanswered`로 바뀐다. N5 템플릿 픽스처에서 grammar·reading이 한 `examSections` 항목으로 합쳐지는 테스트를 더한다.
+- M19a: `abandon` 테스트 2개를 "포기 = `finish`, 행이 남는다"로 바꾼다. `QuizSessionLoader`(`AttemptMeta` 유도, `retiredCount`) 테스트를 더한다.
+- M19b: "확인해야만 abandon이 불리고" → "확인해야만 finish가 불리고 시도·답 행이 남는다". `confirmReplace` 대화상자(이어서 풀기·포기하고 새로 시작·취소)는 M19c.
+- M19d: `ResultFilter`·`reviewIndex`·`retiredCount`·`examSections` 표시 조건.
+- M20·M21: 빈칸 토큰 `authored` 검사(`FAIL: authored <id> blank`).
+- M22: 줄 사이 `playSilentUtterance(400)` 호출 순서를 가짜 엔진 테스트에 넣는다.
+- M23: "펼쳐진 채 답한 quiz_answer의 script_shown이 1, 접힌 채 답하면 0" → "답하기 전에 한 번이라도 펼쳤으면(접고 답해도) 1, 한 번도 펼치지 않았으면 0". 재확인은 ON_START. `question` NULL이면 질문 줄 숨김.
+- M24: `question` 생략 허용, 빈 문자열이면 FAIL.
+- T05a: `listening.question`이 NULL 허용(9.3.1 표).
 
 ## 12. 사용자 승인 항목
 
@@ -899,6 +1464,11 @@ ID는 `AR-Uxx`(이 문서)와 `UI-Uxx`(ui-design.md 14절)로 나눈다. 두 문
 | AR-U07 | 콘텐츠 DB 공개 위치(D-01 공개 배포) | A. 저장소 릴리스 첨부(`content/dist` zip) / B. 별도 데이터 저장소 / C. 앱 출시 때 정함 | **C**(구조는 A·B 모두 지원) | 파이프라인이 라이선스 고지를 포함한 묶음을 만든다. 위치는 구현을 막지 않는다 |
 | AR-U08 | D-03 기본값 채택 여부(미정, 사용자 결정) | decisions.md D-03 기본값 제안(N5만, 에이전트 전수 검수, `reviewerKind` 기록) 채택 / 다른 수준 | 기본값 채택을 추천(결정은 사용자) | M11이 게이트 G-D03을 기다린다. 스키마는 어느 선택이든 수용(`ko_reviewer_kind` NULL 허용) |
 | AR-U09 | D-06 급수 목록(미정, 사용자 결정) | S-06 / S-05 / S-09 (S-07·S-08 비추천) | 설계는 어느 쪽이든 동작. 매칭 품질만 보면 `jmdict_seq`가 있는 S-06이 동형이의어 오매칭이 적다(매니페스트 S-06은 이미 파일별 `files` 형식) | 6.3. 라이선스 판단은 sources.md·analyst 몫. G-D06이 기다린다 |
+| AR-U11 | 모의고사의 청해 영역(2026-11-03 새 결정 지점, 잠정 A) | A. 모의고사에서 청해 영역을 뺀다(`buildSet(excluded = {LISTENING})`, 시작 화면에 한 줄) / B. M23 뒤 S14에 청해 문항(재생 컨트롤 포함)을 넣는 마일스톤 추가 / C. 청해 콘텐츠·실기기 TTS 확인 전에는 모의고사를 열지 않음 | **A** | TTS 동작은 개발 종료 후 실기기에서야 확인된다(U-7). A는 인자 하나로 나중에 B로 바꿀 수 있고, 템플릿에는 청해 영역 값을 그대로 적어 둔다 |
+| AR-U12 | 청해 화자 구분(새 결정 지점, 잠정 A) | A. 줄 단위로 읽고 화자별 피치(남 0.85·여 1.15·내레이션 1.0) / B. 기기 음성(`Voice`) 목록에서 성별 음성 선택 / C. 구분 없이 한 덩어리로 읽기 | **A** | B는 성별 메타데이터가 표준이 아니라 기기마다 다르다. C는 대화 청해에서 화자를 알 수 없다(jlpt-content-authoring 6절). A는 모든 엔진에서 동작하고 대본에 화자 표시가 함께 있다 |
+| AR-U13 | 문법 카드의 새 카드 도입 순서(새 결정 지점, 잠정 A) | A. 어휘 도입 순서에 고르게 섞음(`sort_key = floor(i × V / G)`, 9.1) / B. 그 급수 어휘를 다 시작한 뒤 / C. ID 번호 그대로(첫 며칠에 문법이 몰림) | **A** | 기존 `newCardOrder` 정렬(level, sort_key, kind)을 바꾸지 않고 파이프라인 값만으로 정해진다 |
+| AR-U14 | 미완료 모의고사가 있을 때 새 모의고사 시작(새 결정 지점, 잠정 A) | A. 확인 대화상자 뒤 이전 시도를 닫고(답 보존) 새로 시작 / B. 미완료가 있으면 "이어서 풀기"·"포기하기"만 허용 | **A** | 미완료 시도를 늘 0~1개로 유지해 S12 카드가 하나로 정해진다. 기록을 지우지 않는다 |
+| AR-U15 | G-S12(S-12 아이콘 권리)가 막는 범위(2026-11-03 메인 잠정 채택) | A. 공개 출시만 막는다(T13만 G-S12 뒤, T09 등 개발은 무관) / B. 개발 마지막(T09)까지 막는다 | **A** | S-12.copyright는 법률 판단이라 영구 미확정일 수 있다. B면 개발이 끝나지 않는다. next-tasks 5절 "공개 출시" 조건과 같다 |
 | AR-U10 | D-04 청해 음성 방식(미정, 사용자 결정) | decisions.md D-04 A. 기기 TTS / B. 사전 생성 음성 / C. 둘 다 | 결정하지 않는다. 설계는 어느 쪽이든 `Speaker`(8.2) 뒤에서 수용: A는 M22 구현 그대로, B·C는 `Speaker`의 다른 구현·`AudioFileMissing` 상태·`check.sh` 음성 허용 변경을 새 마일스톤으로 추가(9.3) | 청해는 4순위. G-D04가 M24·M25를 막는다. M22·M23은 A에 필요한 부분만이라 막히지 않는다 |
 
 ui-design.md 14절의 UI-U 항목(그 문서가 정본, 이 문서에 걸리는 곳만 적음):
@@ -920,3 +1490,8 @@ ui-design.md 14절의 UI-U 항목(그 문서가 정본, 이 문서에 걸리는 
 | 2026-11-02 | 설계 검증 반영: 콘텐츠 DB 버전 고정·버전 올림 시 에셋 재생성(4.2·4.5), 원본 스냅샷(6.7), 학습일 지역 시각 정의·불변식(3), 참조 벡터 비교 대상(2.2), 학습 단계 `Duration`·`IntervalPreview` 하나로(3·8.1), 세션 다시 계획·형제 카드 규칙(8.1), `user_settings` v1 열 확장(5), UI 상태를 ui-design 13.1 기준으로(7), 저장 실패 계약(7·8.2), 바인드 변수 한도(4.5·8.2), 되돌리기 로그 ID 기준(5), 게이트 마일스톤(10), 한자 파생 경계 규칙(4.3), 백업(5.1), 송리가나 분리·혼용 문장 규칙(4.4), 저작자 표시 형식(6.6), Speaker 팩토리·상태(8.2), 문항 재개 열·문장 배열(9.2), 다중 파일 fetch(6.2), 승인 항목 ID 접두어(12), ui-design 대조(11) |
 | 2026-11-02 | design-review 후속(wf_31d285cb-453): 정본 기준(0·11.1), 일본어 구간 문자 집합·한국어 필드 루비 금지(4.4·6.2·6.4·9.1), `pinning.method`와 방식 B `pinnedCopy`·S-04 스냅샷(4.6·6.2·6.7·10), `notices` 파이프라인 완성·`showWhen` 없음·`modelNames` 파이프라인 수집·`extraCredits` 원문 그대로·`meaningSourceTexts` 키 7개·최소 표시는 쓰인 자료 기준·S-11 고지 경로와 아이콘 대조 테스트(6.5·6.6), `listening_script_first`·빈 `target_levels` 거부·`NO_LEVEL_SELECTED` 방어용(5·7), 간격 미리보기 표시 정본은 ui-design 5.3·`IntervalFormat`·"1분 안에"(7), `ReviewCardUi.Grammar` 출처·예문 번역·`needsReview`와 grammar `ko_*`·`needs_review` 열(7·9.1), `quiz_answer.script_shown`(9.2), About 보조 타입(7), 11절 ui-designer·analyst 목록 갱신, 승인 ID `AR-Uxx`/`UI-Uxx`·AR-U10(D-04)(12) |
 | 2026-11-02 | 설계 검증(2차) 반영: `<queries>` TTS_SERVICE·외부 인텐트는 `startActivity` + `ActivityNotFoundException`(5.1·7·9.3), 출처 열 묶음 P와 `question`·`exam_template`·`listening` 열(4.2·9.2·9.3), `[[…]]` 대상 구간·`RubySegment.emphasis`·문항 `target`(4.4·9.1·9.2), grammar `contrasts_json`·`connections {posKo, form, example}`(9.1), 6.5 검사 "출처 열"·"앱 자산"·N-11/N-12·빈 저작자 값, N-11 포함 시점(6.6), `G-S11`(10), 시작·Opening·S90 NavHost·`About(anchor)`·`Settings(openLevelPicker)`(7), About의 reviewCounts 실패 처리·`AttributionData`(7), `SessionCards`·`statesOfKinds`·`cardLevels`(dueCandidates·nextDueAt·countDueBefore 대체, 8.2), `AttributionRepository` 분리, `Speaker.speak(rate)`(8.2), 획 번호 앱 계산(6.7·9.4), 낡은 참조(4.2), 11.2 23~32·11.3 6·8~10 |
+| 2026-11-03 | T04 설계 확정(U-1 A·U-7 변경, decisions.md "MVP 이후 잠정 결정"): 9절 "초안" 표기 삭제·확정 — 9.0 콘텐츠 DB v2 공통 규칙, 9.1 `grammar`·`grammar_example` 열(S-04 열 `author`·`license` 포함)·`sort_key` 규칙·`GrammarRepository`·S10·S11 UiState, 9.2 모의고사 템플릿 형식·유형 코드표·`question`·`exam_template` 열·학습 기록 DB v2(`quiz_attempt`·`quiz_answer`, `script_shown` NOT NULL DEFAULT 0)·Migration(1,2) 계약·`fallbackToDestructiveMigration*` 금지·`MigrationTestHelper` 테스트 장치(`room-testing` 2.8.5)·`:core:quiz` 시그니처·`QuizContentRepository`·`QuizRepository`·S12~S15 UiState, 9.3 `listening` 열·읽는 문자열 규칙·`DeviceTtsSpeaker` 상태 전이·S16 UiState, 9.4 `kanji_stroke` 열·viewBox·빠진 한자 보고. 콘텐츠 DB 버전 표를 v2 한 번으로(0·4.2·4.5), `:core:quiz`가 `settings.gradle.kts`에 이미 있고 소스가 없음(0·1), `StudyDatabase` v2 안내(5), 검수 도구 6.8(T07), 2순위 이후 라우트(7), `Speaker.speak(…, lines: List<SpeechLine>, rate)`·상태 판정 조건(8.2), 11.2 33~41, 11.4 마일스톤 재구성·선행 표·병렬 갈래·공유 파일 충돌 규칙, 11.5 실기기 일괄 체크리스트(DEV-1~3), 승인 항목 AR-U11~AR-U14(12) |
+| 2026-11-03 | ui-design 13.3 14건 답(11.6): `Score.examSections`·`AnswerInput.type`·`score(answers, template)`·연습 세트 규칙(9.2.5), 빈칸 `＿＿`·`＿★＿` 표기(9.2.2), 포기 = `finish`(삭제 없음, `abandon` 삭제)·`QuizSessionLoader`·`AttemptMeta` 유도·`retiredCount`·`limitMs`(9.2.6), S12·S13·S15 UiState 필드 보강·해설 보기 = `reviewIndex`(9.2.6), `listening.question` NULL 허용·`ScriptSpeech`·줄 사이 400 ms(9.3.1·9.3.2), 설치 뒤 재확인 = ON_START 재생성(9.3.2), `scriptSeen`(9.3.3), 필순 경로 해석 실패 판정은 저장소(9.4). UI-U13 A로 `script_shown` = 답하기 전 한 번이라도 펼침(9.2.4). analyst 보고 반영: LICENSE.md 재배포 조건은 자료별 라이선스(6.7, S-03은 CC BY-SA 3.0). 11.3-11 N-09 문법 문장(analyst 몫) |
+| 2026-11-03 | 설계 검증 확정 지적 반영: 머리 콘텐츠 상태·10절 게이트 상태를 manifest·milestones 현재 값으로, `clearAndSetSemantics` 노드의 동작 시맨틱 규칙(7), 6.5 "앱 자산"에 `generated-asset`(S-12)·`G-S12`·T11(10), N-09 문법 급수 문장 판정(6.6), `libraries.json` 실제 형식(`key`·`fullText`)과 `LicenseUi.fullText`(6.6·7), `KanjiDetailUiState.level`·`CardStateSummary`·`CardProgress`(7), `ExamStart(level)` 라우트·`ExamStartUiState`·"포기하고 새로 시작" 경로(7·9.2.6), 4.2 `stagk`·`stagr`는 매니페스트에 아직 없음(11.3-5), Tatoeba 카드 메모(9.1), 11.2 42~46·11.3 5·6·12·13, 11.4 T11·T12·G-S12 |
+| 2026-11-03 | design-review(wf_5d2fc6cd-7c3) 반영 후 불일치 0~5번: T14(S03 `review_card` 알림·`NumberStepper`·하루 시작 시각 시트·S05 IME 인셋) 신설과 T12·T09 선행(11.4), N-09 문법 문장 = `notices.N-09.grammarPrefix`를 본문 **앞**에(6.6·11.3-11), `ExamStartStatus.FAILED`(불러오기 실패)·`startFailed`는 `startAttempt` 예외만(9.2.6·11.2-45), G-S12 핵심 행 정의·`S-12.copyright`는 D-09 사용자 결정(10), T11 → T13 이름 변경·T09는 G-S12·T13에 의존하지 않음(AR-U15, 6.5·10·11.4·12), 4.2·11.3-5 `stagk`·`stagr` 완료 |
+| 2026-11-08 | 자동 생성 연습 문제 설계를 `docs/spec/quizgen.md`로 분리(정본). 콘텐츠 DB v3(`jm_form`·`vocab_conflict`, QG1) 버전 표 행과 4.2 "쓰는 필드"(`sense/xref`, 동형·동음 항목 `keb`·`reb`)만 이 문서에 반영. 9.2.5 `QuizQuestion.fixedOrder`·9.2.6 `QuizContent.provenance` nullable·`generated`는 quizgen.md 5.2·6.2가 정본 |

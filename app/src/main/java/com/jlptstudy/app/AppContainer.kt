@@ -5,15 +5,24 @@ import com.jlptstudy.app.data.attribution.AssetAttributionRepository
 import com.jlptstudy.app.data.attribution.AttributionRepository
 import com.jlptstudy.app.data.content.ContentDatabase
 import com.jlptstudy.app.data.content.ContentRepository
+import com.jlptstudy.app.data.content.GrammarRepository
+import com.jlptstudy.app.data.content.NoGrammarRepository
+import com.jlptstudy.app.data.content.QuizContentRepository
+import com.jlptstudy.app.data.content.QuizGenRepository
 import com.jlptstudy.app.data.content.RoomContentRepository
+import com.jlptstudy.app.data.study.QuizRepository
 import com.jlptstudy.app.data.study.RoomStudyRepository
 import com.jlptstudy.app.data.study.StudyDatabase
 import com.jlptstudy.app.data.study.StudyRepository
+import com.jlptstudy.app.speech.DeviceTtsSpeaker
+import com.jlptstudy.app.speech.Speaker
 import com.jlptstudy.srs.Fsrs6Scheduler
 import com.jlptstudy.srs.Scheduler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,12 +48,28 @@ class AppContainer(
         override suspend fun load() = throw java.io.IOException("no attribution")
         override suspend fun openSourceLicenses() = throw java.io.IOException("no licenses")
     },
+    /** 청해 ViewModel이 생성 때 하나 만들고 onCleared에서 그것만 shutdown한다. 앱 범위 인스턴스는 두지 않는다. */
+    val speakerFactory: () -> Speaker = { error("speakerFactory not provided") },
 ) {
     val scheduler: Scheduler = Fsrs6Scheduler()
 
     var contentRepository: ContentRepository? = null
         private set
     var studyRepository: StudyRepository? = null
+        private set
+
+    /** 콘텐츠 저장소가 문법 조회도 구현하면 그것, 아니면 빈 문법(시험용 가짜 저장소). 열기 전에는 null. */
+    var grammarRepository: GrammarRepository? = null
+        private set
+
+    /** 콘텐츠·기록 저장소가 연습 조회·저장을 구현하면 그것(시험용 가짜 저장소는 null). */
+    var quizContentRepository: QuizContentRepository? = null
+        private set
+    var quizRepository: QuizRepository? = null
+        private set
+
+    /** 자동 생성 연습 문제 저장소(시험용 가짜 저장소는 null). contentRepository와 같은 DB 연결·은행 캐시를 쓴다. */
+    var quizGenRepository: QuizGenRepository? = null
         private set
 
     private val _theme = MutableStateFlow(ThemeMode.SYSTEM)
@@ -70,7 +95,7 @@ class AppContainer(
     fun onboardingCompleted() { _state.update { if (it is AppState.Ready) AppState.Ready(needsOnboarding = false) else it } }
 
     /** 화면의 콘텐츠 읽기 실패: S90으로 보낸다. 재시도가 DB를 다시 열도록 캐시를 비운다. */
-    fun contentReadFailed() { openedContent = null; contentRepository = null; _state.value = AppState.ContentDbFailed }
+    fun contentReadFailed() { openedContent = null; contentRepository = null; grammarRepository = null; quizContentRepository = null; quizGenRepository = null; _state.value = AppState.ContentDbFailed }
 
     // 열린 DB는 재시도 사이에 재사용한다(같은 파일을 또 열어 연결이 쌓이지 않게).
     private var openedContent: ContentRepository? = null
@@ -87,7 +112,11 @@ class AppContainer(
             return AppState.RecordDbFailed
         }
         contentRepository = content
+        grammarRepository = content as? GrammarRepository ?: NoGrammarRepository
         studyRepository = study
+        quizContentRepository = content as? QuizContentRepository
+        quizGenRepository = (content as? RoomContentRepository)?.quizGen
+        quizRepository = study as? QuizRepository
         if (themeJob == null) themeJob = scope.launch { study.settings().map { it.theme }.collect { _theme.value = it } }
         return AppState.Ready(needsOnboarding)
     }
@@ -95,11 +124,13 @@ class AppContainer(
     companion object {
         fun create(context: Context, scope: CoroutineScope): AppContainer {
             val app = context.applicationContext
+            val grammar = java.util.concurrent.atomic.AtomicReference<GrammarRepository?>()
             return AppContainer(
                 scope = scope,
                 attributionRepository = AssetAttributionRepository.create(app),
-                openContent = { RoomContentRepository(ContentDatabase.open(app).contentDao()) },
-                openStudy = { RoomStudyRepository(StudyDatabase.open(app).studyDao()) },
+                speakerFactory = { DeviceTtsSpeaker(app, CoroutineScope(SupervisorJob() + Dispatchers.Main)) },
+                openContent = { RoomContentRepository(ContentDatabase.open(app).contentDao()).also { grammar.set(it as? GrammarRepository) } },
+                openStudy = { RoomStudyRepository(StudyDatabase.open(app).studyDao()) { grammar.get()?.levels().orEmpty().isNotEmpty() } },
             )
         }
     }

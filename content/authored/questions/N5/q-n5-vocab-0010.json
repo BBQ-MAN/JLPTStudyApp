@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0010",
+  "section": "vocab",
+  "type": "orthography",
+  "stem": "{駅|えき}の　{前|まえ}で　[[たくしー]]に　{乗|の}りました。",
+  "target": "たくしー",
+  "choices": [
+    "タクシー",
+    "タクツー",
+    "クタシー",
+    "タクシ"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "たくしー(택시)는 가타카나로 タクシー라고 씁니다.",
+  "whyWrongKo": [
+    null,
+    "シ와 ツ는 모양이 비슷합니다. し는 シ이고 ツ는 つ입니다.",
+    "タ와 ク의 순서가 바뀌었습니다. たく는 タク입니다.",
+    "마지막 장음 ー가 빠졌습니다."
+  ],
+  "targets": [
+    "jm:1076190"
+  ]
+}

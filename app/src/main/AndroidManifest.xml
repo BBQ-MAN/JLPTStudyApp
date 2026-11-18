@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- 인터넷 권한 없음(오프라인 우선). 백업은 학습 기록 DB만(architecture.md 5.1). -->
+    <queries>
+        <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
+    </queries>
     <application
         android:name=".JlptApp"
         android:allowBackup="true"
@@ -13,6 +16,7 @@
         android:theme="@style/Theme.Jlpt">
         <activity
             android:name=".MainActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

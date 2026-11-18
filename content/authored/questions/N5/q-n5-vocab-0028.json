@@ -1,0 +1,33 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0028",
+  "section": "vocab",
+  "type": "paraphrase",
+  "stem": "{日曜日|にちようび}の　{朝|あさ}、[[{洗濯|せんたく}を　しました]]。",
+  "target": "洗濯を　しました",
+  "choices": [
+    "{日曜日|にちようび}の　{朝|あさ}、{部屋|へや}を　きれいに　しました。",
+    "{日曜日|にちようび}の　{朝|あさ}、{服|ふく}を　{洗|あら}いました。",
+    "{日曜日|にちようび}の　{朝|あさ}、お{皿|さら}を　{洗|あら}いました。",
+    "{日曜日|にちようび}の　{朝|あさ}、{朝|あさ}ごはんを　{作|つく}りました。"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "洗濯(빨래)는 '옷을 빠는 것'입니다.",
+  "whyWrongKo": [
+    "방을 깨끗이 한 것은 掃除(청소)입니다.",
+    null,
+    "접시를 씻는 것은 洗濯(빨래)라고 하지 않습니다.",
+    "아침밥을 만든 것은 料理(요리)입니다."
+  ],
+  "targets": [
+    "jm:1390980",
+    "jm:1390930"
+  ]
+}

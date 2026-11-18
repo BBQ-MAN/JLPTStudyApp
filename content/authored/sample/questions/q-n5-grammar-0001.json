@@ -1,0 +1,29 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": true,
+  "sources": [],
+  "method": "llm:claude-sonnet-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0001",
+  "section": "grammar",
+  "type": "sentence-order",
+  "stem": "これは ＿＿ ＿＿ ＿★＿ ＿＿ です。",
+  "choices": [
+    "{本|ほん}",
+    "{友達|ともだち}が",
+    "{私|わたし}の",
+    "{書|か}いた"
+  ],
+  "answerIndex": 3,
+  "explanationKo": "바른 순서는 '私の 友達が 書いた 本'이고 ★ 자리에는 書いた가 들어갑니다.",
+  "whyWrongKo": [
+    "本은 마지막 칸에 들어갑니다.",
+    "友達が는 두 번째 칸에 들어갑니다.",
+    "私の는 첫 번째 칸에 들어갑니다.",
+    null
+  ],
+  "targets": []
+}

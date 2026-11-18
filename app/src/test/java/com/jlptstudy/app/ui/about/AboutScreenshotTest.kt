@@ -25,6 +25,7 @@ class AboutScreenshotTest : HomeShots() {
 
     @Test fun attribution_loaded() = shots("attribution_loaded") { AboutScreen(loaded) }
     @Test fun attribution_loaded_sources() = shots("attribution_loaded_sources") { AboutScreen(loaded, anchor = "S-02") }
+    @Test fun attribution_loaded_jmdict() = shots("attribution_loaded_jmdict") { AboutScreen(loaded, anchor = "S-01") } // 2026-11-13 변경 내용(자동 생성 문제 가공) 표시 확인
     @Test fun attribution_loaded_licenses() = shots("attribution_loaded_licenses") { AboutScreen(loaded, anchor = "h:other") }
     @Test fun attribution_loaded_font200() = shots("attribution_loaded", fontScale = 2f) { AboutScreen(loaded) }
     @Test fun attribution_error() = shots("attribution_error") { AboutScreen(AboutUiState(AboutStatus.FAILED)) }

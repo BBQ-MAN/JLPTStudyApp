@@ -1,0 +1,37 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-07",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "ls-n5-0015",
+  "type": "quick-response",
+  "lines": [
+    {
+      "speaker": "F",
+      "text": "すみません、{今|いま}、{何時|なんじ}ですか。",
+      "ttsText": "すみません、いま、なんじですか。"
+    }
+  ],
+  "choices": [
+    "{三時間|さんじかん}です。",
+    "{三日|みっか}です。",
+    "{三回|さんかい}です。",
+    "{三時|さんじ}{十分|じゅっぷん}です。"
+  ],
+  "answerIndex": 3,
+  "explanationKo": "何時ですか는 지금 몇 시인지 묻는 말이므로 시각(〜時〜分)으로 답합니다.",
+  "whyWrongKo": [
+    "三時間은 '3시간'이라는 시간의 길이입니다. 何時間ですか에 대한 대답입니다.",
+    "三日는 날짜(3일)나 '사흘'입니다. 何日ですか에 대한 대답입니다.",
+    "三回는 '세 번'이라는 횟수입니다. 何回ですか에 대한 대답입니다.",
+    null
+  ],
+  "targets": [
+    "jm:1288850",
+    "jm:1315920"
+  ]
+}

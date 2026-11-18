@@ -1,0 +1,35 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": true,
+  "sources": [],
+  "method": "llm:claude-sonnet-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "gr-n5-0002",
+  "title": "〜ましょう",
+  "meaningKo": "~합시다 (권유)",
+  "explanationKo": "동사의 ます형에서 ます를 떼고 ましょう를 붙여 함께 하자고 권유하거나 제안합니다.",
+  "connections": [
+    {
+      "posKo": "동사",
+      "form": "ます形の語幹",
+      "example": "{行|い}きましょう"
+    }
+  ],
+  "examples": [
+    {
+      "ja": "いっしょに{帰|かえ}り[[ましょう]]。",
+      "ko": "함께 돌아갑시다."
+    },
+    {
+      "ja": "{少|すこ}し{休|やす}み[[ましょう]]。",
+      "ko": "조금 쉽시다."
+    },
+    {
+      "ja": "{駅|えき}で{会|あ}い[[ましょう]]。",
+      "ko": "역에서 만납시다."
+    }
+  ]
+}

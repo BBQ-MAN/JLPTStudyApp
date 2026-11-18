@@ -19,3 +19,6 @@ _workspace/build/
 
 # graft 검색용 로컬 설정
 /.ignore
+
+# 파이썬 바이트코드(실행할 때마다 바뀐다)
+__pycache__/

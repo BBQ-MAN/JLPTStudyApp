@@ -58,7 +58,11 @@ interface StudyRepository {
 }
 
 /** 모든 쓰기는 실패 시 예외를 그대로 던진다(Result로 감싸지 않는다). */
-class RoomStudyRepository(private val dao: StudyDao) : StudyRepository {
+class RoomStudyRepository(
+    private val dao: StudyDao,
+    /** 번들에 문법 행이 있는가. 있어야 문법(gr)만 켜 둔 설정이 유효하다. */
+    private val grammarAvailable: suspend () -> Boolean = { false },
+) : StudyRepository, QuizRepository by RoomQuizRepository(dao) {
     override suspend fun applyReview(result: ScheduleResult) {
         val r = result.record
         dao.applyReview(
@@ -97,23 +101,23 @@ class RoomStudyRepository(private val dao: StudyDao) : StudyRepository {
     override fun settings(): Flow<UserSettings> = dao.observeSettings().map { (it ?: UserSettingsEntity()).toDomain() }
 
     override suspend fun updateSettings(transform: (UserSettings) -> UserSettings) {
+        val gr = grammarAvailable()
         dao.updateSettings { old ->
             val oldDomain = old.toDomain()
             val new = transform(oldDomain)
-            validate(new, oldDomain)
+            validate(new, oldDomain, gr)
             new.toEntity()
         }
     }
 
-    private fun validate(s: UserSettings, old: UserSettings) {
+    private fun validate(s: UserSettings, old: UserSettings, grammarAvailable: Boolean) {
         require(s.dayBoundaryMinutes in 0..720) { "day_boundary_minutes" }
         require(s.newCardsPerDay in 5..50 && s.newCardsPerDay % 5 == 0) { "new_cards_per_day" }
         require(s.extraNewCards >= 0) { "extra_new_cards" }
         require(s.desiredRetention in 0.70..0.97) { "desired_retention" }
         require(s.maxIntervalDays >= 1) { "max_interval_days" }
         require(s.learnAheadMinutes >= 0) { "learn_ahead_minutes" }
-        // shortcut: 문법(gr) 카드는 문법 콘텐츠가 번들에 생기는 M17 전까지 화면에 안 보이므로 세지 않는다. M17에서 번들 기준 availableKinds로 바꾼다.
-        require((s.enabledKinds - CardKind.GR).isNotEmpty()) { "at least one card kind must be enabled" }
+        require((if (grammarAvailable) s.enabledKinds else s.enabledKinds - CardKind.GR).isNotEmpty()) { "at least one card kind must be enabled" }
         // 손상된 복원 값(빈 급수)에서도 다른 설정은 저장되도록, 급수는 바꿀 때만 검사한다.
         require(s.targetLevels.isNotEmpty() || s.targetLevels == old.targetLevels) { "target_levels must not be empty" }
     }

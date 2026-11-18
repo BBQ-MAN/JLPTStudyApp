@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0016",
+  "section": "grammar",
+  "type": "sentence-order",
+  "stem": "{兄|あに}は　＿＿　＿＿　＿＿　＿★＿　{働|はたら}いて　います。",
+  "choices": [
+    "{父|ちち}と",
+    "{同|おな}じ",
+    "で",
+    "{会社|かいしゃ}"
+  ],
+  "answerIndex": 2,
+  "explanationKo": "바른 순서는 '父と 同じ 会社 で'입니다(형은 아버지와 같은 회사에서 일하고 있습니다). ★ 자리(네 번째)에는 で가 들어갑니다.",
+  "whyWrongKo": [
+    "父と는 첫 번째 칸에 들어갑니다(父と同じ).",
+    "同じ는 두 번째 칸에 들어갑니다(同じ会社).",
+    null,
+    "会社는 세 번째 칸에 들어갑니다(会社で)."
+  ],
+  "targets": [
+    "jm:1451750",
+    "gr-n5-0008"
+  ]
+}

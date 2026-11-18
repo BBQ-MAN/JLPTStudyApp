@@ -10,14 +10,17 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
     "attribution": "This app uses the JMdict/EDICT and KANJIDIC dictionary files. These files are the property of the Electronic Dictionary Research and Development Group, and are used in conformance with the Group's licence (https://www.edrdg.org/edrdg/licence.html).",
     "shareAlike": true,
-    "modifications": "급수 목록에 있는 항목만 추림, 영어 뜻을 바탕으로 한국어 뜻을 번역·편집해 추가(D-02)",
+    "modifications": "급수 목록에 있는 항목만 추림, 영어 뜻을 바탕으로 한국어 뜻을 번역·편집해 추가(D-02), 급수 목록 항목과 표기 또는 읽기가 같은 목록 밖 항목은 표기·읽기·상호참조(xref)만 뽑음, 이를 바탕으로 표기·읽기 쌍 표(jm_form)와 같은 급수 안 뜻 충돌 목록(vocab_conflict, 영어 뜻·한국어 뜻·xref로 판정)을 만들어 자동 생성 문제의 오답 후보를 고르고 거르는 데 씀",
     "usedFields": [
       "ent_seq",
-      "k_ele/keb",
-      "r_ele/reb",
+      "k_ele/keb(급수 목록 항목 + 표기·읽기를 공유하는 목록 밖 항목)",
+      "r_ele/reb(급수 목록 항목 + 표기·읽기를 공유하는 목록 밖 항목)",
       "sense/pos(첫 sense)",
       "sense/misc(uk)",
-      "sense/gloss(eng)"
+      "sense/stagk",
+      "sense/stagr",
+      "sense/gloss(eng, 급수 목록 항목의 모든 sense: 한국어 뜻 번역 입력, 빌드 때 뜻 충돌 판정(stagk·stagr 제한 무시). 앱 DB에 넣지 않음)",
+      "sense/xref(related 스냅샷 항목의 모든 sense, 원문: 빌드 때 뜻 충돌 판정. 앱 DB에 넣지 않음)"
     ],
     "excluded": [
       "영어 외 언어 gloss(별도 저작권)",
@@ -25,12 +28,12 @@
       "EDICT-R"
     ],
     "status": "confirmed",
-    "checkedAt": "2026-11-02",
+    "checkedAt": "2026-11-13",
     "pinning": {
       "method": "snapshot",
       "urlPinsVersion": false,
       "pinnedCopy": "content/snapshot/",
-      "note": "같은 URL이 매일 다시 생성된 파일로 덮어쓰이고 날짜별 보관본이 배포처에 없다(ftp.edrdg.org/pub/Nihongo 목록 2026-11-02). 판은 저장소에 커밋한 스냅샷 content/snapshot/S-01-<version>.jsonl.gz로 고정한다(architecture.md 6.7 방식 A). 기본 빌드는 fetch하지 않고 원 URL은 refresh-snapshot 때만 받는다. 스냅샷 배포도 CC BY-SA 4.0 자료의 배포이므로 content/snapshot/LICENSE.md에 저작자 표시·라이선스 URI·변경 내용을 둔다(sources.md S-01.pinning)"
+      "note": "같은 URL이 매일 다시 생성된 파일로 덮어쓰이고 날짜별 보관본이 배포처에 없다(ftp.edrdg.org/pub/Nihongo 목록 2026-11-02). 판은 저장소에 커밋한 스냅샷 content/snapshot/S-01-<version>.jsonl.gz(와 같은 원본에서 만든 S-01-<version>-related.jsonl.gz)로 고정한다(architecture.md 6.7 방식 A). 기본 빌드는 fetch하지 않고 원 URL은 refresh-snapshot 때만 받는다. 스냅샷 배포도 CC BY-SA 4.0 자료의 배포이므로 content/snapshot/LICENSE.md에 저작자 표시·라이선스 URI·변경 내용을 둔다(sources.md S-01.pinning)"
     },
     "links": [
       "https://www.edrdg.org/edrdg/licence.html",
@@ -92,7 +95,7 @@
     "homepage": "https://kanjivg.tagaini.net/",
     "downloadUrl": "https://github.com/KanjiVG/kanjivg/releases/download/r20260714/kanjivg-20260714-main.zip",
     "version": "r20260714",
-    "sha256": null,
+    "sha256": "b5df6cd2bc249dd49b8041eb99e38ba9f8dc6b9ea57962a80084b4a315d1a7fc",
     "license": "CC BY-SA 3.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
     "attribution": "KanjiVG © 2009-2026 Ulrich Apel, CC BY-SA 3.0 (https://kanjivg.tagaini.net/)",
@@ -106,8 +109,8 @@
       "radical/element 속성",
       "stroke order numbers (kvg:StrokeNumbers, 앱이 획 경로 시작점에서 계산)"
     ],
-    "status": "unconfirmed",
-    "checkedAt": "2026-11-02",
+    "status": "confirmed",
+    "checkedAt": "2026-11-03",
     "links": [],
     "extraCredits": [],
     "pinning": {
@@ -376,7 +379,7 @@
       "https://github.com/google/material-design-icons"
     ],
     "shareAlike": false,
-    "modifications": "usedFields의 아이콘마다 symbols/android/<name>/materialsymbolsrounded/<name>_24px.xml(채움 1은 <name>_fill1_24px.xml)의 Android 벡터 XML만 res/drawable/ic_ms_<name>.xml로 복사. 고지는 앱에 넣는 Apache 2.0 전문 사본 app/src/main/assets/licenses/apache-2.0.txt(출처 화면 S-11 항목에서 연다)와 libraries.json의 Material Symbols 줄(architecture.md 6.6)",
+    "modifications": "usedFields의 아이콘마다 symbols/android/<name>/materialsymbolsrounded/<name>_24px.xml(채움 0) → res/drawable/ic_ms_<name>.xml, <name>_fill1_24px.xml(채움 1) → res/drawable/ic_ms_<name>_fill.xml로 Android 벡터 XML만 복사. 고지는 앱에 넣는 Apache 2.0 전문 사본 app/src/main/assets/licenses/apache-2.0.txt(출처 화면 S-11 항목에서 연다)와 libraries.json의 Material Symbols 줄(architecture.md 6.6)",
     "scope": "app-asset(콘텐츠 DB 아님)",
     "usedFields": [
       "home",
@@ -421,7 +424,7 @@
     "downloadUrl": null,
     "version": "app_icon_v1 (2026-11-02)",
     "sha256": null,
-    "license": "외부 라이선스 없음(프로젝트 생성 자산). OpenAI 이용 약관상 생성물 권리 조건은 원 출처로 확인하지 않음(미확인)",
+    "license": "외부 라이선스 없음(프로젝트 생성 자산). 생성물 권리: OpenAI 약관(Terms of Use·Services Agreement, 모두 Effective 2026-01-01)은 법이 허용하는 범위에서 Output을 이용자 소유로 두고 OpenAI 권리(있으면)를 양도한다. 어느 약관이 적용되는지 미확정(sources.md S-12.terms-which)",
     "licenseUrl": null,
     "attribution": null,
     "shareAlike": false,
@@ -432,7 +435,7 @@
     ],
     "excluded": [],
     "status": "unconfirmed",
-    "checkedAt": "2026-11-02",
-    "notes": "decisions.md D-09. 글자·로고·상표 없음. 생성물의 권리 조건(약관) 확인은 다음 단계"
+    "checkedAt": "2026-11-03",
+    "notes": "decisions.md D-09. 글자·로고·상표 없음. 약관 근거는 Wayback 보관본(row-terms-of-use 2026-10-25, services-agreement 2026-10-06), openai.com 직접 열람은 HTTP 403(sources.md S-12). 미확정: 적용 약관(Codex CLI 인증 방식), 생성 이미지의 저작권 성립(판단하지 않음), Service Terms·Usage Policies의 표시 요구. 출시 전 confirmed 필요(release 검사 '앱 자산'이 generated-asset을 포함하도록 하는 것은 architecture 몫)"
   }
 ]

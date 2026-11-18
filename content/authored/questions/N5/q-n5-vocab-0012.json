@@ -1,0 +1,33 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0012",
+  "section": "vocab",
+  "type": "orthography",
+  "stem": "ごはんの　{前|まえ}に、[[て]]を　{洗|あら}って　ください。",
+  "target": "て",
+  "choices": [
+    "毛",
+    "手",
+    "牛",
+    "午"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "て(손)는 手로 씁니다. 毛·牛·午와 모양이 비슷하니 획을 잘 보세요.",
+  "whyWrongKo": [
+    "毛는 '털 모'(け)입니다. 手와 모양이 비슷합니다.",
+    null,
+    "牛는 '소 우'(うし·ぎゅう)입니다.",
+    "午는 午後의 '낮 오'(ご)입니다."
+  ],
+  "targets": [
+    "jm:1327190",
+    "手"
+  ]
+}

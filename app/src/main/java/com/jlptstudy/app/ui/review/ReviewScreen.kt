@@ -90,6 +90,7 @@ fun ReviewScreen(
     onRate: (Rating) -> Unit,
     onStudyMore: () -> Unit,
     onChipClick: ((MeaningUi) -> Unit)? = null,
+    onGrammarDetail: ((String) -> Unit)? = null,
 ) {
     when {
         state.finished -> DoneScreen(state, onClose, onStudyMore)
@@ -109,7 +110,7 @@ fun ReviewScreen(
                     val cardView: @Composable (Modifier) -> Unit = { m ->
                         Flashcard(
                             card, state.revealed, state.remainingReview + state.remainingNew, prefs, onReveal, m,
-                            onChipClick, header = if (low) progress else null,
+                            onChipClick, onGrammarDetail, header = if (low) progress else null,
                             bottomInset = if (twoPane) 0.dp else with(LocalDensity.current) { snackPx.toDp() }, // 스낵바 실측 높이
                         )
                     }
@@ -135,7 +136,8 @@ fun ReviewScreen(
                         }
                     }
                 }
-                SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).onSizeChanged { snackPx = it.height }.padding(bottom = if (twoPane) 0.dp else with(LocalDensity.current) { bottomPx.toDp() }))
+                // 스낵바 자체 높이만 잰다(onSizeChanged가 padding 안쪽): 바깥에 두면 평가 버튼 높이까지 더해져 뒷면 끝에 빈 여백이 생긴다
+                SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = if (twoPane) 0.dp else with(LocalDensity.current) { bottomPx.toDp() }).onSizeChanged { snackPx = it.height })
             }
         }
     }
@@ -169,7 +171,7 @@ private fun TopBar(
     val on = stringResource(R.string.review_on)
     val off = stringResource(R.string.review_off)
     val furiganaLabel = stringResource(R.string.review_furigana)
-    val furiganaOn = if (state.revealed) prefs.bodyFurigana else prefs.frontFurigana
+    val furiganaOn = if (state.revealed || state.card is ReviewCardUi.Grammar) prefs.bodyFurigana else prefs.frontFurigana
     val undoLabel = stringResource(if (state.canUndo) R.string.review_undo else R.string.review_undo_none)
     Row(
         Modifier.fillMaxWidth().height(if (compact) 48.dp else 64.dp).padding(horizontal = Spacing.xs)
@@ -351,7 +353,7 @@ fun DoneScreen(state: ReviewUiState, onHome: () -> Unit, onStudyMore: () -> Unit
         title = stringResource(R.string.done_title), body = body, icon = painterResource(R.drawable.ic_ms_check_circle),
         actions = buildList {
             add(StatusAction(stringResource(R.string.review_empty_home), onHome))
-            if (left > 0) add(StatusAction(stringResource(R.string.done_more_action), onStudyMore))
+            if (left > 0) add(StatusAction(stringResource(R.string.done_more_action, minOf(left, EXTRA_NEW_STEP)), onStudyMore))
         },
     )
 }

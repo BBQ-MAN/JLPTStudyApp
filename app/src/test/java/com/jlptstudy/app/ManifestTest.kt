@@ -29,9 +29,19 @@ class ManifestTest {
         val perms = (0 until doc.getElementsByTagName("uses-permission").length)
             .map { (doc.getElementsByTagName("uses-permission").item(it) as Element).getAttributeNS(android, "name") }
         assertFalse(perms.toString(), "android.permission.INTERNET" in perms)
+        val q = doc.getElementsByTagName("queries").item(0) as Element
+        val actions = (0 until q.getElementsByTagName("action").length)
+            .map { (q.getElementsByTagName("action").item(it) as Element).getAttributeNS(android, "name") }
+        assertTrue(actions.toString(), "android.intent.action.TTS_SERVICE" in actions)
         assertEquals("true", doc.attr("application", "allowBackup"))
         assertEquals("@xml/data_extraction_rules", doc.attr("application", "dataExtractionRules"))
         assertEquals("@xml/backup_rules", doc.attr("application", "fullBackupContent"))
+    }
+
+    @Test fun `메인 액티비티는 adjustResize다(S05 키보드 인셋, ui-design 6_5)`() {
+        val merged = File(buildDir, "intermediates/merged_manifests/debug").walkTopDown().first { it.name == "AndroidManifest.xml" }
+        val doc = parse(merged)
+        assertEquals("adjustResize", doc.attr("activity", "windowSoftInputMode"))
     }
 
     @Test fun `두 규칙 파일은 학습 기록 DB 파일만 include한다`() {

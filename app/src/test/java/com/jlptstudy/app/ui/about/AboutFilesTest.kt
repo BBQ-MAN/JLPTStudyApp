@@ -26,6 +26,20 @@ class AboutFilesTest {
         assertEquals(emptyList<String>(), badIcons(files, allowed))
     }
 
+    @Test fun `번들 attribution_json의 자료 항목은 매니페스트와 같고 S-01에 자동 생성 문제 가공 내용이 있다`() {
+        val bundled = AboutFixtures.bundled["sources"]!!.jsonArray.map { it.jsonObject }
+        val inManifest = AboutFixtures.manifest.map { it.jsonObject["id"]!!.jsonPrimitive.content }.toSet()
+        assertTrue(bundled.isNotEmpty())
+        for (b in bundled.filter { it["id"]!!.jsonPrimitive.content in inManifest }) { // 'authored'는 매니페스트 밖(앱 작성 콘텐츠)
+            val id = b["id"]!!.jsonPrimitive.content
+            for (f in listOf("attribution", "license", "licenseUrl", "modifications")) {
+                assertEquals("$id.$f", AboutFixtures.manifestSource(id)[f]!!.jsonPrimitive.content, b[f]!!.jsonPrimitive.content)
+            }
+        }
+        val mod = bundled.first { it["id"]!!.jsonPrimitive.content == "S-01" }["modifications"]!!.jsonPrimitive.content
+        assertTrue(listOf("jm_form", "vocab_conflict", "xref", "자동 생성 문제").all { it in mod })
+    }
+
     @Test fun `목록 밖 이름의 아이콘 픽스처는 실패한다`() {
         val allowed = setOf("home", "settings")
         assertEquals(listOf("ic_ms_foo.xml", "ic_ms_foo_fill.xml"), badIcons(listOf("ic_ms_home.xml", "ic_ms_settings_fill.xml", "ic_ms_foo.xml", "ic_ms_foo_fill.xml"), allowed))

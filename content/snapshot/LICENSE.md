@@ -6,7 +6,7 @@
 
 - 저작자 표시: This app uses the JMdict/EDICT and KANJIDIC dictionary files. These files are the property of the Electronic Dictionary Research and Development Group, and are used in conformance with the Group's licence (https://www.edrdg.org/edrdg/licence.html).
 - 라이선스: CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0/>
-- 변경 내용: 급수 목록에 있는 항목만 추림, 영어 뜻을 바탕으로 한국어 뜻을 번역·편집해 추가(D-02)
+- 변경 내용: 급수 목록에 있는 항목만 추림, 영어 뜻을 바탕으로 한국어 뜻을 번역·편집해 추가(D-02), 급수 목록 항목과 표기 또는 읽기가 같은 목록 밖 항목은 표기·읽기·상호참조(xref)만 뽑음, 이를 바탕으로 표기·읽기 쌍 표(jm_form)와 같은 급수 안 뜻 충돌 목록(vocab_conflict, 영어 뜻·한국어 뜻·xref로 판정)을 만들어 자동 생성 문제의 오답 후보를 고르고 거르는 데 씀
 
 ## S-02 KANJIDIC2 (2026-305 (2026-11-01))
 
@@ -15,11 +15,17 @@
 - 변경 내용: 필드 일부만 추림, 앱 DB 형식으로 변환
 - 추가 크레딧: 한국어 음: Charles Muller 제공(KANJIDIC2 경유)
 
+## S-03 KanjiVG (r20260714)
+
+- 저작자 표시: KanjiVG © 2009-2026 Ulrich Apel, CC BY-SA 3.0 (https://kanjivg.tagaini.net/)
+- 라이선스: CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0/>
+- 변경 내용: SVG 획 경로·획 순서를 앱 형식으로 변환
+
 ## S-06 yomitan-jlpt-vocab (stephenmk) (b062d4e (2025-08-26))
 
 - 저작자 표시: JLPT 급수 태그: yomitan-jlpt-vocab by stephenmk (CC BY-SA 4.0) — 공식 목록 아님
 - 라이선스: CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0/>
-- 변경 내용: jmdict_seq·kana·kanji·급수(파일명)만 사용, waller_definition 제외
-- 추가 크레딧: JLPT 급수 원 목록: JLPT Resources © Jonathan Waller(급수별 목록: JLPT N5 vocab list, JLPT N4 vocab list, JLPT N3 vocab list, JLPT N2 vocab list, JLPT N1 vocab list). 변경: stephenmk(yomitan-jlpt-vocab)가 단어마다 JMdict ID를 붙이고 표기를 정규화함. 이 앱은 급수 정보만 사용 <http://www.tanos.co.uk/jlpt/>
+- 변경 내용: jmdict_seq·kana·kanji·급수(파일명) 사용, jmdict_seq 7건 교정(level-overrides.tsv), 같은 항목의 읽기 선택(reading-overrides.tsv)·표기 선택(written-overrides.tsv), waller_definition 제외
+- 추가 크레딧: JLPT 급수 원 목록: JLPT Resources © Jonathan Waller(급수별 목록: JLPT N5 vocab list, JLPT N4 vocab list, JLPT N3 vocab list, JLPT N2 vocab list, JLPT N1 vocab list). 변경: stephenmk(yomitan-jlpt-vocab)가 단어마다 JMdict ID를 붙이고 표기를 정규화함. 이 앱은 급수·표기·읽기 정보를 사용하고 일부 항목은 직접 고름 <http://www.tanos.co.uk/jlpt/>
 - 추가 크레딧: 원 목록 라이선스: CC BY(작성자가 판을 밝히지 않음) — 작성자의 라이선스 안내 페이지 <http://www.tanos.co.uk/jlpt/sharing/>
 - 추가 크레딧: 같은 라이선스 안내 페이지 보관본(2025-11-14) <http://web.archive.org/web/20251114165345/http://www.tanos.co.uk/jlpt/sharing/>

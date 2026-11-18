@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0001",
+  "section": "grammar",
+  "type": "grammar-form",
+  "stem": "{図書館|としょかん}は　{静|しず}かな　{所|ところ}です。{中|なか}で　{電話|でんわ}を　かけ＿＿。",
+  "choices": [
+    "ても　いいです",
+    "て　ください",
+    "ては　いけません",
+    "ましょう"
+  ],
+  "answerIndex": 2,
+  "explanationKo": "조용한 곳이므로 '전화를 걸어서는 안 됩니다'가 맞습니다. 〜てはいけません은 금지를 나타냅니다.",
+  "whyWrongKo": [
+    "〜てもいいです는 허가입니다. 조용한 곳이라는 앞 문장과 맞지 않습니다.",
+    "〜てください는 부탁입니다. 조용한 곳에서 전화를 걸라고 부탁하는 것은 앞 문장과 맞지 않습니다.",
+    null,
+    "〜ましょう는 권유입니다. 조용한 곳에서 전화를 걸자는 말은 앞 문장과 맞지 않습니다."
+  ],
+  "targets": [
+    "gr-n5-0010",
+    "jm:1370420"
+  ]
+}

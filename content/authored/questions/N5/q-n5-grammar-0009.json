@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0009",
+  "section": "grammar",
+  "type": "grammar-form",
+  "stem": "{暑|あつ}いですから、{冷|つめ}たい　{水|みず}が　{飲|の}み＿＿です。",
+  "choices": [
+    "ほしい",
+    "たく",
+    "たい",
+    "て"
+  ],
+  "answerIndex": 2,
+  "explanationKo": "'마시고 싶다'는 ます형 어간＋たいです로 씁니다. 飲みたいです.",
+  "whyWrongKo": [
+    "ほしい는 명사에 붙습니다(水がほしいです). 동사 ます형 어간에는 붙지 않습니다.",
+    "たく는 たい의 활용형으로 뒤에 ない·なります 등이 옵니다. です 앞에서는 たい를 씁니다.",
+    null,
+    "飲みて라는 형태는 없습니다. 飲む의 て형은 飲んで입니다."
+  ],
+  "targets": [
+    "gr-n5-0011",
+    "gr-n5-0012"
+  ]
+}

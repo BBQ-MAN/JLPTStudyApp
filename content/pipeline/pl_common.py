@@ -98,6 +98,11 @@ def safe_version(v):
     return re.sub(r"[^0-9A-Za-z.\-]+", "_", str(v)).strip("_")
 
 
+def hira(s):
+    """가타카나 U+30A1–U+30F6 → 히라가나(−0x60). ー 등 나머지는 그대로. Kotlin Kana.hira와 같은 정의(quizgen.md 3.2)."""
+    return "".join(chr(ord(c) - 0x60) if "\u30a1" <= c <= "\u30f6" else c for c in s)
+
+
 def snapshot_name(source, kind_ext):
     return f"{source['id']}-{safe_version(source.get('version'))}.{kind_ext}"
 

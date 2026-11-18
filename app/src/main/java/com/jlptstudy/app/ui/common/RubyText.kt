@@ -25,6 +25,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.invisibleToUser
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -146,7 +147,7 @@ private fun RubyPiece(
         }
         JpText(seg.base, style = if (seg.emphasis) style.copy(fontWeight = FontWeight.Medium) else style)
         // 밑줄은 읽기가 더 넓어도 구간 전체 폭에 이어지도록 Layout 폭으로 그린다.
-        if (seg.emphasis) Box(Modifier.background(underline))
+        if (seg.emphasis) Box(Modifier.background(underline).testTag("ruby_underline"))
     }) { ms, c ->
         val loose = c.copy(minWidth = 0, minHeight = 0)
         val ruby = if (hasRuby) ms[0].measure(loose) else null

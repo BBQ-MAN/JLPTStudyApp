@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0007",
+  "section": "grammar",
+  "type": "grammar-form",
+  "stem": "{手|て}を　＿＿から、ごはんを　{食|た}べましょう。",
+  "choices": [
+    "{洗|あら}って",
+    "{洗|あら}いて",
+    "{洗|あら}んで",
+    "{洗|あら}て"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "〜てから는 '~하고 나서'입니다. 洗う의 て형 洗って에 から를 붙입니다.",
+  "whyWrongKo": [
+    null,
+    "洗う는 う로 끝나는 동사라 て형이 洗って입니다. 洗いて라는 형태는 없습니다.",
+    "〜んで는 む·ぶ·ぬ로 끝나는 동사의 て형입니다(読んで). 洗う에는 쓰지 않습니다.",
+    "洗て라는 형태는 없습니다. う동사는 っ가 들어간 洗って가 됩니다."
+  ],
+  "targets": [
+    "gr-n5-0017",
+    "jm:1390930"
+  ]
+}

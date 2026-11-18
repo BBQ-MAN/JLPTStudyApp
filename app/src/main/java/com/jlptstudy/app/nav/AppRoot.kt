@@ -6,6 +6,8 @@ import android.provider.Settings as AndroidSettings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -41,6 +43,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
@@ -58,6 +64,7 @@ import com.jlptstudy.app.ui.theme.LoadingDelayMs
 import com.jlptstudy.app.ui.theme.Spacing
 import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.createSavedStateHandle
 import androidx.navigation.toRoute
 import com.jlptstudy.app.ui.detail.DetailActions
 import com.jlptstudy.app.ui.detail.KanjiDetailRoute
@@ -68,6 +75,13 @@ import com.jlptstudy.app.ui.dictionary.BrowseRoute
 import com.jlptstudy.app.ui.dictionary.BrowseScreen
 import com.jlptstudy.app.ui.dictionary.BrowseUiState
 import com.jlptstudy.app.ui.dictionary.BrowseViewModel
+import com.jlptstudy.app.ui.grammar.GrammarDetailActions
+import com.jlptstudy.app.ui.grammar.GrammarDetailRoute
+import com.jlptstudy.app.ui.grammar.GrammarDetailViewModel
+import com.jlptstudy.app.ui.grammar.GrammarListRoute
+import com.jlptstudy.app.ui.grammar.GrammarListScreen
+import com.jlptstudy.app.ui.grammar.GrammarListUiState
+import com.jlptstudy.app.ui.grammar.GrammarListViewModel
 import com.jlptstudy.app.ui.home.HomeActions
 import com.jlptstudy.app.ui.home.HomeRoute
 import com.jlptstudy.app.ui.home.HomeScreen
@@ -81,6 +95,19 @@ import com.jlptstudy.app.ui.about.AboutUiState
 import com.jlptstudy.app.ui.about.AboutViewModel
 import com.jlptstudy.app.ui.about.rememberMeaningSourceTexts
 import com.jlptstudy.app.ui.about.rememberProvenanceSheet
+import com.jlptstudy.app.data.QuizSessionLoader
+import com.jlptstudy.app.ui.listening.ListeningRoute
+import com.jlptstudy.app.ui.listening.ListeningViewModel
+import com.jlptstudy.app.ui.practice.ExamStartRoute
+import com.jlptstudy.app.ui.practice.ExamStartViewModel
+import com.jlptstudy.app.ui.practice.PracticeHomeRoute
+import com.jlptstudy.app.ui.practice.PracticeHomeScreen
+import com.jlptstudy.app.ui.practice.PracticeHomeUiState
+import com.jlptstudy.app.ui.practice.PracticeHomeViewModel
+import com.jlptstudy.app.ui.practice.QuizResultRoute
+import com.jlptstudy.app.ui.practice.QuizResultViewModel
+import com.jlptstudy.app.ui.practice.QuizRoute
+import com.jlptstudy.app.ui.practice.QuizViewModel
 import com.jlptstudy.app.ui.settings.SettingsRoute
 import com.jlptstudy.app.ui.settings.SettingsScreen
 import com.jlptstudy.app.ui.settings.SettingsUiState
@@ -132,6 +159,8 @@ fun OpeningScreen() {
 private enum class Tab(val route: Any, val type: KClass<*>, val label: Int, val icon: Int, val iconFill: Int) {
     HOME(Home, Home::class, R.string.tab_home, R.drawable.ic_ms_home, R.drawable.ic_ms_home_fill),
     DICTIONARY(Dictionary, Dictionary::class, R.string.tab_dictionary, R.drawable.ic_ms_menu_book, R.drawable.ic_ms_menu_book_fill),
+    GRAMMAR(Grammar, Grammar::class, R.string.tab_grammar, R.drawable.ic_ms_school, R.drawable.ic_ms_school_fill),
+    PRACTICE(Practice, Practice::class, R.string.tab_practice, R.drawable.ic_ms_edit_note, R.drawable.ic_ms_edit_note),
     SETTINGS(Settings(), Settings::class, R.string.tab_settings, R.drawable.ic_ms_settings, R.drawable.ic_ms_settings_fill),
 }
 
@@ -205,7 +234,17 @@ private fun AppShell(
             NavigationSuiteType.None
         },
     ) {
-      Box(Modifier.fillMaxSize()) {
+      // 하단 바가 차지한 높이를 소비 처리해, 안쪽 화면의 imePadding()이 키보드 높이에서 바 높이를 한 번만 빼게 한다(ui-design 6.5).
+      var bottomGap by remember { mutableStateOf(0.dp) }
+      val density = LocalDensity.current
+      Box(
+        Modifier.fillMaxSize()
+            .onGloballyPositioned { c ->
+                val root = c.findRootCoordinates()
+                bottomGap = with(density) { (root.size.height - c.positionInRoot().y - c.size.height).coerceAtLeast(0f).toDp() }
+            }
+            .consumeWindowInsets(PaddingValues(bottom = bottomGap)),
+      ) {
         NavHost(nav, startDestination = start) {
             composable<LevelSelect> {
                 val c = container
@@ -252,6 +291,107 @@ private fun AppShell(
                     BrowseScreen(BrowseUiState()) // 컨테이너 없이 그리는 시험·미리보기: 로딩 자리표시
                 }
             }
+            composable<Grammar> {
+                val grammar = container?.grammarRepository
+                val study = container?.studyRepository
+                if (grammar != null && study != null) {
+                    val vm: GrammarListViewModel = viewModel { GrammarListViewModel(grammar, study) }
+                    GrammarListRoute(vm, onOpen = { nav.navigate(GrammarDetail(it)) }, onNotice = { nav.navigate(About("N-09")) }, onFailed = { container?.contentReadFailed() })
+                } else {
+                    GrammarListScreen(GrammarListUiState()) // 컨테이너 없이 그리는 시험·미리보기: 로딩 자리표시
+                }
+            }
+            composable<Practice> {
+                val content = container?.quizContentRepository
+                val quiz = container?.quizRepository
+                val study = container?.studyRepository
+                if (container != null && content != null && quiz != null && study != null) {
+                    val vm: PracticeHomeViewModel = viewModel { PracticeHomeViewModel(content, quiz, study, container.clock, container.quizGenRepository) }
+                    PracticeHomeRoute(
+                        vm, onQuiz = { nav.navigate(Quiz(it)) }, onListening = { nav.navigate(Listening(it)) }, onExamStart = { nav.navigate(ExamStart(it)) }, onNotice = { nav.navigate(About("N-11")) },
+                    )
+                } else {
+                    PracticeHomeScreen(PracticeHomeUiState()) // 컨테이너 없이 그리는 시험·미리보기: 로딩 자리표시
+                }
+            }
+            composable<Quiz> { entry ->
+                val content = container?.quizContentRepository
+                val quiz = container?.quizRepository
+                val study = container?.studyRepository
+                if (container != null && content != null && quiz != null && study != null) {
+                    val id = entry.toRoute<Quiz>().attemptId
+                    val vm: QuizViewModel = viewModel(key = "quiz-$id") { QuizViewModel(id, QuizSessionLoader(quiz, content), quiz, study, container.clock) }
+                    val onChip = rememberProvenanceSheet(rememberMeaningSourceTexts(container.attributionRepository)) { nav.navigate(About()) }
+                    QuizRoute(
+                        vm, onExit = { nav.popBackStack() }, onChipClick = onChip, onWord = { nav.navigate(VocabDetail(it)) },
+                        onResult = { nav.navigate(QuizResult(it)) { popUpTo<Quiz> { inclusive = true } } },
+                    )
+                }
+            }
+            composable<Listening> { entry ->
+                val content = container?.quizContentRepository
+                val quiz = container?.quizRepository
+                val study = container?.studyRepository
+                if (container != null && content != null && quiz != null && study != null) {
+                    val id = entry.toRoute<Listening>().attemptId
+                    val a11y = context.getSystemService(android.view.accessibility.AccessibilityManager::class.java)
+                    val vm: ListeningViewModel = viewModel(key = "listening-$id") {
+                        ListeningViewModel(
+                            id, QuizSessionLoader(quiz, content), quiz, study, container.attributionRepository, container.clock, container.speakerFactory,
+                        ) { a11y?.isTouchExplorationEnabled == true }
+                    }
+                    val onChip = rememberProvenanceSheet(rememberMeaningSourceTexts(container.attributionRepository)) { nav.navigate(About()) }
+                    ListeningRoute(
+                        vm, onExit = { nav.popBackStack() }, onNotice = { nav.navigate(About("N-12")) }, onChipClick = onChip,
+                        onResult = { nav.navigate(QuizResult(it)) { popUpTo<Listening> { inclusive = true } } },
+                    )
+                }
+            }
+            composable<QuizResult> { entry ->
+                val content = container?.quizContentRepository
+                val quiz = container?.quizRepository
+                val study = container?.studyRepository
+                val records = container?.contentRepository
+                val grammar = container?.grammarRepository
+                if (container != null && content != null && quiz != null && study != null && records != null && grammar != null) {
+                    val id = entry.toRoute<QuizResult>().attemptId
+                    val vm: QuizResultViewModel = viewModel(key = "quiz-result-$id") {
+                        QuizResultViewModel(id, QuizSessionLoader(quiz, content), records, grammar, study, createSavedStateHandle())
+                    }
+                    val onChip = rememberProvenanceSheet(rememberMeaningSourceTexts(container.attributionRepository)) { nav.navigate(About()) }
+                    QuizResultRoute(
+                        vm, onClose = { nav.popBackStack() }, onTarget = { nav.navigate(it.toRoute()) },
+                        onNotice = { nav.navigate(About("N-11")) }, onChipClick = onChip,
+                    )
+                }
+            }
+            composable<ExamStart> { entry ->
+                val content = container?.quizContentRepository
+                val quiz = container?.quizRepository
+                if (container != null && content != null && quiz != null) {
+                    val level = entry.toRoute<ExamStart>().level
+                    val vm: ExamStartViewModel = viewModel(key = "exam-start-$level") { ExamStartViewModel(level, content, quiz, container.clock) }
+                    // 시작하면 시작 화면을 백 스택에서 뺀다: 진행 중 뒤로 = CONFIRM_EXIT 뒤 S12
+                    ExamStartRoute(vm, onBack = { nav.popBackStack() }, onStarted = { nav.navigate(Quiz(it)) { popUpTo<ExamStart> { inclusive = true } } })
+                }
+            }
+            composable<GrammarDetail> { entry ->
+                val grammar = container?.grammarRepository
+                val study = container?.studyRepository
+                if (grammar != null && study != null) {
+                    val id = entry.toRoute<GrammarDetail>().id
+                    val vm: GrammarDetailViewModel = viewModel(key = "grammar-$id") { GrammarDetailViewModel(id, grammar, study) }
+                    val onChip = rememberProvenanceSheet(rememberMeaningSourceTexts(container?.attributionRepository)) { nav.navigate(About()) }
+                    GrammarDetailRoute(
+                        vm,
+                        GrammarDetailActions(
+                            onFailed = { container?.contentReadFailed() }, onToggleFurigana = vm::toggleFurigana, onBack = { nav.popBackStack() },
+                            onAboutLevel = { nav.navigate(About("N-09")) }, onNotice = { nav.navigate(About("N-11")) },
+                            onGrammar = { nav.navigate(GrammarDetail(it)) }, onChipClick = onChip,
+                        ),
+                    )
+                }
+            }
             composable<VocabDetail> { entry ->
                 val content = container?.contentRepository
                 val study = container?.studyRepository
@@ -266,7 +406,9 @@ private fun AppShell(
                 val content = container?.contentRepository
                 if (content != null) {
                     val literal = entry.toRoute<KanjiDetail>().literal
-                    val vm: KanjiDetailViewModel = viewModel { KanjiDetailViewModel(literal, content) }
+                    val vm: KanjiDetailViewModel = viewModel { KanjiDetailViewModel(literal, content) {
+                        container?.attributionRepository?.load()?.sources?.firstOrNull { it.id == "S-03" }?.name
+                    } }
                     KanjiDetailRoute(vm, detailActions(nav, container = container))
                 }
             }
@@ -291,7 +433,7 @@ private fun AppShell(
                 if (c != null && content != null && study != null) {
                     val vm: ReviewViewModel = viewModel { ReviewViewModel(study, content, c.scheduler, c.clock, c.zone) }
                     val onChip = rememberProvenanceSheet(rememberMeaningSourceTexts(c.attributionRepository)) { nav.navigate(About()) }
-                    ReviewRoute(vm, onExit = { nav.popBackStack() }, onChipClick = onChip)
+                    ReviewRoute(vm, onExit = { nav.popBackStack() }, onChipClick = onChip, onGrammarDetail = { nav.navigate(GrammarDetail(it)) })
                 }
             }
             composable<About> { entry ->
@@ -326,5 +468,5 @@ private fun detailActions(
     onFailed = { container?.contentReadFailed() },
     onToggleFurigana = onToggleFurigana,
     onBack = { nav.popBackStack() }, onAboutLevel = { nav.navigate(About("N-09")) },
-    onKanji = { nav.navigate(KanjiDetail(it)) }, onWord = { nav.navigate(VocabDetail(it)) },
+    onKanji = { nav.navigate(KanjiDetail(it)) }, onStrokeSource = { nav.navigate(About("S-03")) }, onWord = { nav.navigate(VocabDetail(it)) },
 )

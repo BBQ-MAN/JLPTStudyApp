@@ -61,7 +61,7 @@ data class ReviewUiState(
 /** 세션 화면의 후리가나 설정(앞면은 설정에서만, 뒷면은 상단 토글로 바꾼다). */
 data class ReviewPrefs(val frontFurigana: Boolean = false, val bodyFurigana: Boolean = true)
 
-private const val EXTRA_NEW_STEP = 5
+internal const val EXTRA_NEW_STEP = 5
 
 /**
  * S03·S04 상태(architecture.md 7·8.1절). 순서는 SessionPlanner가 정하고, 평가·되돌리기마다 now로 plan을 다시 부른다.
@@ -162,7 +162,7 @@ class ReviewViewModel(
     /** 후리가나 토글(상단 바). */
     fun toggleFurigana() {
         // 지금 보이는 면의 설정을 바꾼다(앞면 = frontFurigana, 뒷면 = bodyFurigana).
-        val front = !_state.value.revealed
+        val front = !_state.value.revealed && _state.value.card !is ReviewCardUi.Grammar // 문법 예문은 앞면에서도 body_furigana
         viewModelScope.launch {
             runCatching {
                 study.updateSettings { if (front) it.copy(frontFurigana = !it.frontFurigana) else it.copy(bodyFurigana = !it.bodyFurigana) }

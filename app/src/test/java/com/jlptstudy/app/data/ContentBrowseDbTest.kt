@@ -44,7 +44,7 @@ class ContentBrowseDbTest {
         val k = repo.browse(BrowseTab.KANJI, emptySet(), "").filterIsInstance<BrowseItem.Kanji>().firstOrNull()
         if (k != null) {
             val kd = repo.kanjiDetail(k.literal)!!
-            assertNull(kd.strokes)
+            assertTrue(kd.strokes!!.isNotEmpty()) // 번들 DB에 필순이 있다(M13)
             assertEquals(k.level, kd.level)
         }
         assertNull(repo.vocabDetail("없는-id"))

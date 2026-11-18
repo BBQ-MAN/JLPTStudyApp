@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0009",
+  "section": "vocab",
+  "type": "orthography",
+  "stem": "{毎日|まいにち}　{朝|あさ}ごはんの　あとで　[[しんぶん]]を　{読|よ}みます。",
+  "target": "しんぶん",
+  "choices": [
+    "親聞",
+    "新問",
+    "新聞",
+    "新間"
+  ],
+  "answerIndex": 2,
+  "explanationKo": "しんぶん(신문)은 新聞으로 씁니다. 聞은 門 안에 耳가 들어간 글자입니다.",
+  "whyWrongKo": [
+    "親은 '어버이 친'입니다. しん으로 읽지만 新聞에는 新(새 신)을 씁니다.",
+    "問은 '물을 문'(問題의 問)입니다. 新聞에는 聞(들을 문)을 씁니다.",
+    null,
+    "間은 '사이 간'(時間의 間)입니다. 新聞에는 聞을 씁니다."
+  ],
+  "targets": [
+    "jm:1362360",
+    "新",
+    "聞"
+  ]
+}

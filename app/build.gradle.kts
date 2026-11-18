@@ -21,6 +21,9 @@ android {
     }
     buildFeatures { compose = true }
     testOptions { unitTests.isIncludeAndroidResources = true }
+    // MigrationTestHelper가 에셋에서 <버전>.json을 읽는다(architecture.md 9.2.4). Room 플러그인은 unit test 에셋에 schemas/를 넣지 않고,
+    // Robolectric은 앱 변형의 병합 에셋(mergeDebugAssets)만 보므로 test가 아니라 debug 에셋에 둔다. 릴리스 APK에는 들어가지 않는다.
+    sourceSets { getByName("debug").assets.srcDir("$projectDir/schemas") }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -51,6 +54,7 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    testImplementation(libs.androidx.room.testing)
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.roborazzi)
     testImplementation(libs.roborazzi.compose)

@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0014",
+  "section": "vocab",
+  "type": "orthography",
+  "stem": "{寒|さむ}いですから、[[こーと]]を　{着|き}て　{出|で}かけます。",
+  "target": "こーと",
+  "choices": [
+    "ユート",
+    "コード",
+    "ロート",
+    "コート"
+  ],
+  "answerIndex": 3,
+  "explanationKo": "こーと(코트)는 가타카나로 コート라고 씁니다.",
+  "whyWrongKo": [
+    "ユ는 ゆ입니다. こ는 コ입니다.",
+    "ド는 탁음 ど입니다. と는 ト입니다.",
+    "ロ는 ろ입니다. こ는 コ입니다.",
+    null
+  ],
+  "targets": [
+    "jm:1049000"
+  ]
+}

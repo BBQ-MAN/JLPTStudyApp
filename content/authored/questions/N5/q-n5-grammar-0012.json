@@ -1,0 +1,31 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0012",
+  "section": "grammar",
+  "type": "sentence-order",
+  "stem": "{母|はは}が　＿＿　＿＿　＿★＿　＿＿　おいしかったです。",
+  "choices": [
+    "{作|つく}った",
+    "は",
+    "ケーキ",
+    "とても"
+  ],
+  "answerIndex": 1,
+  "explanationKo": "바른 순서는 '作った ケーキ は とても'입니다(母が作ったケーキはとてもおいしかったです). ★ 자리(세 번째)에는 は가 들어갑니다.",
+  "whyWrongKo": [
+    "作った는 첫 번째 칸에 들어갑니다(母が作った).",
+    null,
+    "ケーキ는 두 번째 칸에 들어갑니다(作ったケーキ).",
+    "とても는 네 번째 칸에 들어갑니다(とてもおいしかった)."
+  ],
+  "targets": [
+    "jm:1597890"
+  ]
+}

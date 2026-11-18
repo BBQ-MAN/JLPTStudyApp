@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0019",
+  "section": "vocab",
+  "type": "context",
+  "stem": "{兄|あに}は　{背|せ}が　とても　＿＿です。",
+  "choices": [
+    "{広|ひろ}い",
+    "{長|なが}い",
+    "{太|ふと}い",
+    "{高|たか}い"
+  ],
+  "answerIndex": 3,
+  "explanationKo": "키가 크다는 일본어로 背が高い라고 합니다. 한국어 '크다'와 달리 高い를 씁니다.",
+  "whyWrongKo": [
+    "広い(넓다)는 방·길 같은 넓이에 씁니다. 키에는 쓰지 않습니다.",
+    "長い(길다)는 길이에 씁니다. 키는 背が高い라고 합니다.",
+    "太い(굵다)는 굵기에 씁니다. 키에는 쓰지 않습니다.",
+    null
+  ],
+  "targets": [
+    "jm:1283190",
+    "背"
+  ]
+}

@@ -17,11 +17,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SegmentedButton
@@ -31,6 +34,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -40,6 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,28 +54,32 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jlptstudy.app.CardKind
 import com.jlptstudy.app.JlptLevel
 import com.jlptstudy.app.R
 import com.jlptstudy.app.ThemeMode
-import com.jlptstudy.app.ui.common.StepperRow
+import com.jlptstudy.app.ui.components.NumberStepper
 import com.jlptstudy.app.ui.level.LevelPicker
 import com.jlptstudy.app.ui.theme.LoadingDelayMs
 import com.jlptstudy.app.ui.theme.Spacing
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class SettingsActions(
     val onLevels: (Set<JlptLevel>) -> Unit = {}, val onNewCards: (Int) -> Unit = {}, val onDayHour: (Int) -> Unit = {},
     val onKind: (CardKind, Boolean) -> Unit = { _, _ -> }, val onFrontFurigana: (Boolean) -> Unit = {},
     val onBodyFurigana: (Boolean) -> Unit = {}, val onTheme: (ThemeMode) -> Unit = {},
     val onAbout: () -> Unit = {}, val onLevelNotice: () -> Unit = {}, val onRetry: () -> Unit = {}, val onSaveFailedShown: () -> Unit = {},
+    val onListeningScriptFirst: (Boolean) -> Unit = {},
 )
 
 @Composable
@@ -89,7 +98,7 @@ fun SettingsRoute(vm: SettingsViewModel, openLevelPicker: Boolean, onAbout: () -
         state, host, openLevelPicker,
         SettingsActions(
             vm::setLevels, vm::setNewCards, vm::setDayBoundaryHour, vm::setKind, vm::setFrontFurigana, vm::setBodyFurigana,
-            vm::setTheme, onAbout, onLevelNotice,
+            vm::setTheme, onAbout, onLevelNotice, onListeningScriptFirst = vm::setListeningScriptFirst,
         ),
     )
 }
@@ -107,6 +116,13 @@ fun SettingsScreen(
         if (wasOpen && !sheetOpen) runCatching { levelRowFocus.requestFocus() }
         wasOpen = sheetOpen
     }
+    var daySheetOpen by rememberSaveable { mutableStateOf(false) }
+    val dayRowFocus = remember { FocusRequester() }
+    var dayWasOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(daySheetOpen) { // 키보드·D-pad 입력 포커스(터치 모드에서는 clickable이 거절한다. 낭독 포커스는 시트가 닫히며 플랫폼이 돌려준다, 11.1). 고르거나 닫으면 포커스는 "하루 시작 시각" 행으로
+        if (dayWasOpen && !daySheetOpen) runCatching { dayRowFocus.requestFocus() }
+        dayWasOpen = daySheetOpen
+    }
     Surface(Modifier.fillMaxSize().testTag("settings_screen"), color = MaterialTheme.colorScheme.surface) {
         Box(Modifier.fillMaxSize()) {
             if (state.loading) {
@@ -118,20 +134,18 @@ fun SettingsScreen(
                     val levelsText = JlptLevel.entries.filter { it in state.targetLevels }.joinToString(" · ") { it.name }
                         .ifEmpty { stringResource(R.string.settings_levels_none) }
                     ClickRow(stringResource(R.string.settings_levels), levelsText, Modifier.focusRequester(levelRowFocus).testTag("row_levels")) { sheetOpen = true }
-                    StepperRow(
-                        stringResource(R.string.settings_new_cards), state.newCardsPerDay.toString(),
-                        { actions.onNewCards(state.newCardsPerDay - 5) }, { actions.onNewCards(state.newCardsPerDay + 5) },
-                        canDecrease = state.newCardsPerDay > 5, canIncrease = state.newCardsPerDay < 50,
-                    )
-                    StepperRow(
+                    NumberStepper(stringResource(R.string.settings_new_cards), state.newCardsPerDay, actions.onNewCards)
+                    val dayHour = stringResource(R.string.settings_day_start_hour, state.dayBoundaryHour)
+                    ClickRow(
                         stringResource(R.string.settings_day_start), "%02d:00".format(state.dayBoundaryHour),
-                        { actions.onDayHour(state.dayBoundaryHour - 1) }, { actions.onDayHour(state.dayBoundaryHour + 1) },
-                        canDecrease = state.dayBoundaryHour > 0, canIncrease = state.dayBoundaryHour < 12,
-                    )
+                        Modifier.focusRequester(dayRowFocus).testTag("row_day_start").semantics { stateDescription = dayHour },
+                        onClickLabel = stringResource(R.string.action_change), tnum = true,
+                    ) { daySheetOpen = true }
                     Text(stringResource(R.string.settings_kinds), Modifier.padding(top = Spacing.md), style = MaterialTheme.typography.titleSmall)
                     SwitchRow(stringResource(R.string.settings_kind_vr), state.vocabRecognitionEnabled) { actions.onKind(CardKind.VR, it) }
                     SwitchRow(stringResource(R.string.settings_kind_kr), state.kanjiCardsEnabled) { actions.onKind(CardKind.KR, it) }
                     SwitchRow(stringResource(R.string.settings_kind_vp), state.vocabRecallEnabled) { actions.onKind(CardKind.VP, it) }
+                    if (state.grammarAvailable) SwitchRow(stringResource(R.string.settings_kind_gr), state.grammarCardsEnabled) { actions.onKind(CardKind.GR, it) }
                     if (state.kindsWarning) {
                         Text(stringResource(R.string.settings_kinds_warning), Modifier.testTag("kinds_warning").semantics { liveRegion = LiveRegionMode.Polite }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                     }
@@ -141,9 +155,10 @@ fun SettingsScreen(
                     SwitchRow(stringResource(R.string.settings_front_furigana), state.frontFurigana, actions.onFrontFurigana)
                     SwitchRow(stringResource(R.string.settings_body_furigana), state.bodyFurigana, actions.onBodyFurigana)
                     ThemeRow(state.theme, actions.onTheme)
+                    if (state.listeningAvailable) SwitchRow(stringResource(R.string.settings_listening_script_first), state.listeningScriptFirst, actions.onListeningScriptFirst)
 
                     Section(R.string.settings_group_info)
-                    ClickRow(stringResource(R.string.about_title), null, Modifier.testTag("row_about"), actions.onAbout)
+                    ClickRow(stringResource(R.string.about_title), null, Modifier.testTag("row_about")) { actions.onAbout() }
                     val version = appVersion()
                     InfoRow(stringResource(R.string.settings_version), stringResource(R.string.settings_version_value, version, state.contentVersion))
                     Box(Modifier.navigationBarsPadding().padding(bottom = Spacing.lg))
@@ -152,10 +167,20 @@ fun SettingsScreen(
             SnackbarHost(host, Modifier.align(Alignment.BottomCenter))
         }
     }
+    if (daySheetOpen && !state.loading) {
+        val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val scope = rememberCoroutineScope()
+        ModalBottomSheet(onDismissRequest = { daySheetOpen = false }, sheetState = sheet) {
+            // 고르면 값을 저장하고 시트를 내리는 애니메이션이 끝난 뒤에 닫는다(바로 지우면 시트가 툭 사라진다)
+            DayStartSheetContent(state.dayBoundaryHour) { actions.onDayHour(it); scope.launch { sheet.hide() }.invokeOnCompletion { daySheetOpen = false } }
+        }
+    }
     if (sheetOpen && !state.loading) { // 로딩 전엔 선택값이 비어 있으므로 기다린다
         val available = state.levelOptions.filter { it.available }.map { it.level }.toSet()
         var picked by remember { mutableStateOf(state.targetLevels intersect available) }
-        ModalBottomSheet(onDismissRequest = { sheetOpen = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val scope = rememberCoroutineScope()
+        ModalBottomSheet(onDismissRequest = { sheetOpen = false }, sheetState = sheet) {
             Column(Modifier.padding(horizontal = Spacing.lg).padding(bottom = Spacing.lg).testTag("level_picker_sheet"), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 Text(stringResource(R.string.settings_levels), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleLarge)
                 LevelPicker(
@@ -167,9 +192,35 @@ fun SettingsScreen(
                     Text(stringResource(R.string.level_none_selected), Modifier.semantics { liveRegion = LiveRegionMode.Polite }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 }
                 Button(
-                    { actions.onLevels(picked); sheetOpen = false }, Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                    { actions.onLevels(picked); scope.launch { sheet.hide() }.invokeOnCompletion { sheetOpen = false } }, Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     enabled = picked.isNotEmpty(),
                 ) { Text(stringResource(R.string.level_save)) }
+            }
+        }
+    }
+}
+
+/** 하루 시작 시각 시트 본문(ui-design 6.8): 정시 라디오 13개. 고르면 [onPick]. */
+@Composable
+internal fun DayStartSheetContent(hour: Int, onPick: (Int) -> Unit) {
+    Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = Spacing.lg).padding(bottom = Spacing.lg).testTag("day_start_sheet")) {
+        Text(stringResource(R.string.settings_day_start), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium)
+        Text(
+            stringResource(R.string.settings_day_start_note), Modifier.padding(vertical = Spacing.sm),
+            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Column(Modifier.selectableGroup()) {
+            (0..12).forEach { h ->
+                val description = stringResource(R.string.settings_day_start_hour, h)
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag("day_start_$h")
+                        .selectable(h == hour, role = Role.RadioButton) { onPick(h) }
+                        .semantics { contentDescription = description },
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+                ) {
+                    RadioButton(h == hour, onClick = null)
+                    Text("%02d:00".format(h), style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
+                }
             }
         }
     }
@@ -188,13 +239,15 @@ private fun Section(title: Int) {
 }
 
 @Composable
-private fun ClickRow(label: String, value: String?, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun ClickRow(label: String, value: String?, modifier: Modifier = Modifier, onClickLabel: String? = null, tnum: Boolean = false, onClick: () -> Unit) {
     Row(
-        modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(role = Role.Button, onClick = onClick),
+        modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-        if (value != null) Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (value != null) Text(value, style = MaterialTheme.typography.let { if (tnum) it.bodyLarge.copy(fontFeatureSettings = "tnum") else it.bodyMedium }, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // 누르면 열린다는 표시. 행 전체가 하나의 버튼이라 따로 낭독하지 않는다
+        Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null, Modifier.padding(start = Spacing.xs), tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

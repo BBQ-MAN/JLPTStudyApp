@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0008",
+  "section": "vocab",
+  "type": "kanji-reading",
+  "stem": "[[来月]]、{家族|かぞく}で　{海|うみ}へ　{行|い}きます。",
+  "target": "来月",
+  "choices": [
+    "らいがつ",
+    "らいつき",
+    "らいげつ",
+    "せんげつ"
+  ],
+  "answerIndex": 2,
+  "explanationKo": "来月는 '다음 달'이고 らいげつ로 읽습니다. 今月(こんげつ)·先月(せんげつ)도 같은 げつ입니다.",
+  "whyWrongKo": [
+    "月은 이 말에서 げつ로 읽습니다. がつ는 一月(いちがつ)처럼 달 이름에 씁니다.",
+    "来月은 음으로 らいげつ라고 읽습니다.",
+    null,
+    "せんげつ는 先月(지난달)의 읽기입니다."
+  ],
+  "targets": [
+    "jm:1547900",
+    "来",
+    "月"
+  ]
+}

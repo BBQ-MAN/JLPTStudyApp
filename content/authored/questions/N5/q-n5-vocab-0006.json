@@ -1,0 +1,34 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-vocab-0006",
+  "section": "vocab",
+  "type": "kanji-reading",
+  "stem": "あしたの　[[午後]]、{友達|ともだち}と　テニスを　します。",
+  "target": "午後",
+  "choices": [
+    "ごぜん",
+    "こご",
+    "ごうご",
+    "ごご"
+  ],
+  "answerIndex": 3,
+  "explanationKo": "午後는 '오후'이고 ごご로 읽습니다.",
+  "whyWrongKo": [
+    "ごぜん은 午前(오전)의 읽기입니다.",
+    "午는 탁음 ご로 읽습니다.",
+    "午는 ご로 짧게 읽습니다. ごう로 늘이지 않습니다.",
+    null
+  ],
+  "targets": [
+    "jm:1268990",
+    "午",
+    "後"
+  ]
+}

@@ -1,6 +1,7 @@
 """테스트 공통: 합성 원본·임시 저장소 만들기."""
 import csv
 import io
+import zipfile
 import json
 import shutil
 import tempfile
@@ -59,6 +60,42 @@ def kanjidic(chars=("水", "時", "犬", "端", "雨", "猫", "日", "本", "人
     return KANJIDIC.format(chars="\n".join(CHAR.format(lit=c, sc=spec[c][0], freq=spec[c][1], ko=spec[c][2], on=spec[c][3], kun=spec[c][4]) for c in chars))
 
 
+SVG = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd" [
+<!ATTLIST g xmlns:kvg CDATA #FIXED "http://kanjivg.tagaini.net" kvg:element CDATA #IMPLIED kvg:radical CDATA #IMPLIED>
+<!ATTLIST path xmlns:kvg CDATA #FIXED "http://kanjivg.tagaini.net" kvg:type CDATA #IMPLIED>
+]>
+<svg xmlns="http://www.w3.org/2000/svg" width="109" height="109" viewBox="{vb}" xmlns:kvg="https://kanjivg.tagaini.net/">
+<g id="kvg:StrokePaths_{code}" style="fill:none;stroke:#000000;">
+<g id="kvg:{code}" kvg:element="ELEMENT-{lit}" kvg:radical="RADICAL-{lit}">
+{paths}
+</g>
+</g>
+<g id="kvg:StrokeNumbers_{code}" style="font-size:8;fill:#808080">
+<text transform="matrix(1 0 0 1 4.25 54.13)">NUMBER-{lit}</text>
+</g>
+</svg>
+"""
+
+
+def kvg_svg(lit, ds, vb="0 0 109 109"):
+    """합성 KanjiVG SVG. ds는 획 순서의 d 목록이며 문서에는 일부러 뒤섞인 순서로 쓴다."""
+    code = f"{ord(lit):05x}"
+    order = list(range(len(ds)))[::-1]
+    paths = "\n".join(f'<path id="kvg:{code}-s{i + 1}" kvg:type="TYPE-{lit}" d="{ds[i]}"/>' for i in order)
+    return SVG.format(vb=vb, code=code, lit=lit, paths=paths).encode()
+
+
+def kvg_zip(skip=("犬",)):
+    """합성 KanjiVG main 묶음. skip의 한자는 묶음에 없다(strokes_missing 검사용)."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        for c in "水時犬端雨猫日本人":
+            if c not in skip:
+                z.writestr(f"kanji/{ord(c):05x}.svg", kvg_svg(c, [f"M1,1c{c_i},2" for c_i in range(1, 12 if c == "水" else 3)]))
+    return buf.getvalue()
+
+
 def s06_csv(rows):
     buf = io.StringIO()
     w = csv.writer(buf, lineterminator="\n")
@@ -80,6 +117,7 @@ def synthetic_sources():
     blobs = {
         "https://example.test/JMdict_e": JMDICT.encode(), "https://example.test/kanjidic2.xml": kanjidic().encode(),
         "https://example.test/n5.csv": s06_csv(N5_ROWS).encode(), "https://example.test/n4.csv": s06_csv(N4_ROWS).encode(),
+        "https://example.test/kanjivg.zip": kvg_zip(),
     }
     h = lambda u: sha256_bytes(blobs[u])
     man = [
@@ -87,6 +125,9 @@ def synthetic_sources():
              pinning={"method": "snapshot", "pinnedCopy": "content/snapshot/"}, links=["https://l1", "https://l2"], extraCredits=[], attribution="EDRDG text"),
         dict(BASE_SRC, id="S-02", name="KANJIDIC2", version="2026-305 (2026-11-01)", downloadUrl="https://example.test/kanjidic2.xml", sha256=h("https://example.test/kanjidic2.xml"),
              pinning={"method": "snapshot", "pinnedCopy": "content/snapshot/"}, links=["https://l1"], extraCredits=[{"text": "한국어 음: 크레딧", "url": None}], attribution="EDRDG text"),
+        dict(BASE_SRC, id="S-03", name="KanjiVG", version="r20260714", downloadUrl="https://example.test/kanjivg.zip", sha256=h("https://example.test/kanjivg.zip"),
+             license="CC BY-SA 3.0", licenseUrl="https://creativecommons.org/licenses/by-sa/3.0/", attribution="KanjiVG text", modifications="SVG 획 경로를 앱 형식으로 변환",
+             pinning={"method": "snapshot", "pinnedCopy": "content/snapshot/"}, links=[], extraCredits=[]),
         dict(BASE_SRC, id="S-06", name="level list", version="b062d4e (2025-08-26)", downloadUrl=None, sha256=None,
              files=[{"path": "original_data/n5.csv", "url": "https://example.test/n5.csv", "sha256": h("https://example.test/n5.csv")},
                     {"path": "original_data/n4.csv", "url": "https://example.test/n4.csv", "sha256": h("https://example.test/n4.csv")}],
@@ -110,7 +151,8 @@ class TempRoot(unittest.TestCase):
         d = Path(tempfile.mkdtemp(prefix="jlptpl-"))
         self.addCleanup(shutil.rmtree, d, True)
         p = Paths(d)
-        for rel in ("app/schemas/com.jlptstudy.app.data.content.ContentDatabase/1.json", "content/notices.ko.json"):
+        latest = max(Paths().schemas.glob("*.json"), key=lambda f: int(f.stem)).relative_to(REPO)  # 가장 큰 번호 스키마
+        for rel in (latest, "content/notices.ko.json"):
             (d / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(REPO / rel, d / rel)
         (d / "docs/content").mkdir(parents=True)

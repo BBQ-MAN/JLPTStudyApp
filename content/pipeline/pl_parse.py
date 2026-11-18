@@ -33,8 +33,9 @@ def _dtd_codes(path):
     return {desc: name for name, desc in ENTITY.findall(head.decode("utf-8", "replace"))}
 
 
-def parse_jmdict(path):
-    """항목을 하나씩 낸다: {seq, keb[], reb[], pos[](첫 sense 코드), senses[{uk, gloss[]}]} (영어 gloss가 있는 sense만)."""
+def parse_jmdict(path, xref=False):
+    """항목을 하나씩 낸다: {seq, keb[], reb[], pos[](첫 sense 코드), senses[{uk, gloss[]}]} (영어 gloss가 있는 sense만).
+    xref=True일 때만 최상위 "xref"(모든 sense의 <xref> 원문, 나온 순서, 중복 제거)를 더한다 — S-01 스냅샷은 xref=False 결과라 바이트가 그대로다."""
     codes = _dtd_codes(path)
     with open_stream(path) as f:
         for _, e in ET.iterparse(f, events=("end",)):
@@ -53,13 +54,16 @@ def parse_jmdict(path):
                         if v:
                             sense[tag] = v
                     senses.append(sense)
-            yield {
+            out = {
                 "seq": int(e.findtext("ent_seq")),
                 "keb": [k.findtext("keb") for k in e.findall("k_ele")],
                 "reb": [r.findtext("reb") for r in e.findall("r_ele")],
                 "pos": [codes.get(p.text, p.text) for p in first.findall("pos")] if first is not None else [],
                 "senses": senses,
             }
+            if xref:
+                out["xref"] = list(dict.fromkeys(x.text for s in all_senses for x in s.findall("xref") if x.text))
+            yield out
             e.clear()
 
 

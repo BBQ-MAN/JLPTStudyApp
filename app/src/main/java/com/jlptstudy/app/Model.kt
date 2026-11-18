@@ -1,5 +1,6 @@
 package com.jlptstudy.app
 
+@androidx.annotation.Keep // 내비게이션 인자로 직렬화되는 열거형(난독화돼도 이름이 남게)
 enum class JlptLevel(val n: Int) {
     N5(5), N4(4), N3(3), N2(2), N1(1);
 

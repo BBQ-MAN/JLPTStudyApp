@@ -1,6 +1,9 @@
 package com.jlptstudy.app.data
 
 import com.jlptstudy.app.data.content.ContentDao
+import com.jlptstudy.app.data.content.GrammarEntity
+import com.jlptstudy.app.data.content.GrammarExampleEntity
+import com.jlptstudy.app.data.content.GrammarTitleRow
 import com.jlptstudy.app.data.content.IdLevelRow
 import com.jlptstudy.app.data.content.KanjiEntity
 import com.jlptstudy.app.data.content.KanjiWordRow
@@ -43,6 +46,14 @@ class ChunkingTest {
             override fun observeSettings(): Flow<UserSettingsEntity?> = emptyFlow()
             override suspend fun settingsRow(): UserSettingsEntity? = TODO()
             override suspend fun putSettings(settings: UserSettingsEntity) = TODO()
+            override suspend fun insertAttempt(attempt: com.jlptstudy.app.data.study.QuizAttemptEntity): Long = TODO()
+            override suspend fun insertAnswer(answer: com.jlptstudy.app.data.study.QuizAnswerEntity) = TODO()
+            override suspend fun updateProgress(id: Long, currentIndex: Int, elapsedMs: Long) = TODO()
+            override suspend fun finishAttempt(id: Long, at: Long) = TODO()
+            override suspend fun closeUnfinishedExams(at: Long) = TODO()
+            override suspend fun attemptById(id: Long): com.jlptstudy.app.data.study.QuizAttemptEntity? = TODO()
+            override suspend fun answersOf(id: Long): List<com.jlptstudy.app.data.study.QuizAnswerEntity> = TODO()
+            override suspend fun unfinishedExam(): com.jlptstudy.app.data.study.QuizAttemptEntity? = TODO()
         }
         RoomStudyRepository(dao).states(ids2000)
         assertEquals(2000, sizes.sum())
@@ -63,12 +74,40 @@ class ChunkingTest {
             override suspend fun kanjiCounts(): List<LevelCountRow> = TODO()
             override suspend fun vocabOrder(levels: List<Int>): List<OrderRow> = TODO()
             override suspend fun kanjiOrder(levels: List<Int>): List<OrderRow> = TODO()
+            override suspend fun grammarOrder(levels: List<Int>): List<OrderRow> = TODO()
+            override suspend fun grammarLevelsOf(ids: List<String>): List<IdLevelRow> = TODO()
+            override suspend fun grammarByIds(ids: List<String>): List<GrammarEntity> = TODO()
+            override suspend fun grammarFirstExamples(ids: List<String>): List<GrammarExampleEntity> = TODO()
             override suspend fun vocabLevels(ids: List<String>): List<IdLevelRow> = TODO()
             override suspend fun kanjiLevels(literals: List<String>): List<IdLevelRow> = TODO()
             override suspend fun browseVocab(levels: List<Int>, q: String) = TODO()
             override suspend fun browseKanji(levels: List<Int>, q: String) = TODO()
             override suspend fun vocabKanji(id: String): List<String> = TODO()
             override suspend fun meaningReviewRows(): List<ReviewCountRow> = TODO()
+            override suspend fun countKanjiStroke(): Int = TODO()
+            override suspend fun strokePaths(literal: String): String? = TODO()
+            override suspend fun grammarRows(levels: List<Int>): List<GrammarEntity> = TODO()
+            override suspend fun grammarLevels(): List<Int> = TODO()
+            override suspend fun grammarById(id: String): GrammarEntity? = TODO()
+            override suspend fun grammarExamples(id: String): List<GrammarExampleEntity> = TODO()
+            override suspend fun grammarTitles(ids: List<String>): List<GrammarTitleRow> = TODO()
+            override suspend fun countGrammar(): Int = TODO()
+            override suspend fun countGrammarExample(): Int = TODO()
+            override suspend fun countQuestion(): Int = TODO()
+            override suspend fun countExamTemplate(): Int = TODO()
+            override suspend fun countListening(): Int = TODO()
+            override suspend fun questionPool(level: Int) = TODO()
+            override suspend fun listeningPool(level: Int) = TODO()
+            override suspend fun questionsByIds(ids: List<String>) = TODO()
+            override suspend fun listeningByIds(ids: List<String>) = TODO()
+            override suspend fun examTemplateRow(level: Int) = TODO()
+            override suspend fun examTemplateLevels() = TODO()
+            override suspend fun quizVocab(level: Int) = TODO()
+            override suspend fun quizMeanings(level: Int) = TODO()
+            override suspend fun quizKanji(level: Int) = TODO()
+            override suspend fun quizForms(level: Int) = TODO()
+            override suspend fun quizConflicts(level: Int) = TODO()
+            override suspend fun vocabLevel(id: String) = TODO()
         }
         RoomContentRepository(dao).cardContents(ids2000 + (1..1000).map { "kr:字$it" })
         for (name in listOf("vocab", "meanings", "retired", "kanji", "words")) {

@@ -1,0 +1,32 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": false,
+  "sources": [],
+  "method": "llm:claude-opus-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0011",
+  "section": "grammar",
+  "type": "grammar-form",
+  "stem": "「{来週|らいしゅう}の　{日曜日|にちようび}、いっしょに　{映画|えいが}を　{見|み}＿＿。」「いいですね。{見|み}ましょう。」",
+  "choices": [
+    "ましたか",
+    "ませんでした",
+    "て　いました",
+    "ませんか"
+  ],
+  "answerIndex": 3,
+  "explanationKo": "다음 주 일을 함께 하자고 권하는 말이므로 〜ませんか를 씁니다. 대답 '見ましょう'도 권유를 받아들이는 말입니다.",
+  "whyWrongKo": [
+    "ましたか는 지난 일을 묻습니다. 来週라는 말과 맞지 않습니다.",
+    "ませんでした는 과거의 부정입니다. 来週라는 말과 맞지 않고 권유도 되지 않습니다.",
+    "ていました는 과거에 하고 있던 일입니다. 来週라는 말과 맞지 않습니다.",
+    null
+  ],
+  "targets": [
+    "gr-n5-0006",
+    "gr-n5-0005"
+  ]
+}

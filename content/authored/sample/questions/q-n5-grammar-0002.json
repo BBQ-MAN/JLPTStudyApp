@@ -1,0 +1,31 @@
+{
+  "level": "N5",
+  "status": "draft",
+  "needsReview": true,
+  "sources": [],
+  "method": "llm:claude-sonnet-5-5@2026-11-03",
+  "reviewStatus": "unreviewed",
+  "reviewedAt": null,
+  "reviewerKind": null,
+  "id": "q-n5-grammar-0002",
+  "section": "grammar",
+  "type": "grammar-form",
+  "stem": "ここに{名前|なまえ}を＿＿ください。",
+  "choices": [
+    "{書|か}いて",
+    "{書|か}く",
+    "{書|か}いた",
+    "{書|か}かない"
+  ],
+  "answerIndex": 0,
+  "explanationKo": "〜てください는 동사의 て형에 붙으므로 書いて가 맞습니다.",
+  "whyWrongKo": [
+    null,
+    "사전형에는 ください를 붙이지 않습니다.",
+    "た형에는 ください를 붙이지 않습니다.",
+    "ない형에는 ください를 붙이지 않습니다."
+  ],
+  "targets": [
+    "gr-n5-0001"
+  ]
+}
